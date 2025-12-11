@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User Roles & Profiles
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      String   @default("CLIENT") // CLIENT, PRO, ADMIN
+  image     String?
+  
+  // Relations
+  clientReservations Reservation[] @relation("ClientReservations")
+  reviews            Review[]
+  proProfile         ProProfile?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ProProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  bio         String?
+  hourlyRate  Float    @default(50.0)
+  
+  cityId      String
+  city        City     @relation(fields: [cityId], references: [id])
+  
+  serviceCategories ServiceCategory[]
+  
+  reservations Reservation[] @relation("ProReservations")
+  reviews      Review[]
+  availability Availability[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Availability {
+  id            String      @id @default(cuid())
+  proProfileId  String
+  proProfile    ProProfile  @relation(fields: [proProfileId], references: [id], onDelete: Cascade)
+  
+  dayOfWeek     Int?        // 0=Sun, 1=Mon, etc. (for recurring)
+  date          DateTime?   // For specific date overrides
+  startTime     String      // "09:00"
+  endTime       String      // "17:00"
+  isAvailable   Boolean     @default(true)
+}
+
+// Directory Data
+model City {
+  id        String       @id @default(cuid())
+  name      String
+  zip       String
+  region    String
+  
+  pros      ProProfile[]
+}
+
+model ServiceCategory {
+  id    String       @id @default(cuid())
+  name  String       @unique
+  icon  String?      // Lucide icon name
+  pros  ProProfile[]
+}
+
+// Booking System
+model Reservation {
+  id          String   @id @default(cuid())
+  
+  clientId    String
+  client      User     @relation("ClientReservations", fields: [clientId], references: [id])
+  
+  proId       String
+  pro         ProProfile @relation("ProReservations", fields: [proId], references: [id])
+  
+  startDate   DateTime
+  endDate     DateTime
+  status      String   @default("PENDING") // PENDING, CONFIRMED, REJECTED, CANCELLED, COMPLETED
+  totalPrice  Float
+  notes       String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  review      Review?
+}
+
+model Review {
+  id            String      @id @default(cuid())
+  rating        Int         // 1-5
+  comment       String?
+  
+  reservationId String      @unique
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  
+  clientId      String
+  client        User        @relation(fields: [clientId], references: [id])
+  
+  proId         String
+  pro           ProProfile  @relation(fields: [proId], references: [id])
+  
+  createdAt     DateTime    @default(now())
+}
