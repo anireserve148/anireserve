@@ -4,9 +4,11 @@ import { useState } from "react"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { addHours, format, setHours, setMinutes, isSameDay } from "date-fns"
+import { addHours, format, setHours, setMinutes } from "date-fns"
+import { fr } from "date-fns/locale"
 import { createReservation } from "@/app/lib/booking-actions"
-import { Loader2 } from "lucide-react"
+import { Loader2, Clock, Calendar as CalendarIcon } from "lucide-react"
+import { toast } from "sonner"
 
 export function BookingWidget({ proId, availability, hourlyRate }: { proId: string, availability: any[], hourlyRate: number }) {
     const [date, setDate] = useState<Date | undefined>(new Date())
@@ -14,7 +16,6 @@ export function BookingWidget({ proId, availability, hourlyRate }: { proId: stri
     const [isBooking, setIsBooking] = useState(false)
 
     // Calculate available slots for the selected date
-    // This is a simplified logic. Real logic needs to check existing reservations too.
     const getSlots = () => {
         if (!date) return []
         const dayOfWeek = date.getDay() // 0-6
@@ -43,10 +44,18 @@ export function BookingWidget({ proId, availability, hourlyRate }: { proId: stri
         const endDate = addHours(startDate, 1) // 1 hour duration by default
 
         try {
-            await createReservation(proId, startDate, endDate, hourlyRate)
+            const result = await createReservation({ proId, startDate, endDate, totalPrice: hourlyRate })
+
+            if (result.success) {
+                toast.success('Demande de réservation envoyée avec succès !')
+                setSelectedSlot(null)
+            } else {
+                toast.error(result.error || 'Erreur lors de la réservation')
+            }
         } catch (e) {
             console.error(e)
-            alert("Booking failed. Please try again.")
+            toast.error("Une erreur inattendue est survenue")
+        } finally {
             setIsBooking(false)
         }
     }
@@ -54,7 +63,10 @@ export function BookingWidget({ proId, availability, hourlyRate }: { proId: stri
     return (
         <Card className="shadow-lg border-primary/20">
             <CardHeader>
-                <CardTitle>Réserver un Rendez-vous</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                    <CalendarIcon className="h-5 w-5" />
+                    Réserver un Rendez-vous
+                </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex justify-center border rounded-md p-2">
@@ -62,14 +74,17 @@ export function BookingWidget({ proId, availability, hourlyRate }: { proId: stri
                         mode="single"
                         selected={date}
                         onSelect={setDate}
-                        initialFocus
                         disabled={(date) => date < new Date()}
+                        locale={fr}
                     />
                 </div>
 
                 {date && (
                     <div>
-                        <h3 className="font-semibold mb-2">Horaires disponibles ({format(date, "d MMM")})</h3>
+                        <h3 className="font-semibold mb-3 flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            Horaires disponibles - {format(date, "EEEE d MMMM", { locale: fr })}
+                        </h3>
                         {slots.length > 0 ? (
                             <div className="grid grid-cols-3 gap-2">
                                 {slots.map(slot => (
@@ -78,28 +93,52 @@ export function BookingWidget({ proId, availability, hourlyRate }: { proId: stri
                                         variant={selectedSlot === slot ? "default" : "outline"}
                                         size="sm"
                                         onClick={() => setSelectedSlot(slot)}
+                                        className="font-medium"
                                     >
                                         {slot}
                                     </Button>
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-sm text-destructive">Pas de disponibilité ce jour.</p>
+                            <div className="text-center py-6 bg-muted/50 rounded-lg">
+                                <p className="text-sm text-muted-foreground">
+                                    Aucune disponibilité ce jour.
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Essayez un autre jour de la semaine
+                                </p>
+                            </div>
                         )}
                     </div>
                 )}
 
                 {selectedSlot && (
-                    <div className="bg-muted p-3 rounded-md flex justify-between items-center text-sm">
-                        <span>Total (1 heure)</span>
-                        <span className="font-bold text-lg">{hourlyRate}€</span>
+                    <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Durée</p>
+                                <p className="font-semibold">1 heure</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm text-muted-foreground">Total</p>
+                                <p className="text-2xl font-bold text-primary">{hourlyRate}₪</p>
+                            </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                            {format(date!, "EEEE d MMMM", { locale: fr })} à {selectedSlot}
+                        </p>
                     </div>
                 )}
             </CardContent>
             <CardFooter>
-                <Button className="w-full" disabled={!date || !selectedSlot || isBooking} onClick={handleBook}>
+                <Button
+                    className="w-full font-semibold"
+                    disabled={!date || !selectedSlot || isBooking}
+                    onClick={handleBook}
+                    size="lg"
+                >
                     {isBooking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Demander une réservation
+                    {isBooking ? 'Envoi en cours...' : 'Demander une réservation'}
                 </Button>
             </CardFooter>
         </Card>

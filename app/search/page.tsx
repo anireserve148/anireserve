@@ -93,7 +93,7 @@ export default async function SearchPage({
                             </CardContent>
                             <CardFooter className="flex justify-between items-center border-t pt-4">
                                 <div className="font-semibold">
-                                    {pro.hourlyRate}€ <span className="text-muted-foreground font-normal text-xs">/h</span>
+                                    {pro.hourlyRate}₪ <span className="text-muted-foreground font-normal text-xs">/h</span>
                                 </div>
                                 <Button asChild size="sm">
                                     <Link href={`/pros/${pro.id}`}>Voir le profil</Link>

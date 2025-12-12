@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Check, X } from "lucide-react"
 import { useState } from "react"
+import { toast } from "sonner"
 
 export function ReservationManager({ reservations }: { reservations: any[] }) {
     const [loadingId, setLoadingId] = useState<string | null>(null)
@@ -13,10 +14,20 @@ export function ReservationManager({ reservations }: { reservations: any[] }) {
     const handleStatus = async (id: string, status: 'CONFIRMED' | 'REJECTED') => {
         setLoadingId(id)
         try {
-            await updateReservationStatus(id, status)
+            const result = await updateReservationStatus(id, status)
+
+            if (result.success) {
+                toast.success(
+                    status === 'CONFIRMED'
+                        ? 'Réservation confirmée avec succès'
+                        : 'Réservation refusée'
+                )
+            } else {
+                toast.error(result.error || 'Une erreur est survenue')
+            }
         } catch (e) {
             console.error(e)
-            alert("Action failed")
+            toast.error("Une erreur inattendue est survenue")
         } finally {
             setLoadingId(null)
         }
@@ -39,7 +50,7 @@ export function ReservationManager({ reservations }: { reservations: any[] }) {
                                     <div className="text-sm text-muted-foreground">
                                         {new Date(res.startDate).toLocaleDateString()} • {new Date(res.startDate).toLocaleTimeString()} - {new Date(res.endDate).toLocaleTimeString()}
                                     </div>
-                                    <div className="mt-1 font-medium">{res.totalPrice}€</div>
+                                    <div className="mt-1 font-medium">{res.totalPrice}₪</div>
                                 </div>
 
                                 <div className="flex items-center gap-3">

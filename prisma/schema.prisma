@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 // User Roles & Profiles
@@ -16,14 +15,25 @@ model User {
   password  String
   role      String   @default("CLIENT") // CLIENT, PRO, ADMIN
   image     String?
+  phoneNumber String?
+  address     String?
   
   // Relations
   clientReservations Reservation[] @relation("ClientReservations")
   reviews            Review[]
+  favorites          Favorite[]
+  clientConversations Conversation[] @relation("ClientConversations")
   proProfile         ProProfile?
+
+  // Reset Password
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
 }
 
 model ProProfile {
@@ -33,18 +43,40 @@ model ProProfile {
   
   bio         String?
   hourlyRate  Float    @default(50.0)
+  verificationStatus String @default("VERIFIED") // PENDING, APPROVED, REJECTED
+
   
   cityId      String
   city        City     @relation(fields: [cityId], references: [id])
   
   serviceCategories ServiceCategory[]
+  services     ProService[]  // Custom services with pricing
   
   reservations Reservation[] @relation("ProReservations")
   reviews      Review[]
+  favoritedBy  Favorite[]
+  conversations Conversation[]
   availability Availability[]
+  gallery      ProProfileGallery[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([cityId])
+  @@index([userId])
+}
+
+model ProProfileGallery {
+  id            String      @id @default(cuid())
+  proProfileId  String
+  proProfile    ProProfile  @relation(fields: [proProfileId], references: [id], onDelete: Cascade)
+  imageUrl      String
+  caption       String?
+  order         Int         @default(0)
+  createdAt     DateTime    @default(now())
+  
+  @@index([proProfileId])
+  @@index([order])
 }
 
 model Availability {
@@ -70,10 +102,16 @@ model City {
 }
 
 model ServiceCategory {
-  id    String       @id @default(cuid())
-  name  String       @unique
-  icon  String?      // Lucide icon name
-  pros  ProProfile[]
+  id        String              @id @default(cuid())
+  name      String              @unique
+  icon      String?             // Lucide icon name
+  parentId  String?
+  parent    ServiceCategory?    @relation("SubCategories", fields: [parentId], references: [id], onDelete: SetNull)
+  children  ServiceCategory[]   @relation("SubCategories")
+  pros      ProProfile[]
+  proServices ProService[]
+  
+  @@index([parentId])
 }
 
 // Booking System
@@ -96,6 +134,11 @@ model Reservation {
   updatedAt   DateTime @updatedAt
   
   review      Review?
+
+  @@index([clientId])
+  @@index([proId])
+  @@index([status])
+  @@index([startDate])
 }
 
 model Review {
@@ -113,4 +156,94 @@ model Review {
   pro           ProProfile  @relation(fields: [proId], references: [id])
   
   createdAt     DateTime    @default(now())
+}
+
+model Favorite {
+  id        String      @id @default(cuid())
+  
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  proId     String
+  pro       ProProfile  @relation(fields: [proId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime    @default(now())
+
+  @@unique([userId, proId])
+  @@index([userId])
+}
+
+model ProService {
+  id            String         @id @default(cuid())
+  proProfileId  String
+  proProfile    ProProfile     @relation(fields: [proProfileId], references: [id], onDelete: Cascade)
+  categoryId    String
+  category      ServiceCategory @relation(fields: [categoryId], references: [id])
+  customPrice   Float?         // Prix spécifique pour ce service (override hourlyRate)
+  description   String?        // Description personnalisée du service
+  duration      Int?           // Durée en minutes
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  
+  @@unique([proProfileId, categoryId])
+  @@index([proProfileId])
+  @@index([categoryId])
+}
+
+model Conversation {
+  id          String    @id @default(cuid())
+  clientId    String
+  client      User      @relation("ClientConversations", fields: [clientId], references: [id], onDelete: Cascade)
+  proId       String
+  pro         ProProfile @relation(fields: [proId], references: [id], onDelete: Cascade)
+  messages    Message[]
+  lastMessageAt DateTime?
+  createdAt   DateTime  @default(now())
+  
+  @@unique([clientId, proId])
+  @@index([clientId])
+  @@index([proId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  content        String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  
+  @@index([conversationId])
+  @@index([senderId])
+}
+
+model ProApplication {
+  id              String   @id @default(cuid())
+  
+  // Informations personnelles
+  firstName       String
+  lastName        String
+  email           String   @unique
+  phone           String
+  password        String   // Hashé
+  
+  // Informations professionnelles
+  cityIds         String   // JSON array of city IDs
+  categoryIds     String   // JSON array of category IDs
+  
+  // Documents
+  idPhotoUrl      String   // Photo Teoudat Zehut
+  
+  // Statut: PENDING, APPROVED, REJECTED, NEEDS_DOCUMENTS
+  status          String   @default("PENDING")
+  adminNotes      String?  // Notes de l'admin
+  reviewedBy      String?  // ID de l'admin qui a traité
+  reviewedAt      DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([status])
+  @@index([email])
 }
