@@ -12,8 +12,14 @@ export default async function MessagesPage() {
         redirect('/login');
     }
 
-    const result = await getConversations();
-    const conversations = result.success && result.data ? result.data : [];
+    let conversations = [];
+    try {
+        const result = await getConversations();
+        conversations = result.success && result.data ? result.data : [];
+    } catch (error) {
+        console.error('Error fetching conversations:', error);
+        // Fallback to empty array - page will show "Aucune conversation"
+    }
 
     // Get first conversation for display
     const activeConversation = conversations[0];

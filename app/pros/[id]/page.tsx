@@ -10,6 +10,41 @@ import { ReviewList } from "@/components/reviews/review-list"
 import { ProBadges } from "@/components/pro-badges"
 import { auth } from "@/auth"
 import { FavoriteButton } from "@/components/favorites/favorite-button"
+import { Metadata } from "next"
+
+type Props = {
+    params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const { id } = await params
+
+    const pro = await prisma.proProfile.findUnique({
+        where: { id },
+        include: { user: true, city: true, serviceCategories: true }
+    })
+
+    if (!pro) {
+        return {
+            title: "Professionnel non trouvé",
+        }
+    }
+
+    const categories = pro.serviceCategories.map(c => c.name).join(", ")
+
+    return {
+        title: `${pro.user.name} - ${categories || "Professionnel"}`,
+        description: pro.bio || `${pro.user.name}, professionnel à ${pro.city.name}. Réservez en ligne sur AniReserve.`,
+        openGraph: {
+            title: `${pro.user.name} | AniReserve`,
+            description: pro.bio || `Réservez ${pro.user.name} à ${pro.city.name}`,
+            type: "profile",
+        },
+        alternates: {
+            canonical: `/pros/${id}`,
+        },
+    }
+}
 
 export default async function ProProfilePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params

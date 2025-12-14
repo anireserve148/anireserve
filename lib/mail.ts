@@ -5,6 +5,8 @@ import {
     getReservationReminderEmail,
     getReservationCancellationEmail,
     getNewReservationProEmail,
+    getReservationAcceptedEmail,
+    getReservationRejectedEmail,
     type ReservationEmailData
 } from './email-templates/reservations'
 import {
@@ -76,6 +78,16 @@ export async function sendReservationCancellation(to: string, data: ReservationE
 export async function sendNewReservationToPro(to: string, data: ReservationEmailData) {
     const html = getNewReservationProEmail(data)
     return sendEmail(to, '🎉 Nouvelle réservation !', html)
+}
+
+export async function sendReservationAccepted(to: string, data: ReservationEmailData) {
+    const html = getReservationAcceptedEmail(data)
+    return sendEmail(to, '✅ Votre réservation est confirmée !', html)
+}
+
+export async function sendReservationRejected(to: string, data: ReservationEmailData & { reason?: string }) {
+    const html = getReservationRejectedEmail(data)
+    return sendEmail(to, 'Mise à jour de votre demande de réservation', html)
 }
 
 // ===== REVIEW EMAILS =====

@@ -11,21 +11,20 @@ import { FavoriteButton } from "@/components/favorites/favorite-button"
 export type ProResult = {
     id: string
     name: string
-    bio: string | null
-    imageUrl: string | null
+    image: string | null
     city: string
-    category: string
-    priceRange: string | null
+    hourlyRate: number
+    categories: string[]
     rating?: number
     reviewCount?: number
     isFavorite: boolean
 }
 
 interface HomeResultsProps {
-    results: ProResult[]
+    pros: ProResult[]
 }
 
-export function HomeResults({ results }: HomeResultsProps) {
+export function HomeResults({ pros = [] }: HomeResultsProps) {
     return (
         <div className="bg-white rounded-3xl p-8 shadow-sm border border-border/50 h-full min-h-[600px]">
             <div className="flex items-center gap-2 mb-2">
@@ -37,12 +36,12 @@ export function HomeResults({ results }: HomeResultsProps) {
             </p>
 
             <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar" style={{ maxHeight: '800px' }}>
-                {results.length === 0 ? (
+                {pros.length === 0 ? (
                     <div className="text-center py-20 text-gray-400">
                         Aucun professionnel ne correspond à vos critères.
                     </div>
                 ) : (
-                    results.map((pro) => (
+                    pros.map((pro) => (
                         <div
                             key={pro.id}
                             className="group relative bg-white border border-gray-100 hover:border-[#3DBAA2]/30 rounded-2xl p-6 transition-all duration-300 hover:shadow-lg hover:shadow-[#3DBAA2]/5"
@@ -59,7 +58,7 @@ export function HomeResults({ results }: HomeResultsProps) {
                                                 {pro.name}
                                             </h3>
                                             <div className="text-sm text-gray-500 font-medium mb-3">
-                                                {pro.category} · {pro.city}
+                                                {pro.categories.join(', ')} · {pro.city}
                                             </div>
                                         </div>
                                         <div className="hidden sm:block">
@@ -78,7 +77,7 @@ export function HomeResults({ results }: HomeResultsProps) {
                                     </div>
 
                                     <p className="text-sm text-gray-600 line-clamp-2 mb-4 leading-relaxed">
-                                        {pro.bio || "Professionnel certifié AniReserve. Description complète disponible sur le profil."}
+                                        Professionnel certifié · {pro.hourlyRate}₪/heure
                                     </p>
 
                                     <div className="flex items-center gap-4 text-xs font-medium text-gray-500">

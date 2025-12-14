@@ -4,6 +4,16 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge" // We need to create this or perform a basic setup
 import Link from "next/link"
 import { MapPin, Star } from "lucide-react"
+import { Metadata } from "next"
+
+export const metadata: Metadata = {
+    title: "Recherche de Professionnels",
+    description: "Trouvez des professionnels francophones en Israël : coachs, thérapeutes, consultants et plus. Filtrez par ville et catégorie.",
+    openGraph: {
+        title: "Recherche | AniReserve",
+        description: "Trouvez des professionnels francophones en Israël.",
+    },
+}
 
 async function getPros(query: string | undefined, city: string | undefined) {
     const where: any = {}

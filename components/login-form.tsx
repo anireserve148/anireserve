@@ -54,10 +54,18 @@ export default function LoginForm() {
                 <CardTitle className="text-2xl text-center text-primary font-bold tracking-tight">Welcome Back</CardTitle>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" name="email" placeholder="votre@email.com" required className="bg-background/50" />
+                        <Input
+                            id="email"
+                            type="email"
+                            name="email"
+                            placeholder="votre@email.com"
+                            required
+                            className="bg-background/50"
+                            autoComplete="off"
+                        />
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -77,6 +85,7 @@ export default function LoginForm() {
                                 required
                                 minLength={6}
                                 className="bg-background/50 pr-10"
+                                autoComplete="new-password"
                             />
                             <Button
                                 type="button"

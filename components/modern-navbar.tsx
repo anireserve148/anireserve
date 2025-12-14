@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Menu, X, LogOut, User, Calendar, Heart, ShieldCheck } from "lucide-react"
+import { Menu, X, LogOut, User, Calendar, Heart, ShieldCheck, MessageSquare } from "lucide-react"
 import Image from "next/image"
 
 export function ModernNavbar({ user }: { user?: { name?: string | null; role?: string } | null }) {
@@ -55,7 +55,15 @@ export function ModernNavbar({ user }: { user?: { name?: string | null; role?: s
                             </Button>
                         </Link>
 
-                        {/* 2. Favoris */}
+                        {/* 2. Messages */}
+                        <Link href={user ? "/dashboard/messages" : "/login"}>
+                            <Button variant="ghost" className="rounded-full text-navy hover:bg-blue-500/10 hover:text-blue-600 font-medium">
+                                <MessageSquare className="w-5 h-5 mr-2" />
+                                Messages
+                            </Button>
+                        </Link>
+
+                        {/* 3. Favoris */}
                         <Link href={user ? "/dashboard/favorites" : "/login"}>
                             <Button variant="ghost" className="rounded-full text-navy hover:bg-yellow-400/10 hover:text-yellow-600 font-medium">
                                 <Heart className="w-5 h-5 mr-2" />
@@ -89,8 +97,8 @@ export function ModernNavbar({ user }: { user?: { name?: string | null; role?: s
 
                                 {/* 4. Connexion Pro */}
                                 <Link href="/login?role=pro">
-                                    <Button variant="outline" className="rounded-full border-navy/20 text-navy hover:bg-navy/5 font-semibold">
-                                        Connexion Pro
+                                    <Button className="rounded-full bg-primary hover:bg-primary/90 text-white font-bold px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 border-2 border-primary">
+                                        ⚡ Connexion Pro
                                     </Button>
                                 </Link>
 

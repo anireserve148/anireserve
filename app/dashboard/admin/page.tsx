@@ -5,6 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { AdminProDetails } from '@/components/admin/admin-pro-details';
+import { AdminReservationsTable } from '@/components/admin/admin-reservations-table';
+import { CategoryManager } from '@/components/admin/category-manager';
+import { getAdminAnalytics } from '@/app/lib/analytics-actions';
+import { RevenueChart } from '@/components/admin/revenue-chart';
+import { UserGrowthChart } from '@/components/admin/user-growth-chart';
+import { StatusPieChart } from '@/components/admin/status-pie-chart';
 import {
     Users,
     Calendar,
@@ -36,7 +42,9 @@ export default async function AdminDashboardPage() {
         recentUsers,
         allUsers,
         allPros,
-        recentReservations
+        recentReservations,
+        analyticsData,
+        allCategories
     ] = await Promise.all([
         prisma.user.count(),
         prisma.user.count({ where: { role: 'PRO' } }),
@@ -65,6 +73,15 @@ export default async function AdminDashboardPage() {
                 client: true,
                 pro: { include: { user: true } }
             }
+        }),
+        getAdminAnalytics(),
+        prisma.serviceCategory.findMany({
+            include: {
+                _count: {
+                    select: { proServices: true }
+                }
+            },
+            orderBy: { name: 'asc' }
         })
     ]);
 
@@ -84,8 +101,11 @@ export default async function AdminDashboardPage() {
                 </div>
 
                 <Tabs defaultValue="overview" className="space-y-8">
-                    <TabsList className="grid w-full grid-cols-3 max-w-md bg-white p-1 rounded-full shadow-sm">
+                    <TabsList className="grid w-full grid-cols-6 max-w-4xl bg-white p-1 rounded-full shadow-sm">
                         <TabsTrigger value="overview" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Vue d'ensemble</TabsTrigger>
+                        <TabsTrigger value="analytics" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Analytics</TabsTrigger>
+                        <TabsTrigger value="reservations" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Réservations</TabsTrigger>
+                        <TabsTrigger value="categories" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Catégories</TabsTrigger>
                         <TabsTrigger value="users" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Utilisateurs</TabsTrigger>
                         <TabsTrigger value="pros" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Professionnels</TabsTrigger>
                     </TabsList>
@@ -180,7 +200,7 @@ export default async function AdminDashboardPage() {
                                                     {res.client.name} ➔ {res.pro.user.name}
                                                 </p>
                                                 <p className="text-xs text-gray-500">
-                                                    {new Date(res.startDate).toLocaleDateString()} · {res.totalPrice}₪
+                                                    {new Date(res.startDate).toLocaleDateString()} · {res.totalPrice}€
                                                 </p>
                                             </div>
                                             <Badge
@@ -197,6 +217,25 @@ export default async function AdminDashboardPage() {
                                 </CardContent>
                             </Card>
                         </div>
+                    </TabsContent>
+
+                    {/* ANALYTICS TAB */}
+                    <TabsContent value="analytics" className="space-y-8 animate-in fade-in-50">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <RevenueChart data={analyticsData.revenueData} />
+                            <StatusPieChart data={analyticsData.statusData} />
+                        </div>
+                        <UserGrowthChart data={analyticsData.growthData} />
+                    </TabsContent>
+
+                    {/* RESERVATIONS TAB */}
+                    <TabsContent value="reservations" className="space-y-6 animate-in fade-in-50">
+                        <AdminReservationsTable />
+                    </TabsContent>
+
+                    {/* CATEGORIES TAB */}
+                    <TabsContent value="categories" className="space-y-6 animate-in fade-in-50">
+                        <CategoryManager categories={allCategories} />
                     </TabsContent>
 
                     {/* USERS TAB */}
@@ -283,7 +322,7 @@ export default async function AdminDashboardPage() {
 
                                             <div className="flex items-center gap-4 self-end md:self-center">
                                                 <div className="text-right mr-4 hidden md:block">
-                                                    <div className="font-bold text-navy">{pro.hourlyRate}₪ /h</div>
+                                                    <div className="font-bold text-navy">{pro.hourlyRate}€ /h</div>
                                                     <div className="text-xs text-gray-400">Tarif horaire</div>
                                                 </div>
 
