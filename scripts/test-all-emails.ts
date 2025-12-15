@@ -211,7 +211,8 @@ async function main() {
             proName: 'Marie Cohen',
             rating: 5,
             comment: 'Excellente prestation, très professionnel !',
-            service: 'Coiffure à domicile'
+            service: 'Coiffure à domicile',
+            reservationId: 'test-123'
         }),
         total
     )) success++
@@ -222,8 +223,8 @@ async function main() {
         '💬 Nouveau message de Jean Dupont',
         getNewMessageEmail({
             senderName: 'Jean Dupont',
-            messagePreview: 'Bonjour, je voulais savoir si vous êtes disponible samedi prochain ?',
-            conversationId: 'conv-123'
+            recipientName: 'Marie Cohen',
+            messagePreview: 'Bonjour, je voulais savoir si vous êtes disponible samedi prochain ?'
         }),
         total
     )) success++
