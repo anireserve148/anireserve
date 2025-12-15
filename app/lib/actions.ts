@@ -7,7 +7,6 @@ export async function authenticate(
     prevState: string | undefined,
     formData: FormData,
 ) {
-    console.log("Authenticate Action Reached!", Object.fromEntries(formData));
     try {
         await signIn('credentials', { ...Object.fromEntries(formData), redirectTo: '/dashboard' })
     } catch (error) {

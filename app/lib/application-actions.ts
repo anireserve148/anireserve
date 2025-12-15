@@ -67,16 +67,12 @@ export async function submitProApplication(
         });
 
         // Send confirmation email
-        console.log("🚀 Starting email sending process...");
-        console.log("Email:", validated.email);
-
         try {
             const emailResult = await sendApplicationSubmitted(validated.email, {
                 firstName: validated.firstName,
                 lastName: validated.lastName,
                 email: validated.email
             });
-            console.log("📧 Email result:", emailResult);
 
             // Fetch names for Admin Email
             const cities = await prisma.city.findMany({
@@ -99,12 +95,11 @@ export async function submitProApplication(
                 categories: categories.map(c => c.name).join(', ')
             });
         } catch (emailError) {
-            console.error("❌ Email sending CRITICAL failure:", emailError);
+            // Silent fail - don't block registration if email fails
         }
 
         return createSuccessResponse(undefined);
     } catch (error) {
-        console.error("❌ Action error:", error);
         return handleActionError(error);
     }
 }
