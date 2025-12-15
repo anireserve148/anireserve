@@ -30,8 +30,9 @@ const sampleApplicationData: ApplicationEmailData = {
     email: "rachel@example.com"
 }
 
-export default function EmailPreviewPage({ searchParams }: { searchParams: { type?: string } }) {
-    const type = searchParams.type || 'reservation-confirmation'
+export default async function EmailPreviewPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
+    const params = await searchParams
+    const type = params.type || 'reservation-confirmation'
 
     let html = ''
     let title = ''
