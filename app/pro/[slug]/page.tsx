@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { notFound, redirect } from "next/navigation"
 import { Metadata } from "next"
+import { ServiceCategory } from "@prisma/client"
 
 type Props = {
     params: Promise<{ slug: string }>
@@ -9,7 +10,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params
 
-    const pro = await prisma.proProfile.findUnique({
+    const pro = await prisma.proProfile.findFirst({
         where: { slug },
         include: { user: true, city: true, serviceCategories: true }
     })
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         }
     }
 
-    const categories = pro.serviceCategories.map(c => c.name).join(", ")
+    const categories = pro.serviceCategories.map((c: ServiceCategory) => c.name).join(", ")
 
     return {
         title: `${pro.user.name} - ${categories || "Professionnel"}`,
@@ -40,7 +41,7 @@ export default async function ProSlugPage({ params }: { params: Promise<{ slug: 
     const { slug } = await params
 
     // Find pro by slug
-    const pro = await prisma.proProfile.findUnique({
+    const pro = await prisma.proProfile.findFirst({
         where: { slug }
     })
 
