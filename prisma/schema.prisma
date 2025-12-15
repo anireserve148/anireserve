@@ -130,6 +130,10 @@ model Reservation {
   status      String   @default("PENDING") // PENDING, CONFIRMED, REJECTED, CANCELLED, COMPLETED
   totalPrice  Float
   notes       String?
+  
+  // Automated email tracking
+  reminderSent    Boolean @default(false)
+  reviewRequested Boolean @default(false)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
