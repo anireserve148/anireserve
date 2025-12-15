@@ -5,9 +5,9 @@ export function ModernFooter() {
     const currentYear = new Date().getFullYear()
 
     return (
-        <footer className="bg-navy text-white mt-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <footer className="bg-navy text-white mt-12 sm:mt-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
                     {/* Brand */}
                     <div className="space-y-4">
                         <h3 className="text-2xl font-bold gradient-text">AniReserve</h3>

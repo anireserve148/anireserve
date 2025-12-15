@@ -2,15 +2,13 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Menu, X, LogOut, User, Calendar, Heart, ShieldCheck, MessageSquare } from "lucide-react"
+import { Menu, X, LogOut, User, Calendar, Heart, MessageSquare, Home } from "lucide-react"
 import Image from "next/image"
 
 export function ModernNavbar({ user }: { user?: { name?: string | null; role?: string } | null }) {
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-    const pathname = usePathname()
 
     useEffect(() => {
         const handleScroll = () => {
@@ -20,163 +18,205 @@ export function ModernNavbar({ user }: { user?: { name?: string | null; role?: s
         return () => window.removeEventListener('scroll', handleScroll)
     }, [])
 
+    // Close menu when clicking outside
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
+    }, [isMobileMenuOpen])
+
     return (
-        <nav
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                ? 'glass shadow-lg'
-                : 'bg-transparent'
-                }`}
-        >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-20">
-                    {/* Logo */}
-                    <Link href="/" className="flex items-center space-x-3 hover-scale">
-                        <div className="relative w-12 h-12">
-                            <Image
-                                src="/logo.png"
-                                alt="AniReserve"
-                                fill
-                                className="object-contain"
-                            />
+        <>
+            <nav
+                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+                    ? 'bg-white/95 backdrop-blur-md shadow-lg'
+                    : 'bg-white/80 backdrop-blur-sm'
+                    }`}
+            >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16 sm:h-20">
+                        {/* Logo */}
+                        <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+                            <div className="relative w-10 h-10 sm:w-12 sm:h-12">
+                                <Image
+                                    src="/logo.png"
+                                    alt="AniReserve"
+                                    fill
+                                    className="object-contain"
+                                />
+                            </div>
+                            <span className="text-xl sm:text-2xl font-bold text-navy">
+                                AniReserve
+                            </span>
+                        </Link>
+
+                        {/* Desktop Navigation */}
+                        <div className="hidden lg:flex items-center space-x-2">
+                            {user ? (
+                                <>
+                                    <Link href="/dashboard">
+                                        <Button variant="ghost" size="sm" className="text-gray-600 hover:text-navy">
+                                            <Calendar className="w-4 h-4 mr-2" />
+                                            Réservations
+                                        </Button>
+                                    </Link>
+                                    <Link href="/dashboard/messages">
+                                        <Button variant="ghost" size="sm" className="text-gray-600 hover:text-navy">
+                                            <MessageSquare className="w-4 h-4 mr-2" />
+                                            Messages
+                                        </Button>
+                                    </Link>
+                                    <Link href="/dashboard/favorites">
+                                        <Button variant="ghost" size="sm" className="text-gray-600 hover:text-navy">
+                                            <Heart className="w-4 h-4 mr-2" />
+                                            Favoris
+                                        </Button>
+                                    </Link>
+                                    <div className="h-6 w-px bg-gray-200 mx-2" />
+                                    <Link href={user.role === 'ADMIN' ? "/dashboard/admin" : user.role === 'PRO' ? "/dashboard/pro" : "/dashboard"}>
+                                        <Button className="bg-navy text-white hover:bg-navy/90">
+                                            <User className="w-4 h-4 mr-2" />
+                                            {user.role === 'PRO' ? 'Espace Pro' : 'Mon compte'}
+                                        </Button>
+                                    </Link>
+                                    <form action="/api/auth/signout" method="POST">
+                                        <Button variant="ghost" size="icon" className="text-red-500 hover:bg-red-50">
+                                            <LogOut className="w-4 h-4" />
+                                        </Button>
+                                    </form>
+                                </>
+                            ) : (
+                                <>
+                                    <Link href="/login">
+                                        <Button variant="ghost" className="text-gray-600 hover:text-navy">
+                                            Connexion
+                                        </Button>
+                                    </Link>
+                                    <Link href="/register">
+                                        <Button variant="outline" className="border-navy text-navy hover:bg-navy/5">
+                                            Inscription
+                                        </Button>
+                                    </Link>
+                                    <Link href="/register/pro">
+                                        <Button className="bg-primary text-white hover:bg-primary/90">
+                                            Devenir Pro
+                                        </Button>
+                                    </Link>
+                                </>
+                            )}
                         </div>
-                        <span className="text-2xl font-bold gradient-text hidden sm:block">
-                            AniReserve
-                        </span>
-                    </Link>
 
-                    {/* Right Section (Buttons as requested) */}
-                    <div className="hidden md:flex items-center space-x-4">
-
-                        {/* 1. Mes Réservations (Visible to everyone, redirects to login if needed handled by page) */}
-                        <Link href={user ? "/dashboard" : "/login"}>
-                            <Button variant="ghost" className="rounded-full text-navy hover:bg-turquoise/10 hover:text-turquoise font-medium">
-                                <Calendar className="w-5 h-5 mr-2" />
-                                Mes réservations
-                            </Button>
-                        </Link>
-
-                        {/* 2. Messages */}
-                        <Link href={user ? "/dashboard/messages" : "/login"}>
-                            <Button variant="ghost" className="rounded-full text-navy hover:bg-blue-500/10 hover:text-blue-600 font-medium">
-                                <MessageSquare className="w-5 h-5 mr-2" />
-                                Messages
-                            </Button>
-                        </Link>
-
-                        {/* 3. Favoris */}
-                        <Link href={user ? "/dashboard/favorites" : "/login"}>
-                            <Button variant="ghost" className="rounded-full text-navy hover:bg-yellow-400/10 hover:text-yellow-600 font-medium">
-                                <Heart className="w-5 h-5 mr-2" />
-                                Favoris
-                            </Button>
-                        </Link>
-
-                        {/* User State */}
-                        {user ? (
-                            <div className="flex items-center gap-4 pl-4 border-l border-gray-200">
-                                <Link href={user.role === 'ADMIN' ? "/dashboard/admin" : user.role === 'PRO' ? "/dashboard/pro" : "/dashboard"}>
-                                    <Button className="rounded-full bg-navy text-white hover:bg-navy/90 shadow-lg shadow-navy/20">
-                                        <User className="w-4 h-4 mr-2" />
-                                        {user.role === 'ADMIN' ? 'Admin Panel' : user.role === 'PRO' ? 'Tableau de bord Pro' : 'Mon Espace'}
-                                    </Button>
-                                </Link>
-                                <form action="/api/auth/signout" method="POST">
-                                    <Button variant="ghost" size="icon" className="rounded-full text-red-500 hover:bg-red-50">
-                                        <LogOut className="w-5 h-5" />
-                                    </Button>
-                                </form>
-                            </div>
-                        ) : (
-                            <>
-                                {/* 3. Connexion Client */}
-                                <Link href="/login">
-                                    <Button variant="ghost" className="rounded-full text-navy hover:bg-navy/5 font-medium">
-                                        Connexion Client
-                                    </Button>
-                                </Link>
-
-                                {/* 4. Connexion Pro */}
-                                <Link href="/login?role=pro">
-                                    <Button className="rounded-full bg-primary hover:bg-primary/90 text-white font-bold px-6 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 border-2 border-primary">
-                                        ⚡ Connexion Pro
-                                    </Button>
-                                </Link>
-
-                                {/* 5. Espace Pro (Inscription) */}
-                                <Link href="/register?role=pro">
-                                    <Button className="rounded-full bg-turquoise text-white hover:bg-turquoise-dark hover:scale-105 transition-all shadow-lg shadow-turquoise/20">
-                                        <ShieldCheck className="w-4 h-4 mr-2" />
-                                        Inscription Pro
-                                    </Button>
-                                </Link>
-                            </>
-                        )}
+                        {/* Mobile Menu Button */}
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="lg:hidden p-2 text-navy hover:bg-gray-100 rounded-lg transition-colors"
+                            aria-label="Menu"
+                        >
+                            {isMobileMenuOpen ? (
+                                <X className="h-6 w-6" />
+                            ) : (
+                                <Menu className="h-6 w-6" />
+                            )}
+                        </button>
                     </div>
-
-                    {/* Mobile Menu Button */}
-                    <button
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="md:hidden p-2 text-navy hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                        {isMobileMenuOpen ? (
-                            <X className="h-6 w-6" />
-                        ) : (
-                            <Menu className="h-6 w-6" />
-                        )}
-                    </button>
                 </div>
-            </div>
+            </nav>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu Overlay */}
             {isMobileMenuOpen && (
-                <div className="md:hidden glass border-t animate-slide-up">
-                    <div className="px-4 py-6 space-y-4">
-                        <Link href={user ? "/dashboard" : "/login"} onClick={() => setIsMobileMenuOpen(false)}>
-                            <Button variant="ghost" className="w-full justify-start text-lg">
-                                <Calendar className="w-5 h-5 mr-3" />
-                                Mes réservations
-                            </Button>
-                        </Link>
+                <div className="fixed inset-0 z-40 lg:hidden">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    />
 
-                        <Link href={user ? "/dashboard/favorites" : "/login"} onClick={() => setIsMobileMenuOpen(false)}>
-                            <Button variant="ghost" className="w-full justify-start text-lg">
-                                <Heart className="w-5 h-5 mr-3" />
-                                Favoris
-                            </Button>
-                        </Link>
+                    {/* Menu Panel */}
+                    <div className="absolute top-16 left-0 right-0 bg-white border-t shadow-xl max-h-[calc(100vh-4rem)] overflow-y-auto animate-in slide-in-from-top duration-200">
+                        <div className="p-4 space-y-2">
+                            {/* Main Navigation */}
+                            <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
+                                <Button variant="ghost" className="w-full justify-start text-base py-3">
+                                    <Home className="w-5 h-5 mr-3" />
+                                    Accueil
+                                </Button>
+                            </Link>
 
-                        <div className="h-px bg-gray-100 my-2" />
+                            {user && (
+                                <>
+                                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <Button variant="ghost" className="w-full justify-start text-base py-3">
+                                            <Calendar className="w-5 h-5 mr-3" />
+                                            Mes réservations
+                                        </Button>
+                                    </Link>
+                                    <Link href="/dashboard/messages" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <Button variant="ghost" className="w-full justify-start text-base py-3">
+                                            <MessageSquare className="w-5 h-5 mr-3" />
+                                            Messages
+                                        </Button>
+                                    </Link>
+                                    <Link href="/dashboard/favorites" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <Button variant="ghost" className="w-full justify-start text-base py-3">
+                                            <Heart className="w-5 h-5 mr-3" />
+                                            Favoris
+                                        </Button>
+                                    </Link>
+                                </>
+                            )}
 
-                        {user ? (
-                            <>
-                                <Link href={user.role === 'PRO' ? "/dashboard/pro" : "/dashboard"} onClick={() => setIsMobileMenuOpen(false)}>
-                                    <Button className="w-full bg-navy text-white">
-                                        {user.role === 'PRO' ? 'Tableau de bord Pro' : 'Mon compte'}
-                                    </Button>
-                                </Link>
-                                <form action="/api/auth/signout" method="POST">
-                                    <Button variant="outline" className="w-full text-red-500 border-red-100 hover:bg-red-50">
-                                        Déconnexion
-                                    </Button>
-                                </form>
-                            </>
-                        ) : (
-                            <div className="space-y-3">
-                                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                                    <Button variant="outline" className="w-full border-navy text-navy">
-                                        Connexion Client
-                                    </Button>
-                                </Link>
-                                <Link href="/register?role=pro" onClick={() => setIsMobileMenuOpen(false)}>
-                                    <Button className="w-full bg-turquoise text-white">
-                                        Espace Pro
-                                    </Button>
-                                </Link>
-                            </div>
-                        )}
+                            <div className="h-px bg-gray-100 my-3" />
+
+                            {/* Auth Section */}
+                            {user ? (
+                                <div className="space-y-2">
+                                    <Link
+                                        href={user.role === 'ADMIN' ? "/dashboard/admin" : user.role === 'PRO' ? "/dashboard/pro" : "/dashboard"}
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                    >
+                                        <Button className="w-full bg-navy text-white py-3">
+                                            <User className="w-5 h-5 mr-3" />
+                                            {user.role === 'PRO' ? 'Tableau de bord Pro' : 'Mon compte'}
+                                        </Button>
+                                    </Link>
+                                    <form action="/api/auth/signout" method="POST" className="w-full">
+                                        <Button variant="outline" className="w-full text-red-500 border-red-200 hover:bg-red-50 py-3">
+                                            <LogOut className="w-5 h-5 mr-3" />
+                                            Déconnexion
+                                        </Button>
+                                    </form>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <Button variant="outline" className="w-full border-navy text-navy py-3">
+                                            Connexion
+                                        </Button>
+                                    </Link>
+                                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <Button variant="outline" className="w-full py-3">
+                                            Inscription Client
+                                        </Button>
+                                    </Link>
+                                    <Link href="/register/pro" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <Button className="w-full bg-primary text-white py-3">
+                                            Devenir Professionnel
+                                        </Button>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
-        </nav>
+
+            {/* Spacer for fixed navbar */}
+            <div className="h-16 sm:h-20" />
+        </>
     )
 }

@@ -84,12 +84,12 @@ export function HomeSearchFilters({ cities, categories }: HomeSearchFiltersProps
   }
 
   return (
-    <div className="bg-white rounded-3xl p-8 shadow-sm border border-border/50 h-fit sticky top-24">
+    <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-sm border border-border/50 h-fit lg:sticky lg:top-24">
       <div className="flex items-center gap-2 mb-2">
         <Search className="w-5 h-5 text-navy" />
-        <h2 className="text-xl font-bold font-poppins text-navy">Trouver un professionnel</h2>
+        <h2 className="text-lg sm:text-xl font-bold font-poppins text-navy">Trouver un professionnel</h2>
       </div>
-      <p className="text-sm text-gray-500 mb-8">
+      <p className="text-sm text-gray-500 mb-4 sm:mb-6">
         Choisis ta ville et le service dont tu as besoin ✨
       </p>
 

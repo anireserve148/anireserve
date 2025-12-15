@@ -48,6 +48,15 @@ export async function submitProApplication(
             throw new Error("Une demande existe déjà pour cet email");
         }
 
+        // Check if phone already exists
+        const existingPhone = await prisma.proApplication.findFirst({
+            where: { phone: validated.phone }
+        });
+
+        if (existingPhone) {
+            throw new Error("Ce numéro de téléphone est déjà utilisé");
+        }
+
         // Hash password
         const hashedPassword = await bcrypt.hash(validated.password, 10);
 
