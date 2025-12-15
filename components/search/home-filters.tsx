@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,7 @@ import { Sparkles, Search } from "lucide-react"
 
 interface HomeSearchFiltersProps {
   cities: { id: string, name: string }[]
-  categories: { id: string, name: string }[]
+  categories: { id: string, name: string, children?: { id: string, name: string }[] }[]
 }
 
 export function HomeSearchFilters({ cities, categories }: HomeSearchFiltersProps) {
@@ -126,7 +126,16 @@ export function HomeSearchFilters({ cities, categories }: HomeSearchFiltersProps
             <SelectContent>
               <SelectItem value="all">Tous les services</SelectItem>
               {categories.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                <React.Fragment key={cat.id}>
+                  <SelectItem value={cat.id} className="font-semibold">
+                    {cat.name}
+                  </SelectItem>
+                  {cat.children?.map((sub) => (
+                    <SelectItem key={sub.id} value={sub.id} className="pl-6 text-gray-600">
+                      → {sub.name}
+                    </SelectItem>
+                  ))}
+                </React.Fragment>
               ))}
             </SelectContent>
           </Select>

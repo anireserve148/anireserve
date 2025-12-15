@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react"
+import { Facebook, Instagram, Twitter, Mail } from "lucide-react"
 
 export function ModernFooter() {
     const currentYear = new Date().getFullYear()
@@ -12,7 +12,7 @@ export function ModernFooter() {
                     <div className="space-y-4">
                         <h3 className="text-2xl font-bold gradient-text">AniReserve</h3>
                         <p className="text-sm text-gray-300">
-                            La plateforme de référence pour réserver des services professionnels pour vos animaux.
+                            La plateforme qui connecte les francophones avec les meilleurs professionnels en Israël.
                         </p>
                         <div className="flex space-x-4">
                             <a href="#" className="hover:text-primary transition-colors">
@@ -31,10 +31,10 @@ export function ModernFooter() {
                     <div>
                         <h4 className="font-semibold mb-4">Services</h4>
                         <ul className="space-y-2 text-sm text-gray-300">
-                            <li><Link href="/search?category=veterinaire" className="hover:text-primary transition-colors">Vétérinaire</Link></li>
-                            <li><Link href="/search?category=toilettage" className="hover:text-primary transition-colors">Toilettage</Link></li>
-                            <li><Link href="/search?category=education" className="hover:text-primary transition-colors">Éducation</Link></li>
-                            <li><Link href="/search?category=garde" className="hover:text-primary transition-colors">Garde d'animaux</Link></li>
+                            <li><Link href="/search" className="hover:text-primary transition-colors">Santé</Link></li>
+                            <li><Link href="/search" className="hover:text-primary transition-colors">Beauté & Bien-être</Link></li>
+                            <li><Link href="/search" className="hover:text-primary transition-colors">Business</Link></li>
+                            <li><Link href="/search" className="hover:text-primary transition-colors">Services à domicile</Link></li>
                         </ul>
                     </div>
 
@@ -42,11 +42,9 @@ export function ModernFooter() {
                     <div>
                         <h4 className="font-semibold mb-4">Entreprise</h4>
                         <ul className="space-y-2 text-sm text-gray-300">
-                            <li><Link href="/about" className="hover:text-primary transition-colors">À propos</Link></li>
                             <li><Link href="/register/pro" className="hover:text-primary transition-colors">Devenir Pro</Link></li>
-                            <li><Link href="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
-                            <li><Link href="/careers" className="hover:text-primary transition-colors">Carrières</Link></li>
-                            <li><Link href="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
+                            <li><Link href="/login" className="hover:text-primary transition-colors">Connexion</Link></li>
+                            <li><Link href="/register" className="hover:text-primary transition-colors">Inscription</Link></li>
                         </ul>
                     </div>
 
@@ -56,15 +54,9 @@ export function ModernFooter() {
                         <ul className="space-y-3 text-sm text-gray-300">
                             <li className="flex items-center space-x-2">
                                 <Mail className="h-4 w-4" />
-                                <span>contact@anireserve.com</span>
-                            </li>
-                            <li className="flex items-center space-x-2">
-                                <Phone className="h-4 w-4" />
-                                <span>+972 3 123 4567</span>
-                            </li>
-                            <li className="flex items-center space-x-2">
-                                <MapPin className="h-4 w-4" />
-                                <span>Tel Aviv, Israël</span>
+                                <a href="mailto:contact@anireserve.com" className="hover:text-primary transition-colors">
+                                    contact@anireserve.com
+                                </a>
                             </li>
                         </ul>
                     </div>

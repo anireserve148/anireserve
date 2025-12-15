@@ -24,7 +24,12 @@ export default async function Home({
     cities = await prisma.city.findMany({ orderBy: { name: 'asc' } })
     categories = await prisma.serviceCategory.findMany({
       where: { parentId: null },
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
+      include: {
+        children: {
+          orderBy: { name: 'asc' }
+        }
+      }
     })
   } catch (error) {
     console.error('Database connection error:', error)

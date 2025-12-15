@@ -41,6 +41,7 @@ model ProProfile {
   userId      String   @unique
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  slug        String?  @unique  // Custom URL: /pro/john-doe
   bio         String?
   hourlyRate  Float    @default(50.0)
   verificationStatus String @default("VERIFIED") // PENDING, APPROVED, REJECTED

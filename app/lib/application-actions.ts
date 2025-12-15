@@ -152,10 +152,28 @@ export async function approveApplication(applicationId: string): Promise<ActionR
         const cityIds = JSON.parse(application.cityIds);
         const categoryIds = JSON.parse(application.categoryIds);
 
+        // Generate slug from name
+        const baseSlug = `${application.firstName}-${application.lastName}`
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Remove accents
+            .replace(/[^a-z0-9-]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+
+        // Check if slug exists and add suffix if needed
+        let slug = baseSlug;
+        let counter = 1;
+        while (await prisma.proProfile.findUnique({ where: { slug } })) {
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+        }
+
         await prisma.proProfile.create({
             data: {
                 userId: user.id,
                 cityId: cityIds[0], // Primary city
+                slug,
                 serviceCategories: {
                     connect: categoryIds.map((id: string) => ({ id }))
                 }
