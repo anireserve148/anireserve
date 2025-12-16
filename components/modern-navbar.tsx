@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu, X, LogOut, User, Calendar, Heart, MessageSquare, Home } from "lucide-react"
 import Image from "next/image"
+import { LogoutButton } from "@/components/logout-button"
 
 export function ModernNavbar({ user }: { user?: { name?: string | null; role?: string } | null }) {
     const [isScrolled, setIsScrolled] = useState(false)
@@ -84,24 +85,21 @@ export function ModernNavbar({ user }: { user?: { name?: string | null; role?: s
                                             {user.role === 'PRO' ? 'Espace Pro' : 'Mon compte'}
                                         </Button>
                                     </Link>
-                                    <form action="/api/auth/signout" method="POST">
-                                        <Button variant="ghost" size="icon" className="text-red-500 hover:bg-red-50">
-                                            <LogOut className="w-4 h-4" />
-                                        </Button>
-                                    </form>
+                                    <LogoutButton />
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/login">
-                                        <Button variant="ghost" className="text-gray-600 hover:text-navy">
-                                            Connexion
+                                    <Link href="/login?mode=client">
+                                        <Button variant="outline" className="border-emerald-500 text-emerald-600 hover:bg-emerald-50">
+                                            Connexion Client
                                         </Button>
                                     </Link>
-                                    <Link href="/register">
-                                        <Button variant="outline" className="border-navy text-navy hover:bg-navy/5">
-                                            Inscription
+                                    <Link href="/login?mode=pro">
+                                        <Button className="bg-[#18223b] text-white hover:bg-[#18223b]/90">
+                                            Connexion Pro
                                         </Button>
                                     </Link>
+                                    <div className="h-6 w-px bg-gray-200 mx-1" />
                                     <Link href="/register/pro">
                                         <Button className="bg-primary text-white hover:bg-primary/90">
                                             Devenir Pro
@@ -184,12 +182,7 @@ export function ModernNavbar({ user }: { user?: { name?: string | null; role?: s
                                             {user.role === 'PRO' ? 'Tableau de bord Pro' : 'Mon compte'}
                                         </Button>
                                     </Link>
-                                    <form action="/api/auth/signout" method="POST" className="w-full">
-                                        <Button variant="outline" className="w-full text-red-500 border-red-200 hover:bg-red-50 py-3">
-                                            <LogOut className="w-5 h-5 mr-3" />
-                                            Déconnexion
-                                        </Button>
-                                    </form>
+                                    <LogoutButton fullWidth showText />
                                 </div>
                             ) : (
                                 <div className="space-y-2">

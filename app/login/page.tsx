@@ -1,18 +1,34 @@
 import LoginForm from '@/components/login-form';
 import { Metadata } from 'next';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-    title: 'Login | AniReserve',
+    title: 'Connexion | AniReserve',
 };
 
 export default function LoginPage() {
     return (
-        <main className="flex items-center justify-center md:h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/20">
-            <div className="relative mx-auto flex w-full max-w-[400px] flex-col space-y-2.5 p-4 md:-mt-32">
-                <div className="flex w-full items-center justify-center p-6 mb-4 rounded-lg bg-primary text-primary-foreground shadow-lg">
-                    <h1 className="text-3xl font-black uppercase tracking-widest">AniReserve</h1>
+        <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-4">
+            <div className="relative mx-auto flex w-full max-w-[420px] flex-col space-y-4">
+                {/* Back Button */}
+                <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 text-gray-600 hover:text-emerald-600 transition-colors w-fit"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span className="text-sm font-medium">Retour à l'accueil</span>
+                </Link>
+
+                {/* Logo Header */}
+                <div className="flex w-full items-center justify-center p-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg">
+                    <h1 className="text-2xl font-black tracking-wide">AniReserve</h1>
                 </div>
-                <LoginForm />
+
+                <Suspense fallback={<div className="h-96 animate-pulse bg-gray-100 rounded-xl" />}>
+                    <LoginForm />
+                </Suspense>
             </div>
         </main>
     );

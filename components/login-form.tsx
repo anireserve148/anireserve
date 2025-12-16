@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,11 +14,20 @@ type LoginMode = 'client' | 'pro'
 
 export default function LoginForm() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [mode, setMode] = useState<LoginMode>('client')
     const [isPending, setIsPending] = useState(false)
     const [isGooglePending, setIsGooglePending] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [showPassword, setShowPassword] = useState(false)
+
+    // Read mode from URL on mount
+    useEffect(() => {
+        const urlMode = searchParams.get('mode')
+        if (urlMode === 'pro' || urlMode === 'client') {
+            setMode(urlMode)
+        }
+    }, [searchParams])
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -72,8 +81,8 @@ export default function LoginForm() {
                     type="button"
                     onClick={() => { setMode('client'); setErrorMessage(null) }}
                     className={`py-4 text-center font-semibold transition-all ${mode === 'client'
-                            ? 'bg-emerald-500 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                 >
                     <User className="w-4 h-4 inline-block mr-2" />
@@ -83,8 +92,8 @@ export default function LoginForm() {
                     type="button"
                     onClick={() => { setMode('pro'); setErrorMessage(null) }}
                     className={`py-4 text-center font-semibold transition-all ${mode === 'pro'
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-[#18223b] text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                 >
                     <Briefcase className="w-4 h-4 inline-block mr-2" />
@@ -195,8 +204,8 @@ export default function LoginForm() {
                     <Button
                         type="submit"
                         className={`w-full font-semibold h-11 ${mode === 'pro'
-                                ? 'bg-blue-600 hover:bg-blue-700'
-                                : 'bg-emerald-500 hover:bg-emerald-600'
+                            ? 'bg-[#18223b] hover:bg-[#18223b]/90'
+                            : 'bg-emerald-500 hover:bg-emerald-600'
                             }`}
                         disabled={isPending}
                     >

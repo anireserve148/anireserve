@@ -3,50 +3,58 @@ import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 
 // Initialize Supabase client
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 export async function POST(request: NextRequest) {
     try {
-        const formData: FormData = await request.formData()
-        const file = formData.get('file') as File | null
+        if (!supabaseUrl || !supabaseKey) {
+            return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 })
+        }
 
-        if (!file) {
+        const supabase = createClient(supabaseUrl, supabaseKey)
+
+        // Use type assertion to bypass the incorrect FormData type
+        const formData = await request.formData() as unknown as globalThis.FormData
+        const file = formData.get('file')
+
+        if (!file || typeof file === 'string') {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 })
         }
 
+        // Now file is a File/Blob
+        const uploadFile = file as File
+
         // Validate file type
-        if (!file.type.startsWith('image/')) {
+        if (!uploadFile.type.startsWith('image/')) {
             return NextResponse.json({ error: 'File must be an image' }, { status: 400 })
         }
 
         // Validate file size (5MB max)
-        if (file.size > 5 * 1024 * 1024) {
+        if (uploadFile.size > 5 * 1024 * 1024) {
             return NextResponse.json({ error: 'File size must be less than 5MB' }, { status: 400 })
         }
 
-        const bytes = await file.arrayBuffer()
+        const bytes = await uploadFile.arrayBuffer()
         const buffer = Buffer.from(bytes)
 
         // Generate unique filename
-        const ext = file.name.split('.').pop()
+        const ext = uploadFile.name.split('.').pop() || 'jpg'
         const filename = `${randomUUID()}.${ext}`
         const filePath = `applications/${filename}`
 
         // Upload to Supabase Storage
-        const { data, error } = await supabase
+        const { error } = await supabase
             .storage
             .from('applications')
             .upload(filePath, buffer, {
-                contentType: file.type,
+                contentType: uploadFile.type,
                 upsert: false
             })
 
         if (error) {
             console.error('Supabase storage error:', error)
-            throw error
+            return NextResponse.json({ error: error.message }, { status: 500 })
         }
 
         // Get public URL
@@ -56,11 +64,9 @@ export async function POST(request: NextRequest) {
             .getPublicUrl(filePath)
 
         return NextResponse.json({ url: publicUrl })
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Upload error:', error)
-        return NextResponse.json({
-            error: error.message || 'Upload failed',
-            details: error
-        }, { status: 500 })
+        const message = error instanceof Error ? error.message : 'Upload failed'
+        return NextResponse.json({ error: message }, { status: 500 })
     }
 }

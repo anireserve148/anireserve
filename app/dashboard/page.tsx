@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, CreditCard, User, MapPin } from 'lucide-react';
+import { Calendar, Clock, CreditCard, User, MapPin, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { ClientProfileEdit } from '@/components/client-profile-edit';
 import { ReviewForm } from '@/components/reviews/review-form';
@@ -166,20 +166,29 @@ export default async function DashboardPage() {
                                                     {res.totalPrice}₪
                                                 </div>
 
-                                                {/* Review Button */}
-                                                {(res.status === 'CONFIRMED' || res.status === 'COMPLETED') && !res.review && (
-                                                    <div className="ml-auto">
+                                                {/* Actions */}
+                                                <div className="flex items-center gap-2 ml-auto">
+                                                    {/* Contact Pro Button */}
+                                                    <Link href={`/dashboard/messages?proId=${res.proId}`}>
+                                                        <Button variant="outline" size="sm" className="text-[#3DBAA2] border-[#3DBAA2] hover:bg-[#3DBAA2]/10">
+                                                            <MessageSquare className="w-4 h-4 mr-1" />
+                                                            Contacter
+                                                        </Button>
+                                                    </Link>
+
+                                                    {/* Review Button */}
+                                                    {(res.status === 'CONFIRMED' || res.status === 'COMPLETED') && !res.review && (
                                                         <ReviewForm
                                                             reservationId={res.id}
                                                             proName={res.pro.user.name || "Professionnel"}
                                                         />
-                                                    </div>
-                                                )}
-                                                {res.review && (
-                                                    <div className="ml-auto text-sm text-gray-500 italic flex items-center">
-                                                        <span className="mr-1">★</span> Avis publié
-                                                    </div>
-                                                )}
+                                                    )}
+                                                    {res.review && (
+                                                        <span className="text-sm text-gray-500 italic flex items-center">
+                                                            <span className="mr-1">★</span> Avis publié
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
