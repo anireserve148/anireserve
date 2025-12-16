@@ -4,8 +4,19 @@ import { useState } from "react"
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, format, isSameMonth, isSameDay, isToday } from "date-fns"
+import {
+    addMonths,
+    subMonths,
+    startOfMonth,
+    endOfMonth,
+    eachDayOfInterval,
+    format,
+    isSameDay,
+    isToday,
+    startOfWeek,
+    endOfWeek,
+    isSameMonth
+} from "date-fns"
 import { fr } from "date-fns/locale"
 
 interface Reservation {
@@ -29,9 +40,12 @@ export function ProCalendar({ reservations }: ProCalendarProps) {
     const prevMonth = () => setCurrentDate(subMonths(currentDate, 1))
     const goToToday = () => setCurrentDate(new Date())
 
+    // Get all days to display including padding days
     const monthStart = startOfMonth(currentDate)
     const monthEnd = endOfMonth(currentDate)
-    const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
+    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 }) // Start on Monday
+    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 })
+    const allDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd })
 
     // Normalize reservations dates
     const normalizedReservations = reservations.map(r => ({
@@ -47,65 +61,95 @@ export function ProCalendar({ reservations }: ProCalendarProps) {
     }
 
     return (
-        <Card className="border-none shadow-sm h-full">
-            <CardHeader className="flex flex-row items-center justify-between pb-4">
-                <CardTitle className="text-lg font-bold flex items-center gap-2">
-                    <CalendarIcon className="w-5 h-5 text-navy" />
+        <Card className="border border-gray-100 shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b">
+                <CardTitle className="text-base font-bold flex items-center gap-2 text-gray-800">
+                    <CalendarIcon className="w-4 h-4 text-emerald-600" />
                     {format(currentDate, 'MMMM yyyy', { locale: fr })}
                 </CardTitle>
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={goToToday}>Aujourd'hui</Button>
-                    <div className="flex items-center rounded-md border">
-                        <Button variant="ghost" size="icon" onClick={prevMonth}><ChevronLeft className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={nextMonth}><ChevronRight className="h-4 w-4" /></Button>
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={goToToday}
+                        className="text-xs h-7 px-2 text-emerald-700 hover:bg-emerald-100"
+                    >
+                        Aujourd'hui
+                    </Button>
+                    <div className="flex items-center rounded-lg border bg-white">
+                        <Button variant="ghost" size="icon" onClick={prevMonth} className="h-7 w-7">
+                            <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={nextMonth} className="h-7 w-7">
+                            <ChevronRight className="h-4 w-4" />
+                        </Button>
                     </div>
                 </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3">
                 {/* Days Header */}
-                <div className="grid grid-cols-7 mb-2 text-center text-sm font-medium text-gray-500">
-                    {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map(day => (
-                        <div key={day} className="py-2">{day}</div>
+                <div className="grid grid-cols-7 mb-1 text-center text-xs font-semibold text-gray-500">
+                    {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, i) => (
+                        <div key={i} className="py-1">{day}</div>
                     ))}
                 </div>
 
                 {/* Days Grid */}
-                <div className="grid grid-cols-7 gap-px bg-gray-200 border rounded-lg overflow-hidden">
-                    {/* Add empty slots for days before start of month if needed, simplified here to start from 1st */}
-                    {/* Note: Ideally we'd calculate start of week vs start of month offset */}
-
-                    {days.map((day) => {
+                <div className="grid grid-cols-7 gap-0.5">
+                    {allDays.map((day) => {
                         const dayReservations = getReservationsForDay(day)
+                        const isCurrentMonth = isSameMonth(day, currentDate)
+                        const hasReservations = dayReservations.length > 0
+
                         return (
                             <div
                                 key={day.toISOString()}
-                                className={`min-h-[100px] bg-white p-2 flex flex-col gap-1 transition-colors hover:bg-gray-50
-                                    ${isToday(day) ? 'bg-blue-50/50' : ''}
+                                className={`
+                                    relative aspect-square p-1 rounded-lg transition-all text-center
+                                    ${!isCurrentMonth ? 'opacity-30' : ''}
+                                    ${isToday(day) ? 'bg-emerald-100 ring-2 ring-emerald-500' : 'hover:bg-gray-50'}
+                                    ${hasReservations ? 'bg-emerald-50' : ''}
                                 `}
                             >
-                                <div className={`text-right text-xs mb-1 font-medium ${isToday(day) ? 'text-blue-600' : 'text-gray-500'}`}>
+                                <div className={`
+                                    text-xs font-medium
+                                    ${isToday(day) ? 'text-emerald-700 font-bold' : 'text-gray-700'}
+                                `}>
                                     {format(day, 'd')}
                                 </div>
 
-                                {dayReservations.map((res, idx) => (
-                                    <div
-                                        key={res.id}
-                                        className={`text-[10px] p-1 rounded truncate border-l-2
-                                            ${res.status === 'CONFIRMED' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-yellow-50 border-yellow-500 text-yellow-700'}
-                                        `}
-                                        title={`${res.client.name} - ${format(res.startDate, 'HH:mm')}`}
-                                    >
-                                        <span className="font-bold">{format(res.startDate, 'HH:mm')}</span> {res.client.name}
-                                    </div>
-                                ))}
-                                {dayReservations.length > 3 && (
-                                    <div className="text-[10px] text-gray-400 text-center font-medium">
-                                        + {dayReservations.length - 3} autres
+                                {hasReservations && (
+                                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                                        {dayReservations.slice(0, 3).map((res) => (
+                                            <div
+                                                key={res.id}
+                                                className={`w-1.5 h-1.5 rounded-full ${res.status === 'CONFIRMED'
+                                                        ? 'bg-emerald-500'
+                                                        : 'bg-amber-400'
+                                                    }`}
+                                                title={`${res.client.name} - ${format(res.startDate, 'HH:mm')}`}
+                                            />
+                                        ))}
+                                        {dayReservations.length > 3 && (
+                                            <span className="text-[8px] text-gray-500">+{dayReservations.length - 3}</span>
+                                        )}
                                     </div>
                                 )}
                             </div>
                         )
                     })}
+                </div>
+
+                {/* Legend */}
+                <div className="flex justify-center gap-4 mt-3 pt-3 border-t text-xs text-gray-500">
+                    <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        <span>Confirmé</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 rounded-full bg-amber-400"></div>
+                        <span>En attente</span>
+                    </div>
                 </div>
             </CardContent>
         </Card>
