@@ -1,23 +1,26 @@
 // Base email template with AniReserve branding
 
 export interface EmailTemplateProps {
-    title: string
-    preheader?: string
-    content: string
-    ctaText?: string
-    ctaLink?: string
-    footerText?: string
+  title: string
+  preheader?: string
+  content: string
+  ctaText?: string
+  ctaLink?: string
+  footerText?: string
 }
 
+// Logo URL - hosted on the site
+const LOGO_URL = 'https://anireserve.com/logo.png'
+
 export function getBaseEmailTemplate({
-    title,
-    preheader,
-    content,
-    ctaText,
-    ctaLink,
-    footerText
+  title,
+  preheader,
+  content,
+  ctaText,
+  ctaLink,
+  footerText
 }: EmailTemplateProps): string {
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -32,15 +35,10 @@ export function getBaseEmailTemplate({
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           
-          <!-- Header -->
+          <!-- Header with Logo -->
           <tr>
-            <td style="background: linear-gradient(135deg, #1a1f36 0%, #2d3748 100%); padding: 40px 32px; text-align: center;">
-              <h1 style="margin: 0; color: #3DBAA2; font-size: 32px; font-weight: 700; letter-spacing: -0.5px;">
-                Ani<span style="color: #ffffff;">RESERVE</span>
-              </h1>
-              <p style="margin: 8px 0 0 0; color: #a0aec0; font-size: 14px;">
-                La plateforme #1 des services professionnels
-              </p>
+            <td style="background: linear-gradient(135deg, #1a1f36 0%, #2d3748 100%); padding: 32px; text-align: center;">
+              <img src="${LOGO_URL}" alt="AniReserve" width="180" style="display: block; margin: 0 auto;" />
             </td>
           </tr>
 
@@ -75,21 +73,16 @@ export function getBaseEmailTemplate({
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- Footer - Simplified -->
           <tr>
-            <td style="background-color: #f8f9fa; padding: 32px 40px; text-align: center;">
-              <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px;">
-                <strong>AniReserve Inc.</strong> | Tel Aviv, Israël
+            <td style="background-color: #f8f9fa; padding: 24px 40px; text-align: center;">
+              <p style="margin: 0 0 8px 0; color: #1a1f36; font-size: 16px; font-weight: 600;">
+                AniReserve
               </p>
-              <p style="margin: 0 0 16px 0; color: #9ca3af; font-size: 12px;">
-                📧 contact@anireserve.com | 📞 +972 3 123 4567
+              <p style="margin: 0 0 16px 0; color: #6b7280; font-size: 13px;">
+                📧 contact@anireserve.com
               </p>
-              <div style="margin: 16px 0;">
-                <a href="https://anireserve.com" style="color: #3DBAA2; text-decoration: none; font-size: 13px; margin: 0 12px;">Accueil</a>
-                <a href="https://anireserve.com/help" style="color: #3DBAA2; text-decoration: none; font-size: 13px; margin: 0 12px;">Aide</a>
-                <a href="https://anireserve.com/unsubscribe" style="color: #9ca3af; text-decoration: none; font-size: 13px; margin: 0 12px;">Se désabonner</a>
-              </div>
-              <p style="margin: 16px 0 0 0; color: #9ca3af; font-size: 11px;">
+              <p style="margin: 0; color: #9ca3af; font-size: 11px;">
                 © ${new Date().getFullYear()} AniReserve. Tous droits réservés.
               </p>
             </td>
