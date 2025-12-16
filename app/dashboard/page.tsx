@@ -104,7 +104,11 @@ export default async function DashboardPage() {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="flex items-center justify-between">
                             <h2 className="text-2xl font-bold text-navy font-poppins">Historique</h2>
-                            <Button variant="link" className="text-[#3DBAA2]">Voir tout</Button>
+                            {(user?.clientReservations.length || 0) > 3 && (
+                                <Link href="/dashboard/reservations">
+                                    <Button variant="link" className="text-[#3DBAA2]">Voir tout</Button>
+                                </Link>
+                            )}
                         </div>
 
                         {user?.clientReservations.length === 0 ? (
@@ -215,9 +219,11 @@ export default async function DashboardPage() {
                                 <p className="text-white/90 text-sm mb-4 leading-relaxed">
                                     Une question sur une réservation ? Notre support est disponible 7j/7 pour vous aider.
                                 </p>
-                                <Button className="w-full bg-white text-[#3DBAA2] hover:bg-gray-50 font-bold border-none">
-                                    Contacter le support
-                                </Button>
+                                <a href="mailto:contact@anireserve.com?subject=Support AniReserve">
+                                    <Button className="w-full bg-white text-[#3DBAA2] hover:bg-gray-50 font-bold border-none">
+                                        📧 Contacter le support
+                                    </Button>
+                                </a>
                             </CardContent>
                         </Card>
                     </div>
