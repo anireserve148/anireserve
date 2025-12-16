@@ -44,11 +44,9 @@ export async function createReview(
             throw new AuthorizationError('Vous ne pouvez noter que vos propres réservations');
         }
 
-        if (reservation.status !== 'COMPLETED' && reservation.status !== 'CONFIRMED') {
-            // Allowing CONFIRMED for flexibility if manual completion isn't strict, but ideally COMPLETED
-            // For now, let's allow CONFIRMED as "done" if the date is past? 
-            // Or strict status check. Let's stick to status check but ensure pros mark as completed.
-            // Actually, simplest is to allow reviewing any past CONFIRMED reservation.
+        // Only allow reviews for COMPLETED reservations (verified purchase)
+        if (reservation.status !== 'COMPLETED') {
+            throw new Error('Vous ne pouvez laisser un avis que pour une réservation terminée');
         }
 
         // Check if already reviewed
