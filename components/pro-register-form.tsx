@@ -12,6 +12,7 @@ import { submitProApplication } from "@/app/lib/application-actions"
 import { ChevronRight, ChevronLeft, Upload, Loader2, CheckCircle } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
+import { BackButton } from "@/components/ui/back-button"
 
 interface ProRegisterFormProps {
     cities: { id: string; name: string }[]
@@ -172,6 +173,8 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4">
             <div className="max-w-3xl mx-auto space-y-8">
+                {/* Back Button */}
+                <BackButton href="/" label="Retour à l'accueil" />
 
                 {/* 1. Informations Personnelles */}
                 <Card>

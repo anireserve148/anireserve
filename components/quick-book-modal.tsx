@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { addHours, format, setHours, setMinutes, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday, isBefore, startOfDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { createReservation } from "@/app/lib/booking-actions"
-import { Loader2, Clock, Calendar as CalendarIcon, MapPin, Star, ChevronLeft, ChevronRight } from "lucide-react"
+import { Loader2, Clock, Calendar as CalendarIcon, MapPin, Star, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { toast } from "sonner"
 
 interface QuickBookModalProps {
@@ -118,11 +118,19 @@ export function QuickBookModal({ open, onClose, pro }: QuickBookModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl">
+            <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-5 text-white">
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-5 text-white relative">
+                    {/* Mobile Close Button */}
+                    <button
+                        onClick={onClose}
+                        className="absolute top-3 right-3 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+                        aria-label="Fermer"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
                     <DialogHeader>
-                        <DialogTitle className="text-xl text-white flex items-center gap-2 font-bold">
+                        <DialogTitle className="text-xl text-white flex items-center gap-2 font-bold pr-10">
                             <CalendarIcon className="w-5 h-5" />
                             Réserver {pro.name}
                         </DialogTitle>
@@ -249,8 +257,8 @@ export function QuickBookModal({ open, onClose, pro }: QuickBookModalProps) {
                                                     size="sm"
                                                     onClick={() => setSelectedSlot(slot)}
                                                     className={`text-sm font-semibold h-10 ${selectedSlot === slot
-                                                            ? 'bg-emerald-500 hover:bg-emerald-600 border-emerald-500'
-                                                            : 'hover:border-emerald-400 hover:text-emerald-600'
+                                                        ? 'bg-emerald-500 hover:bg-emerald-600 border-emerald-500'
+                                                        : 'hover:border-emerald-400 hover:text-emerald-600'
                                                         }`}
                                                 >
                                                     {slot}
