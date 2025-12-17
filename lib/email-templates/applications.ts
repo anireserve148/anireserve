@@ -28,7 +28,7 @@ export function getApplicationSubmittedEmail(data: ApplicationEmailData): string
     title: 'Demande reçue !',
     preheader: 'Votre candidature est en cours de vérification',
     content,
-    footerText: 'Des questions ? Contactez-nous à support@anireserve.com'
+    footerText: 'Des questions ? Contactez-nous à contact@anireserve.com'
   })
 }
 
@@ -110,7 +110,7 @@ export function getApplicationDocumentsRequestedEmail(data: ApplicationEmailData
     preheader: 'Action requise pour votre candidature',
     content,
     ctaText: 'Envoyer les documents',
-    ctaLink: 'mailto:support@anireserve.com',
+    ctaLink: 'mailto:contact@anireserve.com',
     footerText: 'Répondez directement à cet email avec les documents demandés.'
   })
 }

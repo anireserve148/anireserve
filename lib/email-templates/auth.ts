@@ -24,7 +24,7 @@ export function getWelcomeClientEmail(data: { name: string }): string {
         content,
         ctaText: 'Trouver un professionnel',
         ctaLink: 'https://anireserve.com',
-        footerText: 'Besoin d\'aide ? Notre équipe est là pour vous : support@anireserve.com'
+        footerText: 'Besoin d\'aide ? Notre équipe est là pour vous : contact@anireserve.com'
     })
 }
 
@@ -54,6 +54,6 @@ export function getWelcomeProEmail(data: { name: string }): string {
         content,
         ctaText: 'Compléter mon profil',
         ctaLink: 'https://anireserve.com/dashboard/pro',
-        footerText: 'Notre équipe vous accompagne dans votre réussite : support@anireserve.com'
+        footerText: 'Notre équipe vous accompagne dans votre réussite : contact@anireserve.com'
     })
 }

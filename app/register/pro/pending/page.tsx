@@ -51,8 +51,8 @@ export default function PendingPage() {
                     <div className="mt-8 pt-8 border-t">
                         <p className="text-sm text-gray-500">
                             Des questions ? Contactez-nous à{" "}
-                            <a href="mailto:support@anireserve.com" className="text-navy hover:underline">
-                                support@anireserve.com
+                            <a href="mailto:contact@anireserve.com" className="text-navy hover:underline">
+                                contact@anireserve.com
                             </a>
                         </p>
                     </div>
