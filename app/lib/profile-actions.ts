@@ -16,10 +16,11 @@ const updateProfileSchema = z.object({
     email: z.string().email('Email invalide'),
     phoneNumber: z.string().optional(),
     address: z.string().optional(),
+    image: z.string().optional(),
 })
 
 export async function updateClientProfile(
-    data: { name: string; email: string; phoneNumber?: string; address?: string }
+    data: { name: string; email: string; phoneNumber?: string; address?: string; image?: string }
 ): Promise<ActionResponse<void>> {
     try {
         const validated = updateProfileSchema.parse(data);
@@ -34,6 +35,7 @@ export async function updateClientProfile(
             data: {
                 name: validated.name,
                 email: validated.email,
+                image: validated.image || undefined,
             }
         });
 

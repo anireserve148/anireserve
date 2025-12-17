@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar, MapPin, Star, Clock, Camera } from "lucide-react"
+import { Calendar, MapPin, Star, Clock, Camera, MessageSquare } from "lucide-react"
 import { BookingWidget } from "@/components/booking-widget"
 import { ProGallery } from "@/components/pro-gallery"
 import { ReviewList } from "@/components/reviews/review-list"
@@ -104,6 +104,16 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
                                         <h1 className="text-3xl font-bold">{pro.user.name}</h1>
                                         <FavoriteButton proId={pro.id} isFavorite={isFavorite} />
                                     </div>
+                                    {/* Contact Button */}
+                                    <a
+                                        href={`https://wa.me/972${pro.user.phoneNumber?.replace(/\D/g, '').slice(-9) || ''}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm font-medium transition-colors"
+                                    >
+                                        <MessageSquare className="w-4 h-4" />
+                                        Contacter sur WhatsApp
+                                    </a>
                                     <div className="flex items-center text-muted-foreground mt-2">
                                         <MapPin className="w-4 h-4 mr-1" />
                                         {pro.city.name}, {pro.city.region}
