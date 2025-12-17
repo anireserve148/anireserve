@@ -19,7 +19,8 @@ export async function createReservation(data: {
     proId: string,
     startDate: Date,
     endDate: Date,
-    totalPrice: number
+    totalPrice: number,
+    serviceId?: string
 }): Promise<ActionResponse<void>> {
     try {
         // Validate input

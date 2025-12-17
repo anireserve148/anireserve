@@ -11,15 +11,26 @@ import { toast } from "sonner"
 
 const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
-export function BookingWidget({ proId, availability, hourlyRate, reviews }: {
+interface Service {
+    id: string
+    categoryId: string
+    category: { name: string }
+    customPrice: number | null
+    duration: number | null
+    description: string | null
+}
+
+export function BookingWidget({ proId, availability, hourlyRate, services, reviews }: {
     proId: string,
     availability: any[],
     hourlyRate: number,
+    services?: Service[],
     reviews?: any[]
 }) {
     const [currentMonth, setCurrentMonth] = useState(new Date())
     const [selectedDate, setSelectedDate] = useState<Date | null>(null)
     const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
+    const [selectedService, setSelectedService] = useState<Service | null>(null)
     const [isBooking, setIsBooking] = useState(false)
 
     // Generate calendar days
@@ -63,11 +74,20 @@ export function BookingWidget({ proId, availability, hourlyRate, reviews }: {
         setIsBooking(true)
 
         const [h] = selectedSlot.split(':').map(Number)
+        const duration = selectedService?.duration || 60
+        const price = selectedService?.customPrice || hourlyRate
+
         const startDate = setMinutes(setHours(selectedDate, h), 0)
-        const endDate = addHours(startDate, 1)
+        const endDate = addHours(startDate, duration / 60)
 
         try {
-            const result = await createReservation({ proId, startDate, endDate, totalPrice: hourlyRate })
+            const result = await createReservation({
+                proId,
+                startDate,
+                endDate,
+                totalPrice: price,
+                serviceId: selectedService?.id
+            })
 
             if (result.success) {
                 toast.success('Demande de réservation envoyée !')
@@ -93,9 +113,51 @@ export function BookingWidget({ proId, availability, hourlyRate, reviews }: {
                         <CalendarIcon className="h-5 w-5" />
                         Réserver
                     </CardTitle>
-                    <p className="text-sm text-white/90 mt-1">{hourlyRate} ₪ / heure</p>
+                    <p className="text-sm text-white/90 mt-1">
+                        {selectedService
+                            ? `${selectedService.customPrice || hourlyRate} ₪`
+                            : `À partir de ${hourlyRate} ₪`
+                        }
+                    </p>
                 </CardHeader>
                 <CardContent className="p-6 space-y-6">
+                    {/* Service Selection */}
+                    {services && services.length > 0 && (
+                        <div className="space-y-3">
+                            <label className="text-sm font-semibold text-navy">Service</label>
+                            <div className="grid gap-2">
+                                {services.map((service) => {
+                                    const price = service.customPrice || hourlyRate
+                                    const duration = service.duration || 60
+                                    const isSelected = selectedService?.id === service.id
+
+                                    return (
+                                        <button
+                                            key={service.id}
+                                            onClick={() => setSelectedService(service)}
+                                            className={`p-3 rounded-lg border-2 text-left transition-all ${isSelected
+                                                    ? 'border-primary bg-primary/5'
+                                                    : 'border-gray-200 hover:border-primary/50'
+                                                }`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="font-semibold text-navy">{service.category.name}</p>
+                                                    {service.description && (
+                                                        <p className="text-xs text-gray-600 mt-1">{service.description}</p>
+                                                    )}
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="font-bold text-primary">{price} ₪</p>
+                                                    <p className="text-xs text-gray-500">{duration} min</p>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
                     {/* Custom Calendar */}
                     <div className="bg-gray-50 rounded-xl p-4 border">
                         {/* Month Navigation */}

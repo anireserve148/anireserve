@@ -56,6 +56,11 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
             user: true,
             city: true,
             serviceCategories: true,
+            services: {
+                where: { isActive: true },
+                include: { category: true },
+                orderBy: { createdAt: 'desc' }
+            },
             availability: true,
             gallery: { orderBy: { order: 'asc' } },
             reviews: { include: { client: true }, orderBy: { createdAt: 'desc' }, take: 5 }
@@ -182,7 +187,13 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
                 {/* Right Column: Booking Widget */}
                 <div className="lg:col-span-1">
                     <div className="sticky top-8">
-                        <BookingWidget proId={pro.id} availability={pro.availability} hourlyRate={pro.hourlyRate} />
+                        <BookingWidget
+                            proId={pro.id}
+                            availability={pro.availability}
+                            hourlyRate={pro.hourlyRate}
+                            services={pro.services}
+                            reviews={pro.reviews}
+                        />
                     </div>
                 </div>
             </div>
