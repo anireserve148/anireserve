@@ -30,20 +30,12 @@ export async function createReservation(data: {
         });
 
         // Check authentication
-        // Check authentication
         const session = await auth();
         if (!session?.user?.id) {
             throw new AuthenticationError('Vous devez être connecté pour réserver');
         }
 
-        // Verify user exists in DB (handle stale sessions)
-        const client = await prisma.user.findUnique({
-            where: { id: session.user.id }
-        });
-
-        if (!client) {
-            throw new AuthenticationError('Session invalide. Veuillez vous reconnecter.');
-        }
+        const clientId = session.user.id;
 
         // Get pro profile with user info
         const proProfile = await prisma.proProfile.findUnique({
@@ -89,7 +81,7 @@ export async function createReservation(data: {
         // Send notification email to pro
         if (proProfile.user.email) {
             const emailData = {
-                clientName: client.name || 'Client',
+                clientName: session.user.name || 'Client',
                 proName: proProfile.user.name || 'Professionnel',
                 date: format(validated.startDate, 'd MMMM yyyy', { locale: fr }),
                 time: format(validated.startDate, 'HH:mm'),
