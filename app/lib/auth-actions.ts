@@ -3,6 +3,8 @@
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { sendWelcomeClient } from '@/lib/mail'
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { headers } from 'next/headers'
 import {
     handleActionError,
     createSuccessResponse,
@@ -15,6 +17,16 @@ export async function registerClient(data: {
     password: string
 }): Promise<ActionResponse<void>> {
     try {
+        // Rate limiting by IP
+        const headersList = await headers()
+        const ip = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown'
+        const rateLimitResult = rateLimit(`register:${ip}`, RATE_LIMITS.REGISTER)
+
+        if (!rateLimitResult.success) {
+            const resetTime = new Date(rateLimitResult.resetTime)
+            throw new Error(`Trop de tentatives d'inscription. Réessayez après ${resetTime.toLocaleTimeString('fr-FR')}`)
+        }
+
         // Check if email already exists
         const existingUser = await prisma.user.findUnique({
             where: { email: data.email }
