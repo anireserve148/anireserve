@@ -39,6 +39,18 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
     const [idPhotoPreview, setIdPhotoPreview] = useState<string | null>(null)
     const [isUploading, setIsUploading] = useState(false)
 
+    // Calculate current step based on form completion
+    const getCurrentStep = () => {
+        const hasBasicInfo = formData.firstName && formData.lastName && formData.email && formData.phone && formData.password
+        const hasServices = formData.cityIds.length > 0 && formData.categoryIds.length > 0
+
+        if (!hasBasicInfo) return 1
+        if (!hasServices) return 2
+        return 3
+    }
+
+    const currentStep = getCurrentStep()
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
@@ -175,6 +187,46 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
             <div className="max-w-3xl mx-auto space-y-8">
                 {/* Back Button */}
                 <BackButton href="/" label="Retour à l'accueil" />
+
+                {/* Progress Bar */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border">
+                    <div className="flex items-center justify-between relative">
+                        {/* Progress Line */}
+                        <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
+                            <div
+                                className="h-full bg-navy transition-all duration-500"
+                                style={{ width: `${((currentStep) / 3) * 100}%` }}
+                            />
+                        </div>
+
+                        {/* Step 1 */}
+                        <div className="flex flex-col items-center flex-1">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${currentStep >= 1 ? 'bg-navy text-white' : 'bg-gray-200 text-gray-400'
+                                }`}>
+                                {currentStep > 1 ? '✓' : '1'}
+                            </div>
+                            <span className="text-xs mt-2 font-medium text-gray-600">Infos</span>
+                        </div>
+
+                        {/* Step 2 */}
+                        <div className="flex flex-col items-center flex-1">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${currentStep >= 2 ? 'bg-navy text-white' : 'bg-gray-200 text-gray-400'
+                                }`}>
+                                {currentStep > 2 ? '✓' : '2'}
+                            </div>
+                            <span className="text-xs mt-2 font-medium text-gray-600">Services</span>
+                        </div>
+
+                        {/* Step 3 */}
+                        <div className="flex flex-col items-center flex-1">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${currentStep >= 3 ? 'bg-navy text-white' : 'bg-gray-200 text-gray-400'
+                                }`}>
+                                3
+                            </div>
+                            <span className="text-xs mt-2 font-medium text-gray-600">Identité</span>
+                        </div>
+                    </div>
+                </div>
 
                 {/* 1. Informations Personnelles */}
                 <Card>
