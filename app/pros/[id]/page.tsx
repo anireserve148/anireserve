@@ -106,13 +106,11 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
                                     </div>
                                     {/* Contact Button */}
                                     <a
-                                        href={`https://wa.me/972${pro.user.phoneNumber?.replace(/\D/g, '').slice(-9) || ''}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full text-sm font-medium transition-colors"
+                                        href={`/dashboard/messages?proId=${pro.id}`}
+                                        className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-navy hover:bg-navy/90 text-white rounded-full text-sm font-medium transition-colors"
                                     >
                                         <MessageSquare className="w-4 h-4" />
-                                        Contacter sur WhatsApp
+                                        Envoyer un message
                                     </a>
                                     <div className="flex items-center text-muted-foreground mt-2">
                                         <MapPin className="w-4 h-4 mr-1" />
