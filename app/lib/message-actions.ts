@@ -10,6 +10,8 @@ import {
     AuthenticationError,
     type ActionResponse
 } from '@/lib/errors'
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { headers } from 'next/headers'
 
 const sendMessageSchema = z.object({
     recipientId: z.string(),
@@ -26,6 +28,13 @@ export async function sendMessage(
 
         if (!session?.user?.id) {
             throw new AuthenticationError("Connectez-vous pour envoyer des messages");
+        }
+
+        // Rate limiting by user ID
+        const rateLimitResult = rateLimit(`message:${session.user.id}`, RATE_LIMITS.MESSAGE)
+        if (!rateLimitResult.success) {
+            const resetTime = new Date(rateLimitResult.resetTime)
+            throw new Error(`Trop de messages. Réessayez après ${resetTime.toLocaleTimeString('fr-FR')}`)
         }
 
         const senderId = session.user.id;

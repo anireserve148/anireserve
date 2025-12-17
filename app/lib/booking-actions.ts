@@ -14,6 +14,9 @@ import {
 import { sendReservationAccepted, sendReservationRejected, sendNewReservationToPro } from '@/lib/mail'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
+import { headers } from 'next/headers'
+
 
 export async function createReservation(data: {
     proId: string,
@@ -23,6 +26,16 @@ export async function createReservation(data: {
     serviceId?: string
 }): Promise<ActionResponse<void>> {
     try {
+        // Rate limiting by IP
+        const headersList = await headers()
+        const ip = headersList.get('x-forwarded-for') || headersList.get('x-real-ip') || 'unknown'
+        const rateLimitResult = rateLimit(`booking:${ip}`, RATE_LIMITS.BOOKING)
+
+        if (!rateLimitResult.success) {
+            const resetTime = new Date(rateLimitResult.resetTime)
+            throw new Error(`Trop de réservations. Réessayez après ${resetTime.toLocaleTimeString('fr-FR')}`)
+        }
+
         // Validate input
         const validated = createReservationSchema.parse({
             proId: data.proId,
