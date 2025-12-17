@@ -57,9 +57,11 @@ export function QuickBookModal({ open, onClose, pro }: QuickBookModalProps) {
     const monthEnd = endOfMonth(currentMonth)
     const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
 
-    // Add padding days for proper alignment
+    // Add padding days for proper alignment (French calendar: Monday = 0, Sunday = 6)
     const startDayOfWeek = monthStart.getDay()
-    const paddingDays = Array(startDayOfWeek).fill(null)
+    // Convert Sunday=0 to 6, and shift others (Mon=1 -> 0, Tue=2 -> 1, etc.)
+    const frenchDayIndex = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1
+    const paddingDays = Array(frenchDayIndex).fill(null)
 
     // Check if a day has availability
     const hasAvailability = (date: Date) => {
