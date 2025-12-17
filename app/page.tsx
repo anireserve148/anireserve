@@ -5,6 +5,7 @@ import { ModernFooter } from "@/components/modern-footer"
 import { HomeSearchFilters } from "@/components/search/home-filters"
 import { HomeResults, ProResult } from "@/components/search/home-results"
 import { Sparkles, Shield, Zap } from "lucide-react"
+import { unstable_cache } from 'next/cache'
 
 export default async function Home({
   searchParams,
@@ -67,21 +68,33 @@ export default async function Home({
     orderBy = { user: { name: 'asc' } }
   }
 
-  // 4. Fetch Pros with error handling
+  // 4. Fetch Pros with caching (5min cache)
   let prosData: any[] = []
 
+  const cachedGetPros = unstable_cache(
+    async (whereClause: any, orderByClause: any) => {
+      return await prisma.proProfile.findMany({
+        where: whereClause,
+        orderBy: orderByClause,
+        take: 50,
+        include: {
+          user: true,
+          city: true,
+          serviceCategories: true,
+          reviews: {
+            select: {
+              rating: true
+            }
+          }
+        }
+      })
+    },
+    ['pros-search'],
+    { revalidate: 300, tags: ['pros'] } // Cache for 5 minutes
+  )
+
   try {
-    prosData = await prisma.proProfile.findMany({
-      where,
-      orderBy,
-      take: 50,
-      include: {
-        user: true,
-        city: true,
-        serviceCategories: true,
-        reviews: true
-      }
-    })
+    prosData = await cachedGetPros(where, orderBy)
   } catch (error) {
     console.error('Error fetching professionals:', error)
   }
