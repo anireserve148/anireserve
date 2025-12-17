@@ -1,14 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { addHours, format, setHours, setMinutes } from "date-fns"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { addHours, format, setHours, setMinutes, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isToday, isBefore, startOfDay, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { createReservation } from "@/app/lib/booking-actions"
-import { Loader2, Clock, Calendar as CalendarIcon, Star, MessageSquare } from "lucide-react"
+import { Loader2, Clock, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Star, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
+
+const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
 export function BookingWidget({ proId, availability, hourlyRate, reviews }: {
     proId: string,
@@ -16,21 +17,38 @@ export function BookingWidget({ proId, availability, hourlyRate, reviews }: {
     hourlyRate: number,
     reviews?: any[]
 }) {
-    const [date, setDate] = useState<Date | undefined>(new Date())
+    const [currentMonth, setCurrentMonth] = useState(new Date())
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null)
     const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
     const [isBooking, setIsBooking] = useState(false)
 
+    // Generate calendar days
+    const monthStart = startOfMonth(currentMonth)
+    const monthEnd = endOfMonth(currentMonth)
+    const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
+
+    // Add padding days for proper French calendar alignment (Monday = 0)
+    const startDayOfWeek = monthStart.getDay()
+    const frenchDayIndex = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1
+    const paddingDays = Array(frenchDayIndex).fill(null)
+
+    // Check if a day has availability
+    const hasAvailability = (date: Date) => {
+        const dayOfWeek = date.getDay()
+        return availability.some(a => a.dayOfWeek === dayOfWeek)
+    }
+
     // Calculate available slots for the selected date
     const getSlots = () => {
-        if (!date) return []
-        const dayOfWeek = date.getDay() // 0-6
+        if (!selectedDate) return []
+        const dayOfWeek = selectedDate.getDay()
 
         const rule = availability.find(a => a.dayOfWeek === dayOfWeek)
         if (!rule) return []
 
         const slots = []
-        let start = parseInt(rule.startTime.split(':')[0])
-        let end = parseInt(rule.endTime.split(':')[0])
+        const start = parseInt(rule.startTime.split(':')[0])
+        const end = parseInt(rule.endTime.split(':')[0])
 
         for (let h = start; h < end; h++) {
             slots.push(`${h.toString().padStart(2, '0')}:00`)
@@ -41,73 +59,144 @@ export function BookingWidget({ proId, availability, hourlyRate, reviews }: {
     const slots = getSlots()
 
     const handleBook = async () => {
-        if (!date || !selectedSlot) return
+        if (!selectedDate || !selectedSlot) return
         setIsBooking(true)
 
         const [h] = selectedSlot.split(':').map(Number)
-        const startDate = setMinutes(setHours(date, h), 0)
-        const endDate = addHours(startDate, 1) // 1 hour duration by default
+        const startDate = setMinutes(setHours(selectedDate, h), 0)
+        const endDate = addHours(startDate, 1)
 
         try {
             const result = await createReservation({ proId, startDate, endDate, totalPrice: hourlyRate })
 
             if (result.success) {
-                toast.success('Demande de réservation envoyée avec succès !')
+                toast.success('Demande de réservation envoyée !')
                 setSelectedSlot(null)
             } else {
                 toast.error(result.error || 'Erreur lors de la réservation')
             }
         } catch (e) {
             console.error(e)
-            toast.error("Une erreur inattendue est survenue")
+            toast.error("Une erreur est survenue")
         } finally {
             setIsBooking(false)
         }
     }
 
+    const isPastDay = (date: Date) => isBefore(date, startOfDay(new Date()))
+
     return (
         <div className="space-y-6">
-            {/* Booking Calendar Card */}
-            <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-primary/5">
-                <CardHeader className="bg-gradient-to-r from-primary to-secondary text-white rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2 text-white">
+            <Card className="sticky top-24 border-2 border-primary/10 shadow-xl">
+                <CardHeader className="bg-gradient-to-r from-primary/90 to-secondary/90 text-white">
+                    <CardTitle className="flex items-center gap-2">
                         <CalendarIcon className="h-5 w-5" />
-                        Réserver un Rendez-vous
+                        Réserver
                     </CardTitle>
+                    <p className="text-sm text-white/90 mt-1">{hourlyRate} ₪ / heure</p>
                 </CardHeader>
-                <CardContent className="space-y-6 p-6">
-                    {/* Modern Calendar */}
-                    <div className="flex justify-center bg-white rounded-xl shadow-inner p-4 border border-primary/10">
-                        <Calendar
-                            mode="single"
-                            selected={date}
-                            onSelect={setDate}
-                            disabled={(date) => date < new Date()}
-                            locale={fr}
-                            className="rounded-lg"
-                        />
+                <CardContent className="p-6 space-y-6">
+                    {/* Custom Calendar */}
+                    <div className="bg-gray-50 rounded-xl p-4 border">
+                        {/* Month Navigation */}
+                        <div className="flex items-center justify-between mb-4">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <h3 className="font-bold text-navy capitalize">
+                                {format(currentMonth, 'MMMM yyyy', { locale: fr })}
+                            </h3>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+
+                        {/* Days Header */}
+                        <div className="grid grid-cols-7 gap-1 mb-2">
+                            {DAYS_FR.map(day => (
+                                <div key={day} className="text-center text-xs font-semibold text-gray-600 py-1">
+                                    {day}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Calendar Grid */}
+                        <div className="grid grid-cols-7 gap-1">
+                            {paddingDays.map((_, i) => (
+                                <div key={`pad-${i}`} className="aspect-square" />
+                            ))}
+                            {calendarDays.map((day, i) => {
+                                const isPast = isPastDay(day)
+                                const hasSlots = hasAvailability(day)
+                                const isSelected = selectedDate && isSameDay(day, selectedDate)
+                                const isCurrentDay = isToday(day)
+
+                                return (
+                                    <button
+                                        key={i}
+                                        disabled={isPast || !hasSlots}
+                                        onClick={() => setSelectedDate(day)}
+                                        className={`
+                                            aspect-square rounded-lg text-sm font-medium transition-all
+                                            ${isPast || !hasSlots
+                                                ? 'text-gray-300 cursor-not-allowed bg-gray-100'
+                                                : 'hover:bg-primary/10 hover:scale-105 cursor-pointer'
+                                            }
+                                            ${isSelected
+                                                ? 'bg-primary text-white shadow-lg scale-105'
+                                                : hasSlots
+                                                    ? 'bg-white border border-green-200'
+                                                    : ''
+                                            }
+                                            ${isCurrentDay && !isSelected ? 'ring-2 ring-primary/50' : ''}
+                                        `}
+                                    >
+                                        {format(day, 'd')}
+                                    </button>
+                                )
+                            })}
+                        </div>
+
+                        <div className="mt-4 flex items-center gap-4 text-xs text-gray-600">
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded bg-white border border-green-200"></div>
+                                <span>Disponible</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 rounded bg-gray-100"></div>
+                                <span>Indisponible</span>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Time Slots */}
-                    {date && (
+                    {selectedDate && (
                         <div className="space-y-4">
-                            <div className="flex items-center gap-2 pb-2 border-b border-primary/20">
+                            <div className="flex items-center gap-2 pb-2 border-b">
                                 <Clock className="h-5 w-5 text-primary" />
-                                <h3 className="font-bold text-lg">
-                                    {format(date, "EEEE d MMMM", { locale: fr })}
+                                <h3 className="font-bold text-navy capitalize">
+                                    {format(selectedDate, "EEEE d MMMM", { locale: fr })}
                                 </h3>
                             </div>
                             {slots.length > 0 ? (
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-3 gap-2">
                                     {slots.map(slot => (
                                         <Button
                                             key={slot}
                                             variant={selectedSlot === slot ? "default" : "outline"}
-                                            size="lg"
+                                            size="sm"
                                             onClick={() => setSelectedSlot(slot)}
-                                            className={`font-semibold transition-all duration-200 ${selectedSlot === slot
-                                                    ? 'bg-gradient-to-r from-primary to-secondary shadow-lg scale-105'
-                                                    : 'hover:scale-105 hover:border-primary'
+                                            className={`font-semibold ${selectedSlot === slot
+                                                ? 'bg-primary shadow-md'
+                                                : 'hover:border-primary'
                                                 }`}
                                         >
                                             {slot}
@@ -115,13 +204,8 @@ export function BookingWidget({ proId, availability, hourlyRate, reviews }: {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 bg-gradient-to-br from-muted/30 to-muted/50 rounded-xl border-2 border-dashed border-muted">
-                                    <p className="text-sm font-medium text-muted-foreground">
-                                        😔 Aucune disponibilité ce jour
-                                    </p>
-                                    <p className="text-xs text-muted-foreground mt-2">
-                                        Essayez un autre jour de la semaine
-                                    </p>
+                                <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed">
+                                    <p className="text-sm text-gray-500">Aucune disponibilité</p>
                                 </div>
                             )}
                         </div>
@@ -144,23 +228,28 @@ export function BookingWidget({ proId, availability, hourlyRate, reviews }: {
                             </div>
                             <div className="mt-4 pt-4 border-t border-primary/20">
                                 <p className="text-sm font-medium text-center">
-                                    📅 {format(date!, "EEEE d MMMM yyyy", { locale: fr })} à {selectedSlot}
+                                    📅 {format(selectedDate!, "EEEE d MMMM yyyy", { locale: fr })} à {selectedSlot}
                                 </p>
                             </div>
                         </div>
                     )}
-                </CardContent>
-                <CardFooter className="bg-muted/30 rounded-b-lg p-6">
+
+                    {/* Book Button */}
                     <Button
-                        className="w-full font-bold text-lg py-6 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg hover:shadow-xl transition-all duration-200"
-                        disabled={!date || !selectedSlot || isBooking}
                         onClick={handleBook}
-                        size="lg"
+                        disabled={!selectedDate || !selectedSlot || isBooking}
+                        className="w-full h-12 bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg hover:shadow-xl transition-all"
                     >
-                        {isBooking && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                        {isBooking ? 'Envoi en cours...' : '✨ Demander une réservation'}
+                        {isBooking ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Réservation...
+                            </>
+                        ) : (
+                            'Demander une réservation'
+                        )}
                     </Button>
-                </CardFooter>
+                </CardContent>
             </Card>
 
             {/* Reviews Section */}
@@ -190,8 +279,8 @@ export function BookingWidget({ proId, availability, hourlyRate, reviews }: {
                                                         <Star
                                                             key={i}
                                                             className={`h-4 w-4 ${i < (review.rating || 5)
-                                                                    ? 'fill-yellow-400 text-yellow-400'
-                                                                    : 'text-gray-300'
+                                                                ? 'fill-yellow-400 text-yellow-400'
+                                                                : 'text-gray-300'
                                                                 }`}
                                                         />
                                                     ))}
