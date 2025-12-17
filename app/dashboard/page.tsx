@@ -176,8 +176,8 @@ export default async function DashboardPage() {
                                                         </Button>
                                                     </Link>
 
-                                                    {/* Review Button */}
-                                                    {(res.status === 'CONFIRMED' || res.status === 'COMPLETED') && !res.review && (
+                                                    {/* Review Button - Only for COMPLETED reservations */}
+                                                    {res.status === 'COMPLETED' && !res.review && (
                                                         <ReviewForm
                                                             reservationId={res.id}
                                                             proName={res.pro.user.name || "Professionnel"}
