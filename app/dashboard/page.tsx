@@ -7,6 +7,7 @@ import { Calendar, Clock, CreditCard, User, MapPin, MessageSquare } from 'lucide
 import Link from 'next/link';
 import { ClientProfileEdit } from '@/components/client-profile-edit';
 import { ReviewForm } from '@/components/reviews/review-form';
+import { AddToCalendarButton } from '@/components/add-to-calendar-button';
 
 export default async function DashboardPage() {
     const session = await auth();
@@ -168,6 +169,20 @@ export default async function DashboardPage() {
 
                                                 {/* Actions */}
                                                 <div className="flex items-center gap-2 ml-auto">
+                                                    {/* Add to Calendar Button - For CONFIRMED and COMPLETED */}
+                                                    {(res.status === 'CONFIRMED' || res.status === 'COMPLETED') && (
+                                                        <AddToCalendarButton
+                                                            reservation={{
+                                                                id: res.id,
+                                                                startDate: res.startDate,
+                                                                endDate: res.endDate,
+                                                                proName: res.pro.user.name || 'Professionnel',
+                                                                proAddress: `${res.pro.city.name}`,
+                                                                serviceDescription: undefined
+                                                            }}
+                                                        />
+                                                    )}
+
                                                     {/* Contact Pro Button */}
                                                     <Link href={`/dashboard/messages?proId=${res.proId}`}>
                                                         <Button variant="outline" size="sm" className="text-[#3DBAA2] border-[#3DBAA2] hover:bg-[#3DBAA2]/10">
