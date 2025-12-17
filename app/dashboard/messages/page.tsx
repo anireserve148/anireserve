@@ -29,19 +29,38 @@ export default async function MessagesPage({ searchParams }: PageProps) {
                     clientId: session.user.id,
                     proId: params.proId
                 }
+            },
+            include: {
+                client: true,
+                pro: { include: { user: true } },
             }
         });
 
         if (!conversation) {
-            conversation = await prisma.conversation.create({
+            await prisma.conversation.create({
                 data: {
                     clientId: session.user.id,
                     proId: params.proId,
                     lastMessageAt: new Date()
                 }
             });
+
+            // Reload with relations
+            conversation = await prisma.conversation.findUnique({
+                where: {
+                    clientId_proId: {
+                        clientId: session.user.id,
+                        proId: params.proId
+                    }
+                },
+                include: {
+                    client: true,
+                    pro: { include: { user: true } },
+                }
+            });
         }
-        targetConversationId = conversation.id;
+
+        targetConversationId = conversation?.id || null;
     }
 
     let conversations: any[] = [];
