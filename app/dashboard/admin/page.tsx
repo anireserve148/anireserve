@@ -22,7 +22,8 @@ import {
     Shield,
     Trash2,
     CheckCircle,
-    XCircle
+    XCircle,
+    MessageSquare
 } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
@@ -102,18 +103,26 @@ export default async function AdminDashboardPage() {
                         </div>
                     </div>
 
-                    {/* Applications Button */}
-                    <a href="/dashboard/admin/applications">
-                        <Button className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
-                            <AlertCircle className="w-4 h-4" />
-                            Candidatures Pro
-                            {await prisma.proApplication.count({ where: { status: 'PENDING' } }) > 0 && (
-                                <Badge className="bg-white text-orange-500 ml-2">
-                                    {await prisma.proApplication.count({ where: { status: 'PENDING' } })}
-                                </Badge>
-                            )}
-                        </Button>
-                    </a>
+                    {/* Admin Action Buttons */}
+                    <div className="flex gap-3">
+                        <a href="/dashboard/admin/conversations">
+                            <Button variant="outline" className="gap-2">
+                                <MessageSquare className="w-4 h-4" />
+                                Conversations
+                            </Button>
+                        </a>
+                        <a href="/dashboard/admin/applications">
+                            <Button className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
+                                <AlertCircle className="w-4 h-4" />
+                                Candidatures Pro
+                                {await prisma.proApplication.count({ where: { status: 'PENDING' } }) > 0 && (
+                                    <Badge className="bg-white text-orange-500 ml-2">
+                                        {await prisma.proApplication.count({ where: { status: 'PENDING' } })}
+                                    </Badge>
+                                )}
+                            </Button>
+                        </a>
+                    </div>
                 </div>
 
                 <Tabs defaultValue="overview" className="space-y-8">

@@ -2,8 +2,9 @@ import { auth } from '@/auth';
 import { getConversations } from '@/app/lib/message-actions';
 import { prisma } from '@/lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { ChatWindow } from '@/components/chat-window';
-import { MessageSquare, Inbox } from 'lucide-react';
+import { MessageSquare, Inbox, ArrowLeft } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
@@ -76,10 +77,18 @@ export default async function MessagesPage({ searchParams }: PageProps) {
         ? conversations.find(c => c.id === targetConversationId) || conversations[0]
         : conversations[0];
 
+    // Determine the back link based on user role
+    const backLink = session.user.role === 'PRO' ? '/dashboard/pro' : '/dashboard';
+
     return (
         <div className="min-h-screen bg-gray-50/50 pb-20 pt-24">
             <main className="container mx-auto px-4 max-w-7xl">
                 <div className="flex items-center gap-3 mb-8">
+                    <Link href={backLink}>
+                        <Button variant="ghost" size="icon" className="mr-2">
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                    </Link>
                     <MessageSquare className="h-8 w-8 text-navy" />
                     <h1 className="text-4xl font-bold tracking-tight text-navy font-poppins">Messages</h1>
                 </div>
