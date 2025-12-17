@@ -4,6 +4,7 @@ import { getApplications } from '@/app/lib/application-actions';
 import { ApplicationsList } from '@/components/admin/applications-list';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { prisma } from '@/lib/prisma';
 
 export default async function ApplicationsPage() {
     const session = await auth();
@@ -12,7 +13,12 @@ export default async function ApplicationsPage() {
         redirect('/');
     }
 
-    const result = await getApplications();
+    // Fetch applications, cities, and categories in parallel
+    const [result, cities, categories] = await Promise.all([
+        getApplications(),
+        prisma.city.findMany({ select: { id: true, name: true } }),
+        prisma.serviceCategory.findMany({ select: { id: true, name: true } })
+    ]);
     const applications = result.success && result.data ? result.data : [];
 
     const stats = {
@@ -76,7 +82,11 @@ export default async function ApplicationsPage() {
                 </div>
 
                 {/* Applications List */}
-                <ApplicationsList applications={applications} />
+                <ApplicationsList
+                    applications={applications}
+                    cities={cities}
+                    categories={categories}
+                />
             </main>
         </div>
     );

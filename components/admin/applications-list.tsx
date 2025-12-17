@@ -39,7 +39,18 @@ interface Application {
     createdAt: Date
 }
 
-export function ApplicationsList({ applications }: { applications: Application[] }) {
+interface CityCategory {
+    id: string
+    name: string
+}
+
+interface ApplicationsListProps {
+    applications: Application[]
+    cities: CityCategory[]
+    categories: CityCategory[]
+}
+
+export function ApplicationsList({ applications, cities, categories }: ApplicationsListProps) {
     const [filter, setFilter] = useState("all")
     const [selectedApp, setSelectedApp] = useState<Application | null>(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -47,6 +58,10 @@ export function ApplicationsList({ applications }: { applications: Application[]
     const [docMessage, setDocMessage] = useState("")
     const [showRejectDialog, setShowRejectDialog] = useState(false)
     const [showDocsDialog, setShowDocsDialog] = useState(false)
+
+    // Create lookup maps for fast ID -> name conversion
+    const cityMap = new Map(cities.map(c => [c.id, c.name]))
+    const categoryMap = new Map(categories.map(c => [c.id, c.name]))
 
     const filtered = applications.filter(app => {
         if (filter === "all") return true
@@ -159,8 +174,12 @@ export function ApplicationsList({ applications }: { applications: Application[]
                     </Card>
                 ) : (
                     filtered.map(app => {
-                        const cities = JSON.parse(app.cityIds)
-                        const categories = JSON.parse(app.categoryIds)
+                        const cityIds: string[] = JSON.parse(app.cityIds)
+                        const categoryIds: string[] = JSON.parse(app.categoryIds)
+
+                        // Convert IDs to names
+                        const cityNames = cityIds.map(id => cityMap.get(id) || id)
+                        const categoryNames = categoryIds.map(id => categoryMap.get(id) || id)
 
                         return (
                             <Card key={app.id}>
@@ -184,12 +203,12 @@ export function ApplicationsList({ applications }: { applications: Application[]
                                                 <p>{app.phone}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-gray-500">Villes ({cities.length})</p>
-                                                <p className="text-sm">{cities.slice(0, 3).join(", ")}{cities.length > 3 && "..."}</p>
+                                                <p className="text-sm font-medium text-gray-500">Villes ({cityNames.length})</p>
+                                                <p className="text-sm">{cityNames.slice(0, 3).join(", ")}{cityNames.length > 3 && "..."}</p>
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-gray-500">Catégories ({categories.length})</p>
-                                                <p className="text-sm">{categories.slice(0, 3).join(", ")}{categories.length > 3 && "..."}</p>
+                                                <p className="text-sm font-medium text-gray-500">Catégories ({categoryNames.length})</p>
+                                                <p className="text-sm">{categoryNames.slice(0, 3).join(", ")}{categoryNames.length > 3 && "..."}</p>
                                             </div>
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500">Date de demande</p>
