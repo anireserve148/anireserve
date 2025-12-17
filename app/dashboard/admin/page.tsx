@@ -93,11 +93,27 @@ export default async function AdminDashboardPage() {
     return (
         <div className="min-h-screen bg-gray-50/50 pb-20 pt-24">
             <main className="container mx-auto px-4 max-w-7xl space-y-8">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-4xl font-bold tracking-tight text-navy font-poppins">Dashboard Super Admin 🛡️</h1>
-                        <p className="text-gray-500 mt-2 text-lg">Gérez les utilisateurs, professionnels et réservations.</p>
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-3">
+                        <Shield className="h-10 w-10 text-navy" />
+                        <div>
+                            <h1 className="text-4xl font-bold tracking-tight text-navy font-poppins">Dashboard Super Admin</h1>
+                            <p className="text-gray-500 text-sm mt-1">Gérez les utilisateurs, professionnels et réservations.</p>
+                        </div>
                     </div>
+
+                    {/* Applications Button */}
+                    <a href="/dashboard/admin/applications">
+                        <Button className="bg-orange-500 hover:bg-orange-600 text-white gap-2">
+                            <AlertCircle className="w-4 h-4" />
+                            Candidatures Pro
+                            {await prisma.proApplication.count({ where: { status: 'PENDING' } }) > 0 && (
+                                <Badge className="bg-white text-orange-500 ml-2">
+                                    {await prisma.proApplication.count({ where: { status: 'PENDING' } })}
+                                </Badge>
+                            )}
+                        </Button>
+                    </a>
                 </div>
 
                 <Tabs defaultValue="overview" className="space-y-8">
