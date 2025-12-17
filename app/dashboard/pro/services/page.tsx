@@ -29,13 +29,10 @@ export default async function ProServicesPage() {
         redirect('/register/pro')
     }
 
-    // Fetch all categories
+    // Fetch all categories for optional category selection
     const categories = await prisma.serviceCategory.findMany({
         orderBy: { name: 'asc' }
     })
-
-    // Get existing category IDs
-    const existingCategoryIds = proProfile.services.map(s => s.categoryId)
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -45,7 +42,7 @@ export default async function ProServicesPage() {
                     <div>
                         <h1 className="text-3xl font-bold text-navy">Mes Services</h1>
                         <p className="text-gray-600 mt-1">
-                            Gérez vos services et tarifs personnalisés
+                            Gérez vos services avec des prix et durées personnalisés
                         </p>
                     </div>
                 </div>
@@ -58,22 +55,16 @@ export default async function ProServicesPage() {
                             Nouveau Service
                         </CardTitle>
                         <CardDescription>
-                            Sélectionnez une catégorie et personnalisez le prix et la durée
+                            Créez un service avec un nom personnalisé, prix et durée
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ServiceForm
-                            categories={categories}
-                            existingCategoryIds={existingCategoryIds}
-                        />
+                        <ServiceForm categories={categories} />
                     </CardContent>
                 </Card>
 
                 {/* Services List */}
-                <ServiceList
-                    services={proProfile.services}
-                    hourlyRate={proProfile.hourlyRate}
-                />
+                <ServiceList services={proProfile.services} />
             </div>
         </div>
     )

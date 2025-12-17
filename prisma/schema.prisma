@@ -182,15 +182,15 @@ model ProService {
   id            String         @id @default(cuid())
   proProfileId  String
   proProfile    ProProfile     @relation(fields: [proProfileId], references: [id], onDelete: Cascade)
-  categoryId    String
-  category      ServiceCategory @relation(fields: [categoryId], references: [id])
-  customPrice   Float?         // Prix spécifique pour ce service (override hourlyRate)
+  name          String         // Nom du service (ex: "Coupe + Brushing")
+  categoryId    String?        // Catégorie optionnelle
+  category      ServiceCategory? @relation(fields: [categoryId], references: [id])
+  customPrice   Float          // Prix du service
   description   String?        // Description personnalisée du service
-  duration      Int?           // Durée en minutes
+  duration      Int            // Durée en minutes
   isActive      Boolean        @default(true)
   createdAt     DateTime       @default(now())
   
-  @@unique([proProfileId, categoryId])
   @@index([proProfileId])
   @@index([categoryId])
 }

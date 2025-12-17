@@ -28,11 +28,12 @@ import { toast } from "sonner"
 
 interface ProService {
     id: string
-    categoryId: string
-    category: { id: string; name: string }
-    customPrice: number | null
+    name: string
+    categoryId: string | null
+    category: { id: string; name: string } | null
+    customPrice: number
     description: string | null
-    duration: number | null
+    duration: number
     isActive: boolean
 }
 
@@ -48,31 +49,33 @@ export function ServiceManager({ services, availableCategories, defaultHourlyRat
     const [editingId, setEditingId] = useState<string | null>(null)
 
     const [newService, setNewService] = useState({
+        name: "",
         categoryId: "",
         customPrice: "",
         description: "",
-        duration: ""
+        duration: "60"
     })
 
     const handleAddService = async () => {
-        if (!newService.categoryId) {
-            toast.error("Veuillez sélectionner un service")
+        if (!newService.name || !newService.customPrice || !newService.duration) {
+            toast.error("Veuillez remplir le nom, le prix et la durée")
             return
         }
 
         setIsLoading(true)
         try {
             const result = await addProService({
-                categoryId: newService.categoryId,
-                customPrice: newService.customPrice ? parseFloat(newService.customPrice) : undefined,
+                name: newService.name.trim(),
+                categoryId: newService.categoryId || undefined,
+                customPrice: parseFloat(newService.customPrice),
                 description: newService.description || undefined,
-                duration: newService.duration ? parseInt(newService.duration) : undefined,
+                duration: parseInt(newService.duration),
             })
 
             if (result.success) {
                 toast.success("Service ajouté avec succès !")
                 setIsAddDialogOpen(false)
-                setNewService({ categoryId: "", customPrice: "", description: "", duration: "" })
+                setNewService({ name: "", categoryId: "", customPrice: "", description: "", duration: "60" })
                 window.location.reload() // Refresh to show new service
             } else {
                 toast.error(result.error || "Erreur lors de l'ajout")
@@ -84,11 +87,11 @@ export function ServiceManager({ services, availableCategories, defaultHourlyRat
         }
     }
 
-    const handleRemoveService = async (categoryId: string) => {
+    const handleRemoveService = async (serviceId: string) => {
         if (!confirm("Êtes-vous sûr de vouloir retirer ce service ?")) return
 
         try {
-            const result = await removeProService(categoryId)
+            const result = await removeProService(serviceId)
             if (result.success) {
                 toast.success("Service retiré")
                 window.location.reload()
@@ -100,9 +103,9 @@ export function ServiceManager({ services, availableCategories, defaultHourlyRat
         }
     }
 
-    const handleToggleActive = async (categoryId: string, currentStatus: boolean) => {
+    const handleToggleActive = async (serviceId: string, currentStatus: boolean) => {
         try {
-            const result = await updateProService(categoryId, { isActive: !currentStatus })
+            const result = await updateProService(serviceId, { isActive: !currentStatus })
             if (result.success) {
                 toast.success(currentStatus ? "Service désactivé" : "Service activé")
                 window.location.reload()
@@ -138,18 +141,28 @@ export function ServiceManager({ services, availableCategories, defaultHourlyRat
                             <DialogHeader>
                                 <DialogTitle>Ajouter un service</DialogTitle>
                                 <DialogDescription>
-                                    Choisissez un service et personnalisez le tarif si nécessaire
+                                    Créez un service avec un nom personnalisé
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
                                 <div className="grid gap-2">
-                                    <Label>Service *</Label>
+                                    <Label>Nom du service *</Label>
+                                    <Input
+                                        type="text"
+                                        placeholder="Ex: Coupe + Brushing"
+                                        value={newService.name}
+                                        onChange={(e) => setNewService({ ...newService, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label>Catégorie (optionnel)</Label>
                                     <Select value={newService.categoryId} onValueChange={(v) => setNewService({ ...newService, categoryId: v })}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Sélectionner un service" />
+                                            <SelectValue placeholder="Sélectionner une catégorie" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {availableToAdd.map(cat => (
+                                            <SelectItem value="">Aucune</SelectItem>
+                                            {availableCategories.map(cat => (
                                                 <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                                             ))}
                                         </SelectContent>
@@ -207,15 +220,17 @@ export function ServiceManager({ services, availableCategories, defaultHourlyRat
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2">
-                                            <h4 className="font-semibold text-navy">{service.category.name}</h4>
+                                            <h4 className="font-semibold text-navy">{service.name}</h4>
+                                            {service.category && (
+                                                <span className="text-xs text-gray-500">({service.category.name})</span>
+                                            )}
                                             {!service.isActive && (
                                                 <span className="text-xs bg-gray-200 px-2 py-0.5 rounded">Désactivé</span>
                                             )}
                                         </div>
                                         <div className="mt-2 space-y-1 text-sm">
                                             <p className="text-gray-600">
-                                                <span className="font-medium">Prix:</span>{" "}
-                                                {service.customPrice ? `${service.customPrice}₪/h` : `${defaultHourlyRate}₪/h (par défaut)`}
+                                                <span className="font-medium">Prix:</span> {service.customPrice}₪
                                             </p>
                                             {service.duration && (
                                                 <p className="text-gray-600">
@@ -231,14 +246,14 @@ export function ServiceManager({ services, availableCategories, defaultHourlyRat
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => handleToggleActive(service.categoryId, service.isActive)}
+                                            onClick={() => handleToggleActive(service.id, service.isActive)}
                                         >
                                             {service.isActive ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
                                         </Button>
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => handleRemoveService(service.categoryId)}
+                                            onClick={() => handleRemoveService(service.id)}
                                             className="text-red-500 hover:text-red-700 hover:bg-red-50"
                                         >
                                             <Trash2 className="h-4 w-4" />

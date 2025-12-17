@@ -13,10 +13,11 @@ const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
 interface Service {
     id: string
-    categoryId: string
-    category: { name: string }
-    customPrice: number | null
-    duration: number | null
+    name: string
+    categoryId: string | null
+    category: { name: string } | null
+    customPrice: number
+    duration: number
     description: string | null
 }
 
@@ -127,8 +128,8 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                             <label className="text-sm font-semibold text-navy">Service</label>
                             <div className="grid gap-2">
                                 {services.map((service) => {
-                                    const price = service.customPrice || hourlyRate
-                                    const duration = service.duration || 60
+                                    const price = service.customPrice
+                                    const duration = service.duration
                                     const isSelected = selectedService?.id === service.id
 
                                     return (
@@ -136,13 +137,16 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                                             key={service.id}
                                             onClick={() => setSelectedService(service)}
                                             className={`p-3 rounded-lg border-2 text-left transition-all ${isSelected
-                                                    ? 'border-primary bg-primary/5'
-                                                    : 'border-gray-200 hover:border-primary/50'
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-gray-200 hover:border-primary/50'
                                                 }`}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="font-semibold text-navy">{service.category.name}</p>
+                                                    <p className="font-semibold text-navy">{service.name}</p>
+                                                    {service.category && (
+                                                        <p className="text-xs text-gray-500">{service.category.name}</p>
+                                                    )}
                                                     {service.description && (
                                                         <p className="text-xs text-gray-600 mt-1">{service.description}</p>
                                                     )}

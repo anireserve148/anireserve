@@ -13,10 +13,11 @@ import {
 } from '@/lib/errors'
 
 const addServiceSchema = z.object({
-    categoryId: z.string(),
-    customPrice: z.number().positive().optional(),
+    name: z.string().min(1, "Le nom est obligatoire"),
+    categoryId: z.string().optional(),
+    customPrice: z.number().positive("Le prix doit être positif"),
     description: z.string().optional(),
-    duration: z.number().int().positive().optional(),
+    duration: z.number().int().positive("La durée doit être positive"),
 })
 
 export async function addProService(
@@ -38,24 +39,11 @@ export async function addProService(
             throw new NotFoundError('Profil professionnel non trouvé');
         }
 
-        // Check if service already exists
-        const existing = await prisma.proService.findUnique({
-            where: {
-                proProfileId_categoryId: {
-                    proProfileId: proProfile.id,
-                    categoryId: validated.categoryId
-                }
-            }
-        });
-
-        if (existing) {
-            throw new Error('Ce service est déjà dans votre liste');
-        }
-
         await prisma.proService.create({
             data: {
                 proProfileId: proProfile.id,
-                categoryId: validated.categoryId,
+                name: validated.name,
+                categoryId: validated.categoryId || null,
                 customPrice: validated.customPrice,
                 description: validated.description,
                 duration: validated.duration,
@@ -63,7 +51,7 @@ export async function addProService(
             }
         });
 
-        revalidatePath('/dashboard/pro');
+        revalidatePath('/dashboard/pro/services');
         revalidatePath(`/pros/${proProfile.id}`);
 
         return createSuccessResponse(undefined);
@@ -72,7 +60,7 @@ export async function addProService(
     }
 }
 
-export async function removeProService(categoryId: string): Promise<ActionResponse<void>> {
+export async function removeProService(serviceId: string): Promise<ActionResponse<void>> {
     try {
         const session = await auth();
         if (!session?.user?.id || session.user.role !== 'PRO') {
@@ -87,16 +75,20 @@ export async function removeProService(categoryId: string): Promise<ActionRespon
             throw new NotFoundError('Profil non trouvé');
         }
 
-        await prisma.proService.delete({
-            where: {
-                proProfileId_categoryId: {
-                    proProfileId: proProfile.id,
-                    categoryId
-                }
-            }
+        // Verify the service belongs to this pro
+        const service = await prisma.proService.findUnique({
+            where: { id: serviceId }
         });
 
-        revalidatePath('/dashboard/pro');
+        if (!service || service.proProfileId !== proProfile.id) {
+            throw new NotFoundError('Service non trouvé');
+        }
+
+        await prisma.proService.delete({
+            where: { id: serviceId }
+        });
+
+        revalidatePath('/dashboard/pro/services');
         revalidatePath(`/pros/${proProfile.id}`);
 
         return createSuccessResponse(undefined);
@@ -106,8 +98,8 @@ export async function removeProService(categoryId: string): Promise<ActionRespon
 }
 
 export async function updateProService(
-    categoryId: string,
-    data: { customPrice?: number; description?: string; duration?: number; isActive?: boolean }
+    serviceId: string,
+    data: { name?: string; customPrice?: number; description?: string; duration?: number; isActive?: boolean }
 ): Promise<ActionResponse<void>> {
     try {
         const session = await auth();
@@ -123,17 +115,58 @@ export async function updateProService(
             throw new NotFoundError('Profil non trouvé');
         }
 
+        // Verify the service belongs to this pro
+        const service = await prisma.proService.findUnique({
+            where: { id: serviceId }
+        });
+
+        if (!service || service.proProfileId !== proProfile.id) {
+            throw new NotFoundError('Service non trouvé');
+        }
+
         await prisma.proService.update({
-            where: {
-                proProfileId_categoryId: {
-                    proProfileId: proProfile.id,
-                    categoryId
-                }
-            },
+            where: { id: serviceId },
             data
         });
 
-        revalidatePath('/dashboard/pro');
+        revalidatePath('/dashboard/pro/services');
+        revalidatePath(`/pros/${proProfile.id}`);
+
+        return createSuccessResponse(undefined);
+    } catch (error) {
+        return handleActionError(error);
+    }
+}
+
+export async function toggleServiceActive(serviceId: string): Promise<ActionResponse<void>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id || session.user.role !== 'PRO') {
+            throw new AuthenticationError('Non autorisé');
+        }
+
+        const proProfile = await prisma.proProfile.findUnique({
+            where: { userId: session.user.id }
+        });
+
+        if (!proProfile) {
+            throw new NotFoundError('Profil non trouvé');
+        }
+
+        const service = await prisma.proService.findUnique({
+            where: { id: serviceId }
+        });
+
+        if (!service || service.proProfileId !== proProfile.id) {
+            throw new NotFoundError('Service non trouvé');
+        }
+
+        await prisma.proService.update({
+            where: { id: serviceId },
+            data: { isActive: !service.isActive }
+        });
+
+        revalidatePath('/dashboard/pro/services');
         revalidatePath(`/pros/${proProfile.id}`);
 
         return createSuccessResponse(undefined);

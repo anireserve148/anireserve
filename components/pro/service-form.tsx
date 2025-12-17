@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
+import { Loader2, Plus } from "lucide-react"
 import { addProService } from "@/app/lib/service-actions"
 
 interface Category {
@@ -15,37 +15,45 @@ interface Category {
     name: string
 }
 
-export function ServiceForm({ categories, existingCategoryIds }: {
+export function ServiceForm({ categories }: {
     categories: Category[]
-    existingCategoryIds: string[]
 }) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [formData, setFormData] = useState({
+        name: "",
         categoryId: "",
         description: "",
         customPrice: "",
         duration: "60"
     })
 
-    const availableCategories = categories.filter(
-        cat => !existingCategoryIds.includes(cat.id)
-    )
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!formData.name.trim()) {
+            toast.error("Le nom du service est obligatoire")
+            return
+        }
+
+        if (!formData.customPrice) {
+            toast.error("Le prix est obligatoire")
+            return
+        }
+
         setIsSubmitting(true)
 
         try {
             const result = await addProService({
-                categoryId: formData.categoryId,
+                name: formData.name.trim(),
+                categoryId: formData.categoryId || undefined,
                 description: formData.description || undefined,
-                customPrice: formData.customPrice ? parseFloat(formData.customPrice) : undefined,
+                customPrice: parseFloat(formData.customPrice),
                 duration: parseInt(formData.duration)
             })
 
             if (result.success) {
                 toast.success("Service ajouté avec succès !")
-                setFormData({ categoryId: "", description: "", customPrice: "", duration: "60" })
+                setFormData({ name: "", categoryId: "", description: "", customPrice: "", duration: "60" })
             } else {
                 toast.error(result.error || "Erreur lors de l'ajout")
             }
@@ -56,29 +64,34 @@ export function ServiceForm({ categories, existingCategoryIds }: {
         }
     }
 
-    if (availableCategories.length === 0) {
-        return (
-            <div className="text-center py-6 text-gray-500">
-                <p>Toutes les catégories sont déjà utilisées.</p>
-            </div>
-        )
-    }
-
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Category */}
+            {/* Service Name */}
             <div className="space-y-2">
-                <Label htmlFor="category">Catégorie de service *</Label>
+                <Label htmlFor="name">Nom du service *</Label>
+                <Input
+                    id="name"
+                    type="text"
+                    placeholder="Ex: Coupe + Brushing, Massage relaxant..."
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                />
+            </div>
+
+            {/* Category (optional) */}
+            <div className="space-y-2">
+                <Label htmlFor="category">Catégorie (optionnel)</Label>
                 <Select
                     value={formData.categoryId}
                     onValueChange={(val) => setFormData({ ...formData, categoryId: val })}
-                    required
                 >
                     <SelectTrigger>
                         <SelectValue placeholder="Sélectionnez une catégorie" />
                     </SelectTrigger>
                     <SelectContent>
-                        {availableCategories.map((cat) => (
+                        <SelectItem value="">Aucune catégorie</SelectItem>
+                        {categories.map((cat) => (
                             <SelectItem key={cat.id} value={cat.id}>
                                 {cat.name}
                             </SelectItem>
@@ -90,15 +103,16 @@ export function ServiceForm({ categories, existingCategoryIds }: {
             <div className="grid md:grid-cols-2 gap-4">
                 {/* Price */}
                 <div className="space-y-2">
-                    <Label htmlFor="price">Prix personnalisé (₪)</Label>
+                    <Label htmlFor="price">Prix (₪) *</Label>
                     <Input
                         id="price"
                         type="number"
-                        step="0.01"
+                        step="1"
                         min="0"
-                        placeholder="Laisser vide = tarif horaire"
+                        placeholder="Ex: 150"
                         value={formData.customPrice}
                         onChange={(e) => setFormData({ ...formData, customPrice: e.target.value })}
+                        required
                     />
                 </div>
 
@@ -108,7 +122,7 @@ export function ServiceForm({ categories, existingCategoryIds }: {
                     <Input
                         id="duration"
                         type="number"
-                        min="1"
+                        min="15"
                         step="15"
                         placeholder="60"
                         value={formData.duration}
@@ -123,7 +137,7 @@ export function ServiceForm({ categories, existingCategoryIds }: {
                 <Label htmlFor="description">Description (optionnel)</Label>
                 <Textarea
                     id="description"
-                    placeholder="Décrivez votre service..."
+                    placeholder="Décrivez votre service en détail..."
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
@@ -133,7 +147,7 @@ export function ServiceForm({ categories, existingCategoryIds }: {
             {/* Submit */}
             <Button
                 type="submit"
-                disabled={isSubmitting || !formData.categoryId}
+                disabled={isSubmitting || !formData.name || !formData.customPrice}
                 className="w-full bg-primary hover:bg-primary/90"
             >
                 {isSubmitting ? (
@@ -142,10 +156,12 @@ export function ServiceForm({ categories, existingCategoryIds }: {
                         Ajout...
                     </>
                 ) : (
-                    "Ajouter le service"
+                    <>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Ajouter le service
+                    </>
                 )}
             </Button>
         </form>
     )
 }
-
