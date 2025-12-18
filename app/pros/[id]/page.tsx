@@ -10,6 +10,8 @@ import { ReviewList } from "@/components/reviews/review-list"
 import { ProBadges } from "@/components/pro-badges"
 import { auth } from "@/auth"
 import { FavoriteButton } from "@/components/favorites/favorite-button"
+import { ModernNavbar } from "@/components/modern-navbar"
+import { ModernFooter } from "@/components/modern-footer"
 import { Metadata } from "next"
 
 type Props = {
@@ -88,115 +90,119 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
         : 0
 
     return (
-        <div className="container mx-auto py-10 px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Info */}
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-card w-full rounded-xl overflow-hidden shadow-sm border">
-                        <div className="h-48 bg-gradient-to-r from-primary/20 to-secondary/20 relative">
-                            <div className="absolute -bottom-12 left-8">
-                                <div className="w-32 h-32 rounded-full bg-background p-1 shadow-lg">
-                                    <div className="w-full h-full rounded-full bg-primary flex items-center justify-center text-4xl font-bold text-primary-foreground">
-                                        {pro.user.name?.[0]}
+        <>
+            <ModernNavbar user={session?.user} />
+            <div className="container mx-auto py-10 px-4 min-h-screen">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column: Info */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-card w-full rounded-xl overflow-hidden shadow-sm border">
+                            <div className="h-48 bg-gradient-to-r from-primary/20 to-secondary/20 relative">
+                                <div className="absolute -bottom-12 left-8">
+                                    <div className="w-32 h-32 rounded-full bg-background p-1 shadow-lg">
+                                        <div className="w-full h-full rounded-full bg-primary flex items-center justify-center text-4xl font-bold text-primary-foreground">
+                                            {pro.user.name?.[0]}
+                                        </div>
                                     </div>
+                                </div>
+                            </div>
+                            <div className="pt-16 pb-8 px-8">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <div className="flex items-center gap-3">
+                                            <h1 className="text-3xl font-bold">{pro.user.name}</h1>
+                                            <FavoriteButton proId={pro.id} isFavorite={isFavorite} />
+                                        </div>
+                                        {/* Contact Button */}
+                                        <a
+                                            href={`/dashboard/messages?proId=${pro.id}`}
+                                            className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-navy hover:bg-navy/90 text-white rounded-full text-sm font-medium transition-colors"
+                                        >
+                                            <MessageSquare className="w-4 h-4" />
+                                            Envoyer un message
+                                        </a>
+                                        <div className="flex items-center text-muted-foreground mt-2">
+                                            <MapPin className="w-4 h-4 mr-1" />
+                                            {pro.city.name}, {pro.city.region}
+                                        </div>
+                                        <ProBadges
+                                            reviewCount={pro.reviews.length}
+                                            averageRating={averageRating}
+                                            isVerified={true}
+                                        />
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold text-primary">{pro.hourlyRate}₪ <span className="text-sm font-normal text-muted-foreground">/hr</span></div>
+                                        <div className="flex items-center justify-end text-sm font-medium mt-1">
+                                            <Star className="w-4 h-4 text-yellow-500 mr-1 fill-yellow-500" />
+                                            {averageRating.toFixed(1)} ({pro.reviews.length} avis)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 flex flex-wrap gap-2">
+                                    {pro.serviceCategories.map(cat => (
+                                        <Badge key={cat.id} variant="secondary" className="px-3 py-1 text-sm">
+                                            {cat.name}
+                                        </Badge>
+                                    ))}
+                                </div>
+
+                                <div className="mt-8">
+                                    <h2 className="text-xl font-semibold mb-3">À propos de moi</h2>
+                                    <p className="text-muted-foreground leading-relaxed">
+                                        {pro.bio || "Ce professionnel n'a pas encore ajouté de bio."}
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                        <div className="pt-16 pb-8 px-8">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <div className="flex items-center gap-3">
-                                        <h1 className="text-3xl font-bold">{pro.user.name}</h1>
-                                        <FavoriteButton proId={pro.id} isFavorite={isFavorite} />
-                                    </div>
-                                    {/* Contact Button */}
-                                    <a
-                                        href={`/dashboard/messages?proId=${pro.id}`}
-                                        className="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-navy hover:bg-navy/90 text-white rounded-full text-sm font-medium transition-colors"
-                                    >
-                                        <MessageSquare className="w-4 h-4" />
-                                        Envoyer un message
-                                    </a>
-                                    <div className="flex items-center text-muted-foreground mt-2">
-                                        <MapPin className="w-4 h-4 mr-1" />
-                                        {pro.city.name}, {pro.city.region}
-                                    </div>
-                                    <ProBadges
-                                        reviewCount={pro.reviews.length}
-                                        averageRating={averageRating}
-                                        isVerified={true}
-                                    />
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-2xl font-bold text-primary">{pro.hourlyRate}₪ <span className="text-sm font-normal text-muted-foreground">/hr</span></div>
-                                    <div className="flex items-center justify-end text-sm font-medium mt-1">
-                                        <Star className="w-4 h-4 text-yellow-500 mr-1 fill-yellow-500" />
-                                        {averageRating.toFixed(1)} ({pro.reviews.length} avis)
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="mt-6 flex flex-wrap gap-2">
-                                {pro.serviceCategories.map(cat => (
-                                    <Badge key={cat.id} variant="secondary" className="px-3 py-1 text-sm">
-                                        {cat.name}
-                                    </Badge>
-                                ))}
-                            </div>
+                        {/* Gallery Section */}
+                        {pro.gallery && pro.gallery.length > 0 && (
+                            <Card className="mt-6">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Camera className="h-5 w-5" />
+                                        Galerie Photos
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <ProGallery photos={pro.gallery} />
+                                </CardContent>
+                            </Card>
+                        )}
 
-                            <div className="mt-8">
-                                <h2 className="text-xl font-semibold mb-3">À propos de moi</h2>
-                                <p className="text-muted-foreground leading-relaxed">
-                                    {pro.bio || "Ce professionnel n'a pas encore ajouté de bio."}
-                                </p>
-                            </div>
-                        </div>
+                        {/* Reviews Section */}
+                        {pro.reviews && pro.reviews.length > 0 && (
+                            <Card className="mt-6">
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Star className="h-5 w-5" />
+                                        Avis Clients
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <ReviewList reviews={pro.reviews} />
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
 
-                    {/* Gallery Section */}
-                    {pro.gallery && pro.gallery.length > 0 && (
-                        <Card className="mt-6">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Camera className="h-5 w-5" />
-                                    Galerie Photos
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ProGallery photos={pro.gallery} />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Reviews Section */}
-                    {pro.reviews && pro.reviews.length > 0 && (
-                        <Card className="mt-6">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Star className="h-5 w-5" />
-                                    Avis Clients
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <ReviewList reviews={pro.reviews} />
-                            </CardContent>
-                        </Card>
-                    )}
-                </div>
-
-                {/* Right Column: Booking Widget */}
-                <div className="lg:col-span-1">
-                    <div className="sticky top-8">
-                        <BookingWidget
-                            proId={pro.id}
-                            availability={pro.availability}
-                            hourlyRate={pro.hourlyRate}
-                            services={pro.services}
-                            reviews={pro.reviews}
-                        />
+                    {/* Right Column: Booking Widget */}
+                    <div className="lg:col-span-1">
+                        <div className="sticky top-8">
+                            <BookingWidget
+                                proId={pro.id}
+                                availability={pro.availability}
+                                hourlyRate={pro.hourlyRate}
+                                services={pro.services}
+                                reviews={pro.reviews}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+            <ModernFooter />
+        </>
     )
 }
