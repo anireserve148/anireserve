@@ -74,8 +74,14 @@ export function InstallPWAButton() {
         sessionStorage.setItem('pwa-prompt-dismissed', 'true')
     }
 
-    // Don't show if already installed, dismissed, or not installable
-    if (isStandalone || isDismissed || (!isInstallable && !isIOS)) {
+    // Don't show if already installed or dismissed
+    // Show on iOS OR if installable (Android)
+    if (isStandalone || isDismissed) {
+        return null
+    }
+
+    // Don't show on desktop browsers (neither iOS nor Android)
+    if (!isIOS && !isInstallable) {
         return null
     }
 
