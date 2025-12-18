@@ -4,6 +4,7 @@ import { ModernNavbar } from "@/components/modern-navbar"
 import { ModernFooter } from "@/components/modern-footer"
 import { HomeSearchFilters } from "@/components/search/home-filters"
 import { HomeResults, ProResult } from "@/components/search/home-results"
+import { InstallPWAButton } from "@/components/install-pwa-button"
 import { Sparkles, Shield, Zap } from "lucide-react"
 import { unstable_cache } from 'next/cache'
 
@@ -183,6 +184,7 @@ export default async function Home({
         </div>
       </section>
 
+      <InstallPWAButton />
       <ModernFooter />
     </div>
   )
