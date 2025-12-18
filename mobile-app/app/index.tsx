@@ -11,9 +11,9 @@ import {
     Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { api } from './services/api';
-import { storage } from './services/storage';
-import { Colors, Spacing, FontSizes } from './constants';
+import { api } from '../services/api';
+import { storage } from '../services/storage';
+import { Colors, Spacing, FontSizes } from '../constants';
 
 export default function LoginScreen() {
     const router = useRouter();

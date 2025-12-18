@@ -1,5 +1,5 @@
 export const API_URL = __DEV__
-    ? 'http://localhost:3000'  // Dev local
+    ? 'https://anireserve.com'  // Use production (localhost won't work on phone)
     : 'https://anireserve.com'; // Production
 
 export const Colors = {

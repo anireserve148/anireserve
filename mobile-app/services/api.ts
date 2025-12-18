@@ -17,9 +17,9 @@ class ApiService {
         options: RequestInit = {}
     ): Promise<ApiResponse<T>> {
         try {
-            const headers: HeadersInit = {
+            const headers: Record<string, string> = {
                 'Content-Type': 'application/json',
-                ...options.headers,
+                ...options.headers as Record<string, string>,
             };
 
             if (this.token) {
@@ -54,7 +54,7 @@ class ApiService {
 
     // Auth
     async login(credentials: LoginCredentials): Promise<ApiResponse<{ user: User; token: string }>> {
-        return this.request('/api/auth/login', {
+        return this.request('/api/mobile/login', {
             method: 'POST',
             body: JSON.stringify(credentials),
         });
