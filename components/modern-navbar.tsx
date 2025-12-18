@@ -127,7 +127,7 @@ export function ModernNavbar({ user }: { user?: { name?: string | null; role?: s
 
             {/* Mobile Menu Overlay */}
             {isMobileMenuOpen && (
-                <div className="fixed inset-0 z-40 lg:hidden">
+                <div className="fixed inset-0 z-[10000] lg:hidden">
                     {/* Backdrop */}
                     <div
                         className="absolute inset-0 bg-black/50"
