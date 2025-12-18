@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Clock, Check, X, AlertCircle, Calendar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { BlockedPeriodsManager } from '@/components/pro/blocked-periods-manager'
 
 const dayLabels = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
 
@@ -166,6 +167,9 @@ export default async function AvailabilityPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Blocked Periods */}
+            <BlockedPeriodsManager />
 
             {/* Info */}
             <Card className="border-gold/30 bg-gold/5">

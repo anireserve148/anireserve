@@ -59,12 +59,28 @@ model ProProfile {
   conversations Conversation[]
   availability Availability[]
   gallery      ProProfileGallery[]
+  blockedPeriods BlockedPeriod[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([cityId])
   @@index([userId])
+}
+
+model BlockedPeriod {
+  id            String      @id @default(cuid())
+  proProfileId  String
+  proProfile    ProProfile  @relation(fields: [proProfileId], references: [id], onDelete: Cascade)
+  
+  startDate     DateTime    // Date de début du blocage
+  endDate       DateTime    // Date de fin du blocage
+  reason        String?     // Vacances, Congé maladie, Personnel, etc.
+  
+  createdAt     DateTime    @default(now())
+  
+  @@index([proProfileId])
+  @@index([startDate, endDate])
 }
 
 model ProProfileGallery {
