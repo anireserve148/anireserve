@@ -16,6 +16,7 @@ import { RevenueChart } from '@/components/admin/revenue-chart';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { AgendaBoard } from '@/components/dashboard/AgendaBoard';
 import { RequestsListClient } from '@/components/dashboard/RequestsListClient';
+import { ReviewResponseForm } from '@/components/reviews/review-response-form';
 import { getDashboardMetrics, getUpcomingSchedule, getPendingRequests } from '@/app/lib/dashboard-actions';
 
 export default async function ProDashboard() {
@@ -48,6 +49,12 @@ export default async function ProDashboard() {
                 services: {
                     include: {
                         category: true
+                    },
+                    orderBy: { createdAt: 'desc' }
+                },
+                reviews: {
+                    include: {
+                        client: true
                     },
                     orderBy: { createdAt: 'desc' }
                 }
@@ -192,6 +199,57 @@ export default async function ProDashboard() {
                                 </Card>
                             </div>
                         </div>
+
+                        {/* Reviews Section */}
+                        {proProfile.reviews && proProfile.reviews.length > 0 && (
+                            <div className="border-t pt-8">
+                                <h3 className="text-lg font-semibold text-navy mb-4">Avis Clients ({proProfile.reviews.length})</h3>
+                                <div className="grid gap-4">
+                                    {proProfile.reviews.slice(0, 5).map(review => (
+                                        <Card key={review.id} className="border-none shadow-sm">
+                                            <CardContent className="p-6">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <div className="w-10 h-10 rounded-full bg-navy/10 flex items-center justify-center">
+                                                                <span className="text-navy font-bold">{review.client.name?.[0] || 'C'}</span>
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-semibold text-navy">{review.client.name}</p>
+                                                                <div className="flex items-center gap-1">
+                                                                    {[...Array(5)].map((_, i) => (
+                                                                        <span key={i} className={`text-sm ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                                                                            ★
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        {review.comment && (
+                                                            <p className="text-gray-600 text-sm mb-3 ml-13">{review.comment}</p>
+                                                        )}
+                                                        {review.proResponse && (
+                                                            <div className="ml-13 bg-gray-50 p-3 rounded-lg">
+                                                                <p className="text-xs text-gray-500 mb-1">Votre réponse :</p>
+                                                                <p className="text-sm text-gray-700">{review.proResponse}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {!review.proResponse && (
+                                                        <ReviewResponseForm
+                                                            reviewId={review.id}
+                                                            clientName={review.client.name || 'Client'}
+                                                            rating={review.rating}
+                                                            comment={review.comment}
+                                                        />
+                                                    )}
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </TabsContent>
 
                     {/* CALENDAR TAB */}

@@ -73,3 +73,57 @@ export async function createReview(
         return handleActionError(error);
     }
 }
+
+const addReviewResponseSchema = z.object({
+    reviewId: z.string(),
+    proResponse: z.string().min(1).max(500),
+})
+
+export async function addReviewResponse(
+    data: { reviewId: string; proResponse: string }
+): Promise<ActionResponse<void>> {
+    try {
+        const validated = addReviewResponseSchema.parse(data);
+
+        const session = await auth();
+        if (!session?.user?.id) {
+            throw new AuthenticationError();
+        }
+
+        // 1. Verify review exists and belongs to this pro
+        const review = await prisma.review.findUnique({
+            where: { id: validated.reviewId },
+            include: { pro: { include: { user: true } } }
+        });
+
+        if (!review) {
+            throw new NotFoundError('Avis non trouvé');
+        }
+
+        // Verify this is the pro's own review
+        if (review.pro.userId !== session.user.id) {
+            throw new AuthorizationError('Vous ne pouvez répondre qu\'aux avis sur votre profil');
+        }
+
+        // Check if already responded
+        if (review.proResponse) {
+            throw new Error('Vous avez déjà répondu à cet avis');
+        }
+
+        // 2. Add response to review
+        await prisma.review.update({
+            where: { id: validated.reviewId },
+            data: {
+                proResponse: validated.proResponse,
+                respondedAt: new Date()
+            }
+        });
+
+        revalidatePath(`/pros/${review.proId}`);
+        revalidatePath('/dashboard/pro');
+
+        return createSuccessResponse(undefined);
+    } catch (error) {
+        return handleActionError(error);
+    }
+}

@@ -20,7 +20,7 @@ model User {
   
   // Relations
   clientReservations Reservation[] @relation("ClientReservations")
-  reviews            Review[]
+  reviews            Review[]        @relation("ClientReviews")
   favorites          Favorite[]
   clientConversations Conversation[] @relation("ClientConversations")
   proProfile         ProProfile?
@@ -148,19 +148,23 @@ model Reservation {
 
 model Review {
   id            String      @id @default(cuid())
-  rating        Int         // 1-5
+  rating        Int         // 1-5 stars
   comment       String?
-  
+  proResponse   String?     // Réponse du pro à l'avis
+  respondedAt   DateTime?   // Date de la réponse
   reservationId String      @unique
-  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   
   clientId      String
-  client        User        @relation(fields: [clientId], references: [id])
+  client        User        @relation("ClientReviews", fields: [clientId], references: [id], onDelete: Cascade)
   
   proId         String
-  pro           ProProfile  @relation(fields: [proId], references: [id])
+  pro           ProProfile  @relation(fields: [proId], references: [id], onDelete: Cascade)
   
   createdAt     DateTime    @default(now())
+  
+  @@index([proId])
+  @@index([clientId])
 }
 
 model Favorite {

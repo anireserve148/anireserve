@@ -5,6 +5,8 @@ interface Review {
     id: string
     rating: number
     comment: string | null
+    proResponse: string | null
+    respondedAt: Date | null
     createdAt: Date
     client: {
         name: string | null
@@ -49,8 +51,8 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
                                 <Star
                                     key={i}
                                     className={`w-4 h-4 ${i < review.rating
-                                            ? "fill-amber-400 text-amber-400"
-                                            : "text-gray-200"
+                                        ? "fill-amber-400 text-amber-400"
+                                        : "text-gray-200"
                                         }`}
                                 />
                             ))}
@@ -61,6 +63,23 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
                         <p className="text-gray-600 text-sm leading-relaxed pl-13">
                             "{review.comment}"
                         </p>
+                    )}
+
+                    {/* Pro Response */}
+                    {review.proResponse && (
+                        <div className="mt-4 pl-13 pr-4">
+                            <div className="bg-navy/5 border-l-4 border-navy rounded-r-lg p-4">
+                                <p className="text-xs font-semibold text-navy mb-1 flex items-center gap-1">
+                                    <span>Réponse du professionnel</span>
+                                    {review.respondedAt && (
+                                        <span className="text-gray-400 font-normal">
+                                            • {new Date(review.respondedAt).toLocaleDateString('fr-FR')}
+                                        </span>
+                                    )}
+                                </p>
+                                <p className="text-sm text-gray-700">{review.proResponse}</p>
+                            </div>
+                        </div>
                     )}
                 </div>
             ))}
