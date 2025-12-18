@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, LogOut, User, Calendar, Heart, MessageSquare, Home } from "lucide-react"
 import Image from "next/image"
 import { LogoutButton } from "@/components/logout-button"
-import { ThemeToggle } from "@/components/theme-toggle"
 
 export function ModernNavbar({ user }: { user?: { name?: string | null; role?: string } | null }) {
     const [isScrolled, setIsScrolled] = useState(false)
@@ -86,7 +85,6 @@ export function ModernNavbar({ user }: { user?: { name?: string | null; role?: s
                                             {user.role === 'PRO' ? 'Espace Pro' : 'Mon compte'}
                                         </Button>
                                     </Link>
-                                    <ThemeToggle />
                                     <LogoutButton />
                                 </>
                             ) : (

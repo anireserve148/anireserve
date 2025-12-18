@@ -88,25 +88,25 @@ export function InstallPWAButton() {
     return (
         <>
             {/* Install Button */}
-            <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom duration-500">
+            <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999] animate-in slide-in-from-bottom duration-500">
                 <div className="relative">
                     <Button
                         onClick={handleInstallClick}
-                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-2xl px-6 py-6 rounded-2xl font-semibold text-base flex items-center gap-3 group"
+                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-2xl px-4 py-4 sm:px-6 sm:py-6 rounded-2xl font-semibold text-sm sm:text-base flex items-center gap-2 sm:gap-3 group"
                     >
-                        <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Download className="w-5 h-5" />
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
                         <div className="text-left">
-                            <div className="font-bold">Installer l'app</div>
-                            <div className="text-xs opacity-90">Accès rapide</div>
+                            <div className="font-bold text-xs sm:text-base">Installer l'app</div>
+                            <div className="text-[10px] sm:text-xs opacity-90">Accès rapide</div>
                         </div>
                     </Button>
 
                     {/* Dismiss button */}
                     <button
                         onClick={handleDismiss}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-gray-800 hover:bg-gray-700 text-white rounded-full flex items-center justify-center shadow-lg"
+                        className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-gray-800 hover:bg-gray-700 text-white rounded-full flex items-center justify-center shadow-lg"
                     >
                         <X className="w-3 h-3" />
                     </button>
