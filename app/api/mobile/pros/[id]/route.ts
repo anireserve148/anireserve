@@ -35,20 +35,6 @@ export async function GET(
                 city: true,
                 serviceCategories: true,
                 services: true,
-                reviews: {
-                    include: {
-                        client: {
-                            select: {
-                                name: true,
-                                image: true,
-                            },
-                        },
-                    },
-                    orderBy: {
-                        createdAt: 'desc',
-                    },
-                    take: 10, // Limit reviews
-                },
             },
         });
 
