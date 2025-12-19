@@ -18,7 +18,7 @@ const reservationSchema = z.object({
     proId: z.string(),
     startDate: z.string(),
     endDate: z.string(),
-    serviceType: z.string(),
+    totalPrice: z.number().default(0),
 });
 
 // Get user reservations
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { proId, startDate, endDate, serviceType } = result.data;
+        const { proId, startDate, endDate, totalPrice } = result.data;
 
         // Verify pro exists
         const pro = await prisma.proProfile.findUnique({
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
                 proId,
                 startDate: new Date(startDate),
                 endDate: new Date(endDate),
-                serviceType,
+                totalPrice,
                 status: 'PENDING',
             },
             include: {
