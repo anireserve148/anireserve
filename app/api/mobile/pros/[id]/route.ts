@@ -23,18 +23,8 @@ export async function GET(
         const pro = await prisma.proProfile.findUnique({
             where: { id },
             include: {
-                user: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        image: true,
-                        phoneNumber: true,
-                    },
-                },
+                user: true,
                 city: true,
-                serviceCategories: true,
-                services: true,
             },
         });
 
