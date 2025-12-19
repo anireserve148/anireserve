@@ -78,6 +78,13 @@ class ApiService {
         });
     }
 
+    async savePushToken(pushToken: string): Promise<ApiResponse<{ success: boolean }>> {
+        return this.request('/api/mobile/push-token', {
+            method: 'POST',
+            body: JSON.stringify({ pushToken }),
+        });
+    }
+
     // Pros
     async getPros(filters?: {
         city?: string;
