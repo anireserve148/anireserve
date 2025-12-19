@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         const favorites = await prisma.favorite.findMany({
             where: { userId: decoded.userId },
             include: {
-                proProfile: {
+                pro: {
                     include: {
                         user: {
                             select: {
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        const pros = favorites.map(f => f.proProfile);
+        const pros = favorites.map(f => f.pro);
         return NextResponse.json(pros, { headers: corsHeaders });
     } catch (error) {
         console.error('Get favorites error:', error);
