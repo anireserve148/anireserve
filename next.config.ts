@@ -39,6 +39,17 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    typescript: {
+        ignoreBuildErrors: false,
+    },
+    webpack: (config, { isServer }) => {
+        // Exclude mobile-app from webpack compilation
+        config.watchOptions = {
+            ...config.watchOptions,
+            ignored: ['**/node_modules', '**/mobile-app/**'],
+        };
+        return config;
+    },
 };
 
 export default nextConfig;
