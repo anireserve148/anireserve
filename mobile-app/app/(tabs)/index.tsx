@@ -13,6 +13,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
+import { cache } from '../../services/cache';
 import { ProProfile, ServiceCategory } from '../../types';
 import { Colors, Spacing, FontSizes } from '../../constants';
 
@@ -27,6 +28,7 @@ export default function HomeScreen() {
     const [selectedCategory, setSelectedCategory] = useState('');
     const [showCityModal, setShowCityModal] = useState(false);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [isOffline, setIsOffline] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -38,15 +40,42 @@ export default function HomeScreen() {
 
     const loadData = async () => {
         setIsLoading(true);
-        const [prosResult, citiesResult, categoriesResult] = await Promise.all([
-            api.getPros(),
-            api.getCities(),
-            api.getCategories(),
-        ]);
 
-        if (prosResult.success && prosResult.data) setPros(prosResult.data);
-        if (citiesResult.success && citiesResult.data) setCities(citiesResult.data);
-        if (categoriesResult.success && categoriesResult.data) setCategories(categoriesResult.data);
+        // Try to load from cache first
+        const cachedPros = await cache.get<ProProfile[]>('pros');
+        const cachedCities = await cache.get<{ id: string; name: string }[]>('cities');
+        const cachedCategories = await cache.get<ServiceCategory[]>('categories');
+
+        if (cachedPros) setPros(cachedPros);
+        if (cachedCities) setCities(cachedCities);
+        if (cachedCategories) setCategories(cachedCategories);
+
+        // Try to fetch fresh data
+        try {
+            const [prosResult, citiesResult, categoriesResult] = await Promise.all([
+                api.getPros(),
+                api.getCities(),
+                api.getCategories(),
+            ]);
+
+            if (prosResult.success && prosResult.data) {
+                setPros(prosResult.data);
+                await cache.set('pros', prosResult.data);
+            }
+            if (citiesResult.success && citiesResult.data) {
+                setCities(citiesResult.data);
+                await cache.set('cities', citiesResult.data);
+            }
+            if (categoriesResult.success && categoriesResult.data) {
+                setCategories(categoriesResult.data);
+                await cache.set('categories', categoriesResult.data);
+            }
+            setIsOffline(false);
+        } catch (error) {
+            // Network error - use cached data
+            setIsOffline(true);
+        }
+
         setIsLoading(false);
     };
 
@@ -125,6 +154,14 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
+            {/* Offline Banner */}
+            {isOffline && (
+                <View style={styles.offlineBanner}>
+                    <Ionicons name="cloud-offline" size={16} color={Colors.white} />
+                    <Text style={styles.offlineText}>Mode hors ligne - Données en cache</Text>
+                </View>
+            )}
+
             {/* Search Bar */}
             <View style={styles.searchContainer}>
                 <Ionicons name="search" size={20} color={Colors.gray.medium} style={styles.searchIcon} />
@@ -270,6 +307,19 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.white,
+    },
+    offlineBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.warning,
+        padding: Spacing.sm,
+        gap: Spacing.xs,
+        justifyContent: 'center',
+    },
+    offlineText: {
+        color: Colors.white,
+        fontSize: FontSizes.sm,
+        fontWeight: '600',
     },
     centerContainer: {
         flex: 1,
