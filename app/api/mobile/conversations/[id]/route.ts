@@ -54,15 +54,6 @@ export async function GET(
             where: {
                 conversationId: id,
             },
-            include: {
-                sender: {
-                    select: {
-                        id: true,
-                        name: true,
-                        image: true,
-                    },
-                },
-            },
             orderBy: {
                 createdAt: 'asc',
             },
@@ -143,21 +134,6 @@ export async function POST(
                 senderId: decoded.userId,
                 content: content.trim(),
             },
-            include: {
-                sender: {
-                    select: {
-                        id: true,
-                        name: true,
-                        image: true,
-                    },
-                },
-            },
-        });
-
-        // Update conversation updatedAt
-        await prisma.conversation.update({
-            where: { id },
-            data: { updatedAt: new Date() },
         });
 
         return NextResponse.json(message, { headers: corsHeaders });

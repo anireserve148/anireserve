@@ -45,8 +45,13 @@ export async function GET(request: NextRequest) {
                 pro: {
                     select: {
                         id: true,
-                        name: true,
-                        image: true,
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                image: true,
+                            },
+                        },
                     },
                 },
                 messages: {
@@ -54,24 +59,18 @@ export async function GET(request: NextRequest) {
                         createdAt: 'desc',
                     },
                     take: 1,
-                    include: {
-                        sender: {
-                            select: {
-                                id: true,
-                                name: true,
-                            },
-                        },
-                    },
                 },
             },
             orderBy: {
-                updatedAt: 'desc',
+                createdAt: 'desc',
             },
         });
 
         // Format for mobile
         const formatted = conversations.map(conv => {
-            const otherUser = conv.clientId === decoded.userId ? conv.pro : conv.client;
+            const otherUser = conv.clientId === decoded.userId
+                ? { id: conv.pro.user.id, name: conv.pro.user.name, image: conv.pro.user.image }
+                : conv.client;
             const lastMessage = conv.messages[0];
 
             return {
@@ -87,7 +86,7 @@ export async function GET(request: NextRequest) {
                     isRead: lastMessage.isRead,
                     senderId: lastMessage.senderId,
                 } : null,
-                updatedAt: conv.updatedAt,
+                createdAt: conv.createdAt,
             };
         });
 
