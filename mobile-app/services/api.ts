@@ -142,6 +142,29 @@ class ApiService {
             method: 'DELETE',
         });
     }
+
+    // Conversations & Messages
+    async getConversations(): Promise<ApiResponse<any[]>> {
+        return this.request('/api/mobile/conversations');
+    }
+
+    async createConversation(otherUserId: string): Promise<ApiResponse<{ id: string }>> {
+        return this.request('/api/mobile/conversations', {
+            method: 'POST',
+            body: JSON.stringify({ otherUserId }),
+        });
+    }
+
+    async getMessages(conversationId: string): Promise<ApiResponse<any[]>> {
+        return this.request(`/api/mobile/conversations/${conversationId}`);
+    }
+
+    async sendMessage(conversationId: string, content: string): Promise<ApiResponse<any>> {
+        return this.request(`/api/mobile/conversations/${conversationId}`, {
+            method: 'POST',
+            body: JSON.stringify({ content }),
+        });
+    }
 }
 
 export const api = new ApiService();

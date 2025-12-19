@@ -10,11 +10,13 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { api } from '../../services/api';
 import { Colors, Spacing, FontSizes } from '../../constants';
 
 interface Conversation {
     id: string;
     otherUser: {
+        id: string;
         name: string;
         image: string | null;
     };
@@ -22,13 +24,16 @@ interface Conversation {
         content: string;
         createdAt: string;
         isRead: boolean;
-    };
+        senderId: string;
+    } | null;
+    updatedAt: string;
 }
 
 export default function MessagesScreen() {
     const router = useRouter();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     useEffect(() => {
         loadConversations();
@@ -36,12 +41,17 @@ export default function MessagesScreen() {
 
     const loadConversations = async () => {
         setIsLoading(true);
-        // TODO: Fetch from API
-        // Fake data for now
-        setTimeout(() => {
-            setConversations([]);
-            setIsLoading(false);
-        }, 500);
+        const result = await api.getConversations();
+        if (result.success && result.data) {
+            setConversations(result.data);
+        }
+        setIsLoading(false);
+    };
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        await loadConversations();
+        setIsRefreshing(false);
     };
 
     const formatTime = (dateString: string) => {
@@ -75,22 +85,26 @@ export default function MessagesScreen() {
             <View style={styles.conversationContent}>
                 <View style={styles.conversationHeader}>
                     <Text style={styles.userName}>{item.otherUser.name}</Text>
-                    <Text style={styles.timestamp}>
-                        {formatTime(item.lastMessage.createdAt)}
-                    </Text>
+                    {item.lastMessage && (
+                        <Text style={styles.timestamp}>
+                            {formatTime(item.lastMessage.createdAt)}
+                        </Text>
+                    )}
                 </View>
-                <Text
-                    style={[
-                        styles.lastMessage,
-                        !item.lastMessage.isRead && styles.unreadMessage,
-                    ]}
-                    numberOfLines={1}
-                >
-                    {item.lastMessage.content}
-                </Text>
+                {item.lastMessage && (
+                    <Text
+                        style={[
+                            styles.lastMessage,
+                            !item.lastMessage.isRead && styles.unreadMessage,
+                        ]}
+                        numberOfLines={1}
+                    >
+                        {item.lastMessage.content}
+                    </Text>
+                )}
             </View>
 
-            {!item.lastMessage.isRead && <View style={styles.unreadBadge} />}
+            {item.lastMessage && !item.lastMessage.isRead && <View style={styles.unreadBadge} />}
         </TouchableOpacity>
     );
 
