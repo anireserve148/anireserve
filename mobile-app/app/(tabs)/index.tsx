@@ -7,31 +7,59 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     TextInput,
-    Image,
+    Modal,
+    ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
-import { ProProfile } from '../../types';
+import { ProProfile, ServiceCategory } from '../../types';
 import { Colors, Spacing, FontSizes } from '../../constants';
 
 export default function HomeScreen() {
     const router = useRouter();
     const [pros, setPros] = useState<ProProfile[]>([]);
+    const [cities, setCities] = useState<{ id: string; name: string }[]>([]);
+    const [categories, setCategories] = useState<ServiceCategory[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCity, setSelectedCity] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [showCityModal, setShowCityModal] = useState(false);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+
+    useEffect(() => {
+        loadData();
+    }, []);
 
     useEffect(() => {
         loadPros();
-    }, []);
+    }, [selectedCity, selectedCategory]);
+
+    const loadData = async () => {
+        setIsLoading(true);
+        const [prosResult, citiesResult, categoriesResult] = await Promise.all([
+            api.getPros(),
+            api.getCities(),
+            api.getCategories(),
+        ]);
+
+        if (prosResult.success && prosResult.data) setPros(prosResult.data);
+        if (citiesResult.success && citiesResult.data) setCities(citiesResult.data);
+        if (categoriesResult.success && categoriesResult.data) setCategories(categoriesResult.data);
+        setIsLoading(false);
+    };
 
     const loadPros = async () => {
-        setIsLoading(true);
-        const result = await api.getPros();
+        const filters: any = {};
+        if (selectedCity) filters.city = selectedCity;
+        if (selectedCategory) filters.category = selectedCategory;
+        if (searchQuery) filters.q = searchQuery;
+
+        const result = await api.getPros(filters);
         if (result.success && result.data) {
             setPros(result.data);
         }
-        setIsLoading(false);
     };
 
     const filteredPros = pros.filter((pro) =>
@@ -92,6 +120,9 @@ export default function HomeScreen() {
         );
     }
 
+    const selectedCityName = cities.find(c => c.id === selectedCity)?.name;
+    const selectedCategoryName = categories.find(c => c.id === selectedCategory)?.name;
+
     return (
         <View style={styles.container}>
             {/* Search Bar */}
@@ -103,6 +134,39 @@ export default function HomeScreen() {
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                 />
+            </View>
+
+            {/* Filters */}
+            <View style={styles.filtersContainer}>
+                <TouchableOpacity
+                    style={[styles.filterButton, selectedCity && styles.filterButtonActive]}
+                    onPress={() => setShowCityModal(true)}
+                >
+                    <Ionicons name="location-outline" size={18} color={selectedCity ? Colors.white : Colors.primary} />
+                    <Text style={[styles.filterText, selectedCity && styles.filterTextActive]}>
+                        {selectedCityName || 'Ville'}
+                    </Text>
+                    {selectedCity && (
+                        <TouchableOpacity onPress={() => setSelectedCity('')}>
+                            <Ionicons name="close-circle" size={18} color={Colors.white} />
+                        </TouchableOpacity>
+                    )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.filterButton, selectedCategory && styles.filterButtonActive]}
+                    onPress={() => setShowCategoryModal(true)}
+                >
+                    <Ionicons name="grid-outline" size={18} color={selectedCategory ? Colors.white : Colors.primary} />
+                    <Text style={[styles.filterText, selectedCategory && styles.filterTextActive]}>
+                        {selectedCategoryName || 'Catégorie'}
+                    </Text>
+                    {selectedCategory && (
+                        <TouchableOpacity onPress={() => setSelectedCategory('')}>
+                            <Ionicons name="close-circle" size={18} color={Colors.white} />
+                        </TouchableOpacity>
+                    )}
+                </TouchableOpacity>
             </View>
 
             {/* Pros List */}
@@ -118,6 +182,84 @@ export default function HomeScreen() {
                     </View>
                 }
             />
+
+            {/* City Modal */}
+            <Modal visible={showCityModal} transparent animationType="slide">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Choisir une ville</Text>
+                            <TouchableOpacity onPress={() => setShowCityModal(false)}>
+                                <Ionicons name="close" size={28} color={Colors.secondary} />
+                            </TouchableOpacity>
+                        </View>
+                        <ScrollView>
+                            {cities.map((city) => (
+                                <TouchableOpacity
+                                    key={city.id}
+                                    style={[
+                                        styles.modalItem,
+                                        selectedCity === city.id && styles.modalItemActive,
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedCity(city.id);
+                                        setShowCityModal(false);
+                                    }}
+                                >
+                                    <Text style={[
+                                        styles.modalItemText,
+                                        selectedCity === city.id && styles.modalItemTextActive
+                                    ]}>
+                                        {city.name}
+                                    </Text>
+                                    {selectedCity === city.id && (
+                                        <Ionicons name="checkmark" size={24} color={Colors.primary} />
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Category Modal */}
+            <Modal visible={showCategoryModal} transparent animationType="slide">
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Choisir une catégorie</Text>
+                            <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
+                                <Ionicons name="close" size={28} color={Colors.secondary} />
+                            </TouchableOpacity>
+                        </View>
+                        <ScrollView>
+                            {categories.map((category) => (
+                                <TouchableOpacity
+                                    key={category.id}
+                                    style={[
+                                        styles.modalItem,
+                                        selectedCategory === category.id && styles.modalItemActive,
+                                    ]}
+                                    onPress={() => {
+                                        setSelectedCategory(category.id);
+                                        setShowCategoryModal(false);
+                                    }}
+                                >
+                                    <Text style={[
+                                        styles.modalItemText,
+                                        selectedCategory === category.id && styles.modalItemTextActive
+                                    ]}>
+                                        {category.name}
+                                    </Text>
+                                    {selectedCategory === category.id && (
+                                        <Ionicons name="checkmark" size={24} color={Colors.primary} />
+                                    )}
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -147,6 +289,35 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: Spacing.md,
         fontSize: FontSizes.md,
+    },
+    filtersContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: Spacing.md,
+        marginBottom: Spacing.md,
+        gap: Spacing.sm,
+    },
+    filterButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        borderWidth: 1,
+        borderColor: Colors.primary,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.sm,
+        borderRadius: 20,
+        gap: Spacing.xs,
+    },
+    filterButtonActive: {
+        backgroundColor: Colors.primary,
+        borderColor: Colors.primary,
+    },
+    filterText: {
+        fontSize: FontSizes.sm,
+        color: Colors.primary,
+        fontWeight: '600',
+    },
+    filterTextActive: {
+        color: Colors.white,
     },
     listContent: {
         padding: Spacing.md,
@@ -243,5 +414,50 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.md,
         color: Colors.gray.medium,
         marginTop: Spacing.md,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: Colors.white,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        maxHeight: '70%',
+        padding: Spacing.lg,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: Spacing.lg,
+        paddingBottom: Spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.gray.light,
+    },
+    modalTitle: {
+        fontSize: FontSizes.xl,
+        fontWeight: 'bold',
+        color: Colors.secondary,
+    },
+    modalItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: Spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.gray.light,
+    },
+    modalItemActive: {
+        backgroundColor: Colors.primary + '10',
+    },
+    modalItemText: {
+        fontSize: FontSizes.md,
+        color: Colors.secondary,
+    },
+    modalItemTextActive: {
+        fontWeight: 'bold',
+        color: Colors.primary,
     },
 });
