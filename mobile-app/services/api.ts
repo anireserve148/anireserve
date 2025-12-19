@@ -78,7 +78,7 @@ class ApiService {
         q?: string;
     }): Promise<ApiResponse<ProProfile[]>> {
         const params = new URLSearchParams(filters as any);
-        return this.request(`/api/pros?${params}`);
+        return this.request(`/api/mobile/pros?${params}`);
     }
 
     async getProById(id: string): Promise<ApiResponse<ProProfile>> {
