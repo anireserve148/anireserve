@@ -71,6 +71,13 @@ class ApiService {
         });
     }
 
+    async uploadPhoto(imageBase64: string): Promise<ApiResponse<{ user: User }>> {
+        return this.request('/api/mobile/upload-photo', {
+            method: 'POST',
+            body: JSON.stringify({ imageBase64 }),
+        });
+    }
+
     // Pros
     async getPros(filters?: {
         city?: string;

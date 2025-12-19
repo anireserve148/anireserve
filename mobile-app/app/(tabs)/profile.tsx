@@ -7,9 +7,11 @@ import {
     Alert,
     ScrollView,
     ActivityIndicator,
+    Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { storage } from '../../services/storage';
 import { api } from '../../services/api';
 import { User } from '../../types';
@@ -19,6 +21,7 @@ export default function ProfileScreen() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isUploading, setIsUploading] = useState(false);
 
     useEffect(() => {
         loadUser();
@@ -28,6 +31,38 @@ export default function ProfileScreen() {
         const userData = await storage.getUser();
         setUser(userData);
         setIsLoading(false);
+    };
+
+    const handleChangePhoto = async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission refusée', 'Nous avons besoin de la permission pour accéder à vos photos');
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+            base64: true,
+        });
+
+        if (!result.canceled && result.assets[0].base64) {
+            setIsUploading(true);
+            const imageBase64 = `data:image/jpeg;base64,${result.assets[0].base64}`;
+            const uploadResult = await api.uploadPhoto(imageBase64);
+
+            if (uploadResult.success && uploadResult.data) {
+                const updatedUser = uploadResult.data.user;
+                setUser(updatedUser);
+                await storage.saveUser(updatedUser);
+                Alert.alert('Succès', 'Photo mise à jour !');
+            } else {
+                Alert.alert('Erreur', uploadResult.error || 'Impossible de changer la photo');
+            }
+            setIsUploading(false);
+        }
     };
 
     const handleLogout = () => {
@@ -72,8 +107,25 @@ export default function ProfileScreen() {
         <ScrollView style={styles.container}>
             {/* User Header */}
             <View style={styles.header}>
-                <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{user.name?.[0] || 'U'}</Text>
+                <View style={styles.avatarContainer}>
+                    {user.image ? (
+                        <Image source={{ uri: user.image }} style={styles.avatarImage} />
+                    ) : (
+                        <View style={styles.avatar}>
+                            <Text style={styles.avatarText}>{user.name?.[0] || 'U'}</Text>
+                        </View>
+                    )}
+                    <TouchableOpacity
+                        style={styles.cameraButton}
+                        onPress={handleChangePhoto}
+                        disabled={isUploading}
+                    >
+                        {isUploading ? (
+                            <ActivityIndicator size="small" color={Colors.white} />
+                        ) : (
+                            <Ionicons name="camera" size={20} color={Colors.white} />
+                        )}
+                    </TouchableOpacity>
                 </View>
                 <Text style={styles.name}>{user.name}</Text>
                 <Text style={styles.email}>{user.email}</Text>
@@ -146,6 +198,10 @@ const styles = StyleSheet.create({
         padding: Spacing.xl,
         marginBottom: Spacing.md,
     },
+    avatarContainer: {
+        position: 'relative',
+        marginBottom: Spacing.md,
+    },
     avatar: {
         width: 100,
         height: 100,
@@ -153,7 +209,24 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: Spacing.md,
+    },
+    avatarImage: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+    },
+    cameraButton: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: Colors.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 3,
+        borderColor: Colors.white,
     },
     avatarText: {
         color: Colors.white,
