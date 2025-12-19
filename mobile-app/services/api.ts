@@ -1,5 +1,5 @@
 import { API_URL } from '../constants';
-import { LoginCredentials, User, ApiResponse, ProProfile, Reservation } from '../types';
+import { LoginCredentials, User, ApiResponse, ProProfile, Reservation, ServiceCategory } from '../types';
 
 class ApiService {
     private token: string | null = null;
@@ -83,6 +83,15 @@ class ApiService {
 
     async getProById(id: string): Promise<ApiResponse<ProProfile>> {
         return this.request(`/api/mobile/pros/${id}`);
+    }
+
+    // Filters
+    async getCities(): Promise<ApiResponse<{ id: string; name: string }[]>> {
+        return this.request('/api/mobile/cities');
+    }
+
+    async getCategories(): Promise<ApiResponse<ServiceCategory[]>> {
+        return this.request('/api/mobile/categories');
     }
 
     // Reservations
