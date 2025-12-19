@@ -19,10 +19,12 @@ export default function ProDetailScreen() {
     const { id } = useLocalSearchParams();
     const [pro, setPro] = useState<ProProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isFavorite, setIsFavorite] = useState(false);
 
     useEffect(() => {
         if (id) {
             loadPro();
+            checkFavorite();
         }
     }, [id]);
 
@@ -36,6 +38,29 @@ export default function ProDetailScreen() {
             router.back();
         }
         setIsLoading(false);
+    };
+
+    const checkFavorite = async () => {
+        const result = await api.getFavorites();
+        if (result.success && result.data) {
+            setIsFavorite(result.data.some(f => f.id === id));
+        }
+    };
+
+    const toggleFavorite = async () => {
+        if (isFavorite) {
+            const result = await api.removeFavorite(id as string);
+            if (result.success) {
+                setIsFavorite(false);
+                Alert.alert('Supprimé', 'Retiré des favoris');
+            }
+        } else {
+            const result = await api.addFavorite(id as string);
+            if (result.success) {
+                setIsFavorite(true);
+                Alert.alert('Ajouté', 'Ajouté aux favoris');
+            }
+        }
     };
 
     const handleBook = () => {
@@ -64,6 +89,13 @@ export default function ProDetailScreen() {
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color={Colors.white} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.favoriteButton} onPress={toggleFavorite}>
+                    <Ionicons
+                        name={isFavorite ? "heart" : "heart-outline"}
+                        size={24}
+                        color={isFavorite ? Colors.error : Colors.white}
+                    />
                 </TouchableOpacity>
                 <View style={styles.avatar}>
                     <Text style={styles.avatarText}>{pro.user.name?.[0] || 'P'}</Text>
@@ -172,6 +204,17 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 50,
         left: Spacing.md,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    favoriteButton: {
+        position: 'absolute',
+        top: 50,
+        right: Spacing.md,
         width: 40,
         height: 40,
         borderRadius: 20,

@@ -124,6 +124,24 @@ class ApiService {
             body: JSON.stringify(data),
         });
     }
+
+    // Favorites
+    async getFavorites(): Promise<ApiResponse<ProProfile[]>> {
+        return this.request('/api/mobile/favorites');
+    }
+
+    async addFavorite(proId: string): Promise<ApiResponse<{ success: boolean }>> {
+        return this.request('/api/mobile/favorites', {
+            method: 'POST',
+            body: JSON.stringify({ proId }),
+        });
+    }
+
+    async removeFavorite(proId: string): Promise<ApiResponse<{ success: boolean }>> {
+        return this.request(`/api/mobile/favorites?proId=${proId}`, {
+            method: 'DELETE',
+        });
+    }
 }
 
 export const api = new ApiService();
