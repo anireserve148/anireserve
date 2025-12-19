@@ -175,6 +175,8 @@ export default function HomeScreen() {
                 renderItem={renderPro}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContent}
+                refreshing={isLoading}
+                onRefresh={loadData}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <Ionicons name="search-outline" size={64} color={Colors.gray.medium} />
