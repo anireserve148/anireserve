@@ -82,12 +82,12 @@ class ApiService {
     }
 
     async getProById(id: string): Promise<ApiResponse<ProProfile>> {
-        return this.request(`/api/pros/${id}`);
+        return this.request(`/api/mobile/pros/${id}`);
     }
 
     // Reservations
     async getMyReservations(): Promise<ApiResponse<Reservation[]>> {
-        return this.request('/api/reservations');
+        return this.request('/api/mobile/reservations');
     }
 
     async createReservation(data: {
@@ -96,7 +96,7 @@ class ApiService {
         endDate: string;
         serviceType: string;
     }): Promise<ApiResponse<Reservation>> {
-        return this.request('/api/reservations', {
+        return this.request('/api/mobile/reservations', {
             method: 'POST',
             body: JSON.stringify(data),
         });
