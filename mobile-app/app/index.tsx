@@ -98,10 +98,11 @@ export default function LoginScreen() {
 
                     <TouchableOpacity
                         style={styles.linkButton}
+                        onPress={() => router.push('/register')}
                         disabled={isLoading}
                     >
                         <Text style={styles.linkText}>
-                            Mode développement • Pas de backend connecté
+                            Pas encore de compte ? <Text style={styles.linkTextBold}>S'inscrire</Text>
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -173,5 +174,9 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.xs,
         color: Colors.gray.medium,
         textAlign: 'center',
+    },
+    linkTextBold: {
+        color: Colors.primary,
+        fontWeight: 'bold',
     },
 });

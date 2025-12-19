@@ -65,7 +65,7 @@ class ApiService {
         email: string;
         password: string;
     }): Promise<ApiResponse<{ user: User; token: string }>> {
-        return this.request('/api/auth/register', {
+        return this.request('/api/mobile/register', {
             method: 'POST',
             body: JSON.stringify(data),
         });
