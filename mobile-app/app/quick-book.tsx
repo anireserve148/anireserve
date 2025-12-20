@@ -88,14 +88,22 @@ export default function QuickBookScreen() {
                 totalPrice,
             });
 
+            console.log('API Result:', JSON.stringify(result));
+
             setIsLoading(false);
 
-            if (result.success) {
-                Alert.alert(
-                    '✅ Réservation confirmée !',
-                    `Votre RDV avec ${name} est confirmé pour le ${selectedDate} à ${selectedTime}.`,
-                    [{ text: 'OK', onPress: () => router.replace('/(tabs)/reservations') }]
-                );
+            if (result.success && result.data) {
+                // Redirect to success page with booking details
+                router.replace({
+                    pathname: '/booking-success',
+                    params: {
+                        proName: name as string,
+                        date: selectedDate,
+                        time: selectedTime,
+                        duration: String(selectedDuration),
+                        price: String(totalPrice),
+                    },
+                });
             } else {
                 console.error('Reservation error:', result.error);
                 Alert.alert('Erreur', result.error || 'Impossible de réserver');

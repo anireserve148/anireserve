@@ -91,8 +91,12 @@ export default function LoginScreen() {
                 await storage.saveUser(result.data.user);
                 api.setToken(result.data.token);
 
-                // Navigate to tabs
-                router.replace('/(tabs)');
+                // Navigate based on role
+                if (result.data.user.role === 'PRO') {
+                    router.replace('/(pro-tabs)');
+                } else {
+                    router.replace('/(tabs)');
+                }
             } else {
                 Alert.alert('Erreur', result.error || 'Connexion échouée');
             }
