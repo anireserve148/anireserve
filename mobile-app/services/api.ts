@@ -85,6 +85,16 @@ class ApiService {
         });
     }
 
+    async updateProfile(data: {
+        name?: string;
+        phoneNumber?: string;
+    }): Promise<ApiResponse<User>> {
+        return this.request('/api/mobile/profile', {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        });
+    }
+
     // Pros
     async getPros(filters?: {
         city?: string;
