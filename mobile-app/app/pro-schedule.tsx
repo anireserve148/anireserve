@@ -17,25 +17,27 @@ interface DaySchedule {
     isOpen: boolean;
     start: string;
     end: string;
-    break?: { start: string; end: string };
+    hasBreak: boolean;
+    breakStart: string;
+    breakEnd: string;
 }
 
 const DAYS: DaySchedule[] = [
-    { day: 'SUN', dayName: 'Dimanche', isOpen: true, start: '09:00', end: '18:00' },
-    { day: 'MON', dayName: 'Lundi', isOpen: true, start: '09:00', end: '18:00' },
-    { day: 'TUE', dayName: 'Mardi', isOpen: true, start: '09:00', end: '18:00' },
-    { day: 'WED', dayName: 'Mercredi', isOpen: true, start: '09:00', end: '18:00' },
-    { day: 'THU', dayName: 'Jeudi', isOpen: true, start: '09:00', end: '18:00' },
-    { day: 'FRI', dayName: 'Vendredi', isOpen: false, start: '09:00', end: '14:00' },
-    { day: 'SAT', dayName: 'Samedi', isOpen: false, start: '', end: '' },
+    { day: 'SUN', dayName: 'Dimanche', isOpen: true, start: '09:00', end: '18:00', hasBreak: true, breakStart: '12:00', breakEnd: '13:00' },
+    { day: 'MON', dayName: 'Lundi', isOpen: true, start: '09:00', end: '18:00', hasBreak: true, breakStart: '12:00', breakEnd: '13:00' },
+    { day: 'TUE', dayName: 'Mardi', isOpen: true, start: '09:00', end: '18:00', hasBreak: false, breakStart: '12:00', breakEnd: '13:00' },
+    { day: 'WED', dayName: 'Mercredi', isOpen: true, start: '09:00', end: '18:00', hasBreak: true, breakStart: '12:00', breakEnd: '14:00' },
+    { day: 'THU', dayName: 'Jeudi', isOpen: true, start: '09:00', end: '18:00', hasBreak: false, breakStart: '12:00', breakEnd: '13:00' },
+    { day: 'FRI', dayName: 'Vendredi', isOpen: true, start: '09:00', end: '14:00', hasBreak: false, breakStart: '', breakEnd: '' },
+    { day: 'SAT', dayName: 'Samedi', isOpen: false, start: '', end: '', hasBreak: false, breakStart: '', breakEnd: '' },
 ];
 
 const HOURS = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
+const BREAK_HOURS = ['11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00'];
 
 export default function ProScheduleScreen() {
     const router = useRouter();
     const [schedule, setSchedule] = useState<DaySchedule[]>(DAYS);
-    const [editingDay, setEditingDay] = useState<string | null>(null);
 
     const toggleDay = (day: string) => {
         setSchedule(prev => prev.map(d =>
@@ -43,7 +45,13 @@ export default function ProScheduleScreen() {
         ));
     };
 
-    const updateTime = (day: string, field: 'start' | 'end', value: string) => {
+    const toggleBreak = (day: string) => {
+        setSchedule(prev => prev.map(d =>
+            d.day === day ? { ...d, hasBreak: !d.hasBreak } : d
+        ));
+    };
+
+    const updateTime = (day: string, field: 'start' | 'end' | 'breakStart' | 'breakEnd', value: string) => {
         setSchedule(prev => prev.map(d =>
             d.day === day ? { ...d, [field]: value } : d
         ));
@@ -74,7 +82,7 @@ export default function ProScheduleScreen() {
                 <View style={styles.infoCard}>
                     <Ionicons name="information-circle-outline" size={24} color={Colors.accent} />
                     <Text style={styles.infoText}>
-                        Définissez vos horaires d'ouverture. Les clients ne pourront réserver que pendant ces créneaux.
+                        Définissez vos horaires et pauses. Les clients ne pourront pas réserver pendant vos pauses.
                     </Text>
                 </View>
 
@@ -87,7 +95,10 @@ export default function ProScheduleScreen() {
                                     {day.dayName}
                                 </Text>
                                 {day.isOpen && (
-                                    <Text style={styles.dayHours}>{day.start} - {day.end}</Text>
+                                    <Text style={styles.dayHours}>
+                                        {day.start} - {day.end}
+                                        {day.hasBreak && ` (pause: ${day.breakStart}-${day.breakEnd})`}
+                                    </Text>
                                 )}
                                 {!day.isOpen && (
                                     <Text style={styles.closedText}>Fermé</Text>
@@ -102,8 +113,9 @@ export default function ProScheduleScreen() {
 
                         {day.isOpen && (
                             <View style={styles.timeSelection}>
+                                {/* Working Hours */}
                                 <View style={styles.timeGroup}>
-                                    <Text style={styles.timeLabel}>Début</Text>
+                                    <Text style={styles.timeLabel}>🕐 Début de journée</Text>
                                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                         <View style={styles.timeOptions}>
                                             {HOURS.slice(0, 8).map((hour) => (
@@ -128,7 +140,7 @@ export default function ProScheduleScreen() {
                                 </View>
 
                                 <View style={styles.timeGroup}>
-                                    <Text style={styles.timeLabel}>Fin</Text>
+                                    <Text style={styles.timeLabel}>🕐 Fin de journée</Text>
                                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                         <View style={styles.timeOptions}>
                                             {HOURS.slice(5).map((hour) => (
@@ -150,6 +162,73 @@ export default function ProScheduleScreen() {
                                             ))}
                                         </View>
                                     </ScrollView>
+                                </View>
+
+                                {/* Break Toggle */}
+                                <View style={styles.breakSection}>
+                                    <View style={styles.breakHeader}>
+                                        <Ionicons name="cafe-outline" size={20} color={Colors.warning} />
+                                        <Text style={styles.breakTitle}>Pause déjeuner</Text>
+                                        <Switch
+                                            value={day.hasBreak}
+                                            onValueChange={() => toggleBreak(day.day)}
+                                            trackColor={{ false: Colors.gray.light, true: Colors.warning }}
+                                        />
+                                    </View>
+
+                                    {day.hasBreak && (
+                                        <View style={styles.breakTimes}>
+                                            <View style={styles.breakTimeGroup}>
+                                                <Text style={styles.breakLabel}>Début pause</Text>
+                                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                                    <View style={styles.timeOptions}>
+                                                        {BREAK_HOURS.map((hour) => (
+                                                            <TouchableOpacity
+                                                                key={hour}
+                                                                style={[
+                                                                    styles.breakBtn,
+                                                                    day.breakStart === hour && styles.breakBtnActive
+                                                                ]}
+                                                                onPress={() => updateTime(day.day, 'breakStart', hour)}
+                                                            >
+                                                                <Text style={[
+                                                                    styles.breakBtnText,
+                                                                    day.breakStart === hour && styles.breakBtnTextActive
+                                                                ]}>
+                                                                    {hour}
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        ))}
+                                                    </View>
+                                                </ScrollView>
+                                            </View>
+
+                                            <View style={styles.breakTimeGroup}>
+                                                <Text style={styles.breakLabel}>Fin pause</Text>
+                                                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                                                    <View style={styles.timeOptions}>
+                                                        {BREAK_HOURS.map((hour) => (
+                                                            <TouchableOpacity
+                                                                key={hour}
+                                                                style={[
+                                                                    styles.breakBtn,
+                                                                    day.breakEnd === hour && styles.breakBtnActive
+                                                                ]}
+                                                                onPress={() => updateTime(day.day, 'breakEnd', hour)}
+                                                            >
+                                                                <Text style={[
+                                                                    styles.breakBtnText,
+                                                                    day.breakEnd === hour && styles.breakBtnTextActive
+                                                                ]}>
+                                                                    {hour}
+                                                                </Text>
+                                                            </TouchableOpacity>
+                                                        ))}
+                                                    </View>
+                                                </ScrollView>
+                                            </View>
+                                        </View>
+                                    )}
                                 </View>
                             </View>
                         )}
@@ -288,6 +367,53 @@ const styles = StyleSheet.create({
         color: Colors.gray.dark,
     },
     timeBtnTextActive: {
+        color: Colors.white,
+        fontWeight: '600',
+    },
+    breakSection: {
+        backgroundColor: Colors.warning + '10',
+        borderRadius: 12,
+        padding: Spacing.md,
+        marginTop: Spacing.sm,
+    },
+    breakHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+    },
+    breakTitle: {
+        flex: 1,
+        fontSize: FontSizes.md,
+        fontWeight: '600',
+        color: Colors.warning,
+    },
+    breakTimes: {
+        marginTop: Spacing.md,
+    },
+    breakTimeGroup: {
+        marginBottom: Spacing.sm,
+    },
+    breakLabel: {
+        fontSize: FontSizes.sm,
+        color: Colors.gray.medium,
+        marginBottom: Spacing.xs,
+    },
+    breakBtn: {
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.sm,
+        borderRadius: 8,
+        backgroundColor: Colors.white,
+        borderWidth: 1,
+        borderColor: Colors.warning,
+    },
+    breakBtnActive: {
+        backgroundColor: Colors.warning,
+    },
+    breakBtnText: {
+        fontSize: FontSizes.sm,
+        color: Colors.warning,
+    },
+    breakBtnTextActive: {
         color: Colors.white,
         fontWeight: '600',
     },

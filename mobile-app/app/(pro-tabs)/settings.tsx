@@ -48,9 +48,9 @@ export default function ProSettingsScreen() {
                     <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/pro-portfolio')}>
                     <Ionicons name="images-outline" size={24} color={Colors.primary} />
-                    <Text style={styles.menuText}>Photos portfolio</Text>
+                    <Text style={styles.menuText}>📸 Mon Portfolio</Text>
                     <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
                 </TouchableOpacity>
 

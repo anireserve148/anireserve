@@ -6,6 +6,7 @@ import {
     FlatList,
     TouchableOpacity,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes } from '../../constants';
 
@@ -25,8 +26,13 @@ const MOCK_CLIENTS: Client[] = [
 ];
 
 export default function ProClientsScreen() {
+    const router = useRouter();
+
     const renderClient = ({ item }: { item: Client }) => (
-        <TouchableOpacity style={styles.clientCard}>
+        <TouchableOpacity
+            style={styles.clientCard}
+            onPress={() => router.push(`/client-profile?id=${item.id}`)}
+        >
             <View style={styles.avatar}>
                 <Text style={styles.avatarText}>{item.name[0]}</Text>
             </View>
@@ -37,9 +43,18 @@ export default function ProClientsScreen() {
                 </Text>
                 <Text style={styles.lastVisit}>Dernière visite: {item.lastVisit}</Text>
             </View>
-            <TouchableOpacity style={styles.messageBtn}>
-                <Ionicons name="chatbubble-outline" size={20} color={Colors.accent} />
-            </TouchableOpacity>
+            <View style={styles.clientActions}>
+                <TouchableOpacity
+                    style={styles.messageBtn}
+                    onPress={(e) => {
+                        e.stopPropagation();
+                        router.push(`/chat/${item.id}`);
+                    }}
+                >
+                    <Ionicons name="chatbubble-outline" size={20} color={Colors.accent} />
+                </TouchableOpacity>
+                <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
+            </View>
         </TouchableOpacity>
     );
 
@@ -142,5 +157,10 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.accent + '20',
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    clientActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
     },
 });
