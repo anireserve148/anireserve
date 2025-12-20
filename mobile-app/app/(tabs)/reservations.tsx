@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
+import { calendarService } from '../../services/calendar';
 import { Reservation } from '../../types';
 import { Colors, Spacing, FontSizes } from '../../constants';
 
@@ -91,6 +92,15 @@ export default function ReservationsScreen() {
         ]);
     };
 
+    const handleAddToCalendar = async (reservation: any) => {
+        await calendarService.addToCalendar({
+            proName: reservation.pro?.user?.name || 'Professionnel',
+            startDate: reservation.startDate,
+            endDate: reservation.endDate,
+            location: reservation.pro?.city?.name,
+        });
+    };
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('fr-FR', {
@@ -158,6 +168,14 @@ export default function ReservationsScreen() {
                             Contacter
                         </Text>
                     </TouchableOpacity>
+                    {(item.status === 'CONFIRMED' || item.status === 'PENDING') && (
+                        <TouchableOpacity
+                            style={[styles.actionButton, styles.calendarButton]}
+                            onPress={() => handleAddToCalendar(item)}
+                        >
+                            <Ionicons name="calendar-outline" size={18} color={Colors.success} />
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
         );
@@ -288,6 +306,10 @@ const styles = StyleSheet.create({
     },
     contactButtonText: {
         color: Colors.primary,
+    },
+    calendarButton: {
+        backgroundColor: Colors.success + '20',
+        paddingHorizontal: Spacing.sm,
     },
     emptyContainer: {
         alignItems: 'center',

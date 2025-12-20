@@ -71,6 +71,18 @@ class ApiService {
         });
     }
 
+    async googleLogin(data: {
+        email: string;
+        name: string;
+        image?: string;
+        googleId: string;
+    }): Promise<ApiResponse<{ user: User; token: string }>> {
+        return this.request('/api/mobile/google-login', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
     async registerPro(data: {
         name: string;
         email: string;
