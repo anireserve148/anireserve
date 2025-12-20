@@ -5,8 +5,9 @@ import { ModernFooter } from "@/components/modern-footer"
 import { HomeSearchFilters } from "@/components/search/home-filters"
 import { HomeResults, ProResult } from "@/components/search/home-results"
 import { InstallPWAButton } from "@/components/install-pwa-button"
-import { Sparkles, Shield, Zap } from "lucide-react"
+import { Sparkles, Shield, Zap, Search, Calendar, MessageCircle, CheckCircle, Star, Users, TrendingUp } from "lucide-react"
 import { unstable_cache } from 'next/cache'
+import Link from "next/link"
 
 export default async function Home({
   searchParams,
@@ -16,7 +17,14 @@ export default async function Home({
   const session = await auth()
   const { city, category, q, sort } = await searchParams
 
-  // 1. Fetch Filters Data with error handling
+  // Fetch stats
+  const stats = {
+    pros: await prisma.proProfile.count(),
+    clients: await prisma.user.count({ where: { role: 'CLIENT' } }),
+    reservations: await prisma.reservation.count(),
+  }
+
+  // 1. Fetch Filters Data
   let cities: any[] = []
   let categories: any[] = []
 
@@ -69,7 +77,7 @@ export default async function Home({
     orderBy = { user: { name: 'asc' } }
   }
 
-  // 4. Fetch Pros with caching (5min cache)
+  // 4. Fetch Pros
   let prosData: any[] = []
 
   const cachedGetPros = unstable_cache(
@@ -91,7 +99,7 @@ export default async function Home({
       })
     },
     ['pros-search'],
-    { revalidate: 300, tags: ['pros'] } // Cache for 5 minutes
+    { revalidate: 300, tags: ['pros'] }
   )
 
   try {
@@ -100,7 +108,7 @@ export default async function Home({
     console.error('Error fetching professionals:', error)
   }
 
-  // 5. Fetch Favorites if logged in
+  // 5. Fetch Favorites
   const favoriteProIds = new Set<string>();
   if (session?.user?.id) {
     try {
@@ -128,47 +136,152 @@ export default async function Home({
     isFavorite: favoriteProIds.has(p.id)
   }));
 
+  // Show hero only if no filters are applied
+  const showHero = !city && !category && !q
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50/50 via-white to-teal-50/30">
       <ModernNavbar user={session?.user} />
 
-      {/* Hero Banner - Compact */}
-      <section className="py-8 sm:py-12 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Plateforme Premium</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4">
-            <span className="text-gradient">Trouvez Votre Pro</span> en Israël 🇮🇱
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            La plateforme qui connecte les francophones avec les meilleurs professionnels en Israël.
-          </p>
+      {showHero && (
+        <>
+          {/* Hero Section */}
+          <section className="relative py-20 px-4 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5" />
+            <div className="max-w-7xl mx-auto relative">
+              <div className="text-center max-w-4xl mx-auto">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">Plateforme N°1 en Israël</span>
+                </div>
 
-          {/* Trust Indicators */}
-          <div className="flex flex-wrap justify-center gap-6 pt-6 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-primary" />
-              <span>100% Sécurisé</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-accent" />
-              <span>Réponse Rapide</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span>En Français</span>
-            </div>
-          </div>
-        </div>
-      </section>
+                <h1 className="text-5xl sm:text-6xl md:text-7xl font-black mb-6 leading-tight">
+                  <span className="text-gradient">Trouvez Votre Pro</span>
+                  <br />
+                  <span className="text-foreground">en un Clic 🇮🇱</span>
+                </h1>
 
-      {/* Main Content: Split View */}
-      <section className="pb-16 px-4">
+                <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                  La plateforme qui connecte les francophones avec les meilleurs professionnels certifiés en Israël.
+                </p>
+
+                <div className="flex flex-wrap justify-center gap-4 mb-12">
+                  <Link
+                    href="#search"
+                    className="px-8 py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
+                  >
+                    Trouver un Pro
+                  </Link>
+                  <Link
+                    href="/register?type=pro"
+                    className="px-8 py-4 bg-white border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary/5 transition-all"
+                  >
+                    Devenir Pro
+                  </Link>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto">
+                  <div className="text-center">
+                    <div className="text-4xl font-black text-primary mb-2">{stats.pros}+</div>
+                    <div className="text-sm text-muted-foreground">Professionnels</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-4xl font-black text-accent mb-2">{stats.clients}+</div>
+                    <div className="text-sm text-muted-foreground">Clients Satisfaits</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-4xl font-black text-primary mb-2">{stats.reservations}+</div>
+                    <div className="text-sm text-muted-foreground">Réservations</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Features Section */}
+          <section className="py-16 px-4 bg-white/50">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl sm:text-4xl font-black mb-4">Comment ça marche ?</h2>
+                <p className="text-muted-foreground text-lg">Simple, rapide, efficace</p>
+              </div>
+
+              <div className="grid md:grid-cols-4 gap-8">
+                <div className="text-center group">
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/70 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <Search className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2">1. Cherchez</h3>
+                  <p className="text-sm text-muted-foreground">Trouvez le pro parfait par ville ou catégorie</p>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent/70 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <Star className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2">2. Comparez</h3>
+                  <p className="text-sm text-muted-foreground">Consultez les avis et tarifs</p>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/70 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <Calendar className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2">3. Réservez</h3>
+                  <p className="text-sm text-muted-foreground">Prenez RDV en quelques clics</p>
+                </div>
+
+                <div className="text-center group">
+                  <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent/70 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <CheckCircle className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2">4. Profitez</h3>
+                  <p className="text-sm text-muted-foreground">Service de qualité garanti</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Trust Section */}
+          <section className="py-16 px-4">
+            <div className="max-w-5xl mx-auto">
+              <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-3xl p-8 sm:p-12 border border-primary/20">
+                <div className="grid md:grid-cols-3 gap-8 text-center">
+                  <div className="flex flex-col items-center gap-4">
+                    <Shield className="h-12 w-12 text-primary" />
+                    <h3 className="font-bold text-lg">100% Sécurisé</h3>
+                    <p className="text-sm text-muted-foreground">Paiements et données protégés</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-4">
+                    <Zap className="h-12 w-12 text-accent" />
+                    <h3 className="font-bold text-lg">Réponse Rapide</h3>
+                    <p className="text-sm text-muted-foreground">Les pros répondent en 24h</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-4">
+                    <Users className="h-12 w-12 text-primary" />
+                    <h3 className="font-bold text-lg">Communauté</h3>
+                    <p className="text-sm text-muted-foreground">100% francophone</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* Search Section */}
+      <section id="search" className={showHero ? "pb-16 px-4" : "py-8 px-4"}>
         <div className="max-w-7xl mx-auto">
+          {showHero && (
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-black mb-2">Trouvez Votre Pro Maintenant</h2>
+              <p className="text-muted-foreground">Plus de {stats.pros} professionnels à votre service</p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column: Filters */}
+            {/* Filters */}
             <div className="lg:col-span-4 xl:col-span-3">
               <HomeSearchFilters
                 cities={cities}
@@ -176,7 +289,7 @@ export default async function Home({
               />
             </div>
 
-            {/* Right Column: Results */}
+            {/* Results */}
             <div className="lg:col-span-8 xl:col-span-9">
               <HomeResults pros={pros} />
             </div>
