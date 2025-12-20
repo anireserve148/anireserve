@@ -11,6 +11,9 @@ export default function RootLayout() {
     const responseListener = useRef<any>();
 
     useEffect(() => {
+        // RESTORE TOKEN ON APP START
+        restoreToken();
+
         // Register for push notifications
         registerForPushNotifications();
 
@@ -32,6 +35,15 @@ export default function RootLayout() {
             }
         };
     }, []);
+
+    // RESTORE TOKEN FROM STORAGE
+    const restoreToken = async () => {
+        const token = await storage.getToken();
+        if (token) {
+            api.setToken(token);
+            console.log('Token restored to API service');
+        }
+    };
 
     const registerForPushNotifications = async () => {
         const token = await storage.getToken();

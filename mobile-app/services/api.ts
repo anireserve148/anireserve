@@ -117,7 +117,7 @@ class ApiService {
         proId: string;
         startDate: string;
         endDate: string;
-        serviceType: string;
+        totalPrice: number;
     }): Promise<ApiResponse<Reservation>> {
         return this.request('/api/mobile/reservations', {
             method: 'POST',
