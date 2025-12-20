@@ -108,36 +108,55 @@ export default function LoginScreen() {
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
+            {/* Background decoration */}
+            <View style={styles.decorTop} />
+            <View style={styles.decorBottom} />
+
             <View style={styles.content}>
-                {/* Logo */}
-                <View style={styles.logoContainer}>
+                {/* Logo Section */}
+                <View style={styles.logoSection}>
+                    <View style={styles.logoCircle}>
+                        <Ionicons name="paw" size={50} color={Colors.white} />
+                    </View>
                     <Text style={styles.logo}>AniReserve</Text>
-                    <Text style={styles.tagline}>Trouvez votre pro en Israël 🇮🇱</Text>
+                    <Text style={styles.tagline}>Votre pro animalier en Israël 🐾</Text>
                 </View>
 
-                {/* Form */}
-                <View style={styles.form}>
-                    <Text style={styles.title}>Connexion</Text>
+                {/* Form Card */}
+                <View style={styles.formCard}>
+                    <Text style={styles.welcomeText}>Bienvenue ! 👋</Text>
+                    <Text style={styles.subtitle}>Connectez-vous pour continuer</Text>
 
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Email"
-                        value={email}
-                        onChangeText={setEmail}
-                        autoCapitalize="none"
-                        keyboardType="email-address"
-                        editable={!isLoading}
-                    />
+                    {/* Email Input */}
+                    <View style={styles.inputContainer}>
+                        <Ionicons name="mail-outline" size={20} color={Colors.gray.medium} />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Email"
+                            placeholderTextColor={Colors.gray.medium}
+                            value={email}
+                            onChangeText={setEmail}
+                            autoCapitalize="none"
+                            keyboardType="email-address"
+                            editable={!isLoading}
+                        />
+                    </View>
 
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Mot de passe"
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry
-                        editable={!isLoading}
-                    />
+                    {/* Password Input */}
+                    <View style={styles.inputContainer}>
+                        <Ionicons name="lock-closed-outline" size={20} color={Colors.gray.medium} />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Mot de passe"
+                            placeholderTextColor={Colors.gray.medium}
+                            value={password}
+                            onChangeText={setPassword}
+                            secureTextEntry
+                            editable={!isLoading}
+                        />
+                    </View>
 
+                    {/* Login Button */}
                     <TouchableOpacity
                         style={[styles.button, isLoading && styles.buttonDisabled]}
                         onPress={handleLogin}
@@ -146,18 +165,11 @@ export default function LoginScreen() {
                         {isLoading ? (
                             <ActivityIndicator color={Colors.white} />
                         ) : (
-                            <Text style={styles.buttonText}>Se connecter</Text>
+                            <>
+                                <Text style={styles.buttonText}>Se connecter</Text>
+                                <Ionicons name="arrow-forward" size={20} color={Colors.white} />
+                            </>
                         )}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.linkButton}
-                        onPress={() => router.push('/register')}
-                        disabled={isLoading}
-                    >
-                        <Text style={styles.linkText}>
-                            Pas encore de compte ? <Text style={styles.linkTextBold}>S'inscrire</Text>
-                        </Text>
                     </TouchableOpacity>
 
                     {/* Divider */}
@@ -177,10 +189,21 @@ export default function LoginScreen() {
                             <ActivityIndicator color={Colors.secondary} />
                         ) : (
                             <>
-                                <Ionicons name="logo-google" size={24} color="#DB4437" />
+                                <Ionicons name="logo-google" size={22} color="#DB4437" />
                                 <Text style={styles.googleButtonText}>Continuer avec Google</Text>
                             </>
                         )}
+                    </TouchableOpacity>
+
+                    {/* Register Link */}
+                    <TouchableOpacity
+                        style={styles.linkButton}
+                        onPress={() => router.push('/register')}
+                        disabled={isLoading}
+                    >
+                        <Text style={styles.linkText}>
+                            Nouveau ici ? <Text style={styles.linkTextBold}>Créer un compte</Text>
+                        </Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -191,49 +214,111 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.background || '#FFF9F5',
+    },
+    decorTop: {
+        position: 'absolute',
+        top: -100,
+        right: -100,
+        width: 250,
+        height: 250,
+        borderRadius: 125,
+        backgroundColor: Colors.primary + '20',
+    },
+    decorBottom: {
+        position: 'absolute',
+        bottom: -80,
+        left: -80,
+        width: 200,
+        height: 200,
+        borderRadius: 100,
+        backgroundColor: Colors.accent + '30',
     },
     content: {
         flex: 1,
         justifyContent: 'center',
         padding: Spacing.lg,
     },
-    logoContainer: {
+    logoSection: {
         alignItems: 'center',
-        marginBottom: Spacing.xxl,
+        marginBottom: Spacing.xl,
+    },
+    logoCircle: {
+        width: 90,
+        height: 90,
+        borderRadius: 45,
+        backgroundColor: Colors.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: Spacing.md,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 16,
+        elevation: 8,
     },
     logo: {
-        fontSize: FontSizes.xxl,
-        fontWeight: 'bold',
-        color: Colors.primary,
-        marginBottom: Spacing.sm,
+        fontSize: 36,
+        fontWeight: '800',
+        color: Colors.secondary,
+        letterSpacing: -1,
     },
     tagline: {
         fontSize: FontSizes.md,
-        color: Colors.gray.medium,
+        color: Colors.gray.dark,
+        marginTop: Spacing.xs,
     },
-    form: {
-        width: '100%',
+    formCard: {
+        backgroundColor: Colors.white,
+        borderRadius: 24,
+        padding: Spacing.xl,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+        elevation: 10,
     },
-    title: {
+    welcomeText: {
         fontSize: FontSizes.xl,
-        fontWeight: 'bold',
+        fontWeight: '700',
         color: Colors.secondary,
+        marginBottom: Spacing.xs,
+    },
+    subtitle: {
+        fontSize: FontSizes.sm,
+        color: Colors.gray.dark,
         marginBottom: Spacing.lg,
     },
-    input: {
+    inputContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
         backgroundColor: Colors.gray.light,
-        borderRadius: 12,
-        padding: Spacing.md,
+        borderRadius: 14,
+        paddingHorizontal: Spacing.md,
         marginBottom: Spacing.md,
+        borderWidth: 1,
+        borderColor: 'transparent',
+    },
+    input: {
+        flex: 1,
+        padding: Spacing.md,
         fontSize: FontSizes.md,
+        color: Colors.secondary,
     },
     button: {
+        flexDirection: 'row',
         backgroundColor: Colors.primary,
-        borderRadius: 12,
-        padding: Spacing.md,
+        borderRadius: 14,
+        padding: Spacing.lg,
         alignItems: 'center',
+        justifyContent: 'center',
         marginTop: Spacing.md,
+        gap: Spacing.sm,
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.35,
+        shadowRadius: 12,
+        elevation: 6,
     },
     buttonDisabled: {
         opacity: 0.6,
@@ -241,20 +326,20 @@ const styles = StyleSheet.create({
     buttonText: {
         color: Colors.white,
         fontSize: FontSizes.md,
-        fontWeight: 'bold',
+        fontWeight: '700',
     },
     linkButton: {
         marginTop: Spacing.lg,
         alignItems: 'center',
     },
     linkText: {
-        fontSize: FontSizes.xs,
-        color: Colors.gray.medium,
+        fontSize: FontSizes.sm,
+        color: Colors.gray.dark,
         textAlign: 'center',
     },
     linkTextBold: {
         color: Colors.primary,
-        fontWeight: 'bold',
+        fontWeight: '700',
     },
     divider: {
         flexDirection: 'row',
@@ -264,7 +349,7 @@ const styles = StyleSheet.create({
     dividerLine: {
         flex: 1,
         height: 1,
-        backgroundColor: Colors.gray.medium,
+        backgroundColor: Colors.gray.light,
     },
     dividerText: {
         marginHorizontal: Spacing.md,
@@ -276,9 +361,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: Colors.white,
-        borderWidth: 1,
-        borderColor: Colors.gray.medium,
-        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: Colors.gray.light,
+        borderRadius: 14,
         padding: Spacing.md,
         gap: Spacing.sm,
     },

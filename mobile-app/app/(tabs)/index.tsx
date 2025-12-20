@@ -306,7 +306,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.background || '#FFF9F5',
     },
     offlineBanner: {
         flexDirection: 'row',
@@ -325,14 +325,20 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: Colors.background || '#FFF9F5',
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.gray.light,
+        backgroundColor: Colors.white,
         margin: Spacing.md,
         paddingHorizontal: Spacing.md,
-        borderRadius: 12,
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
     },
     searchIcon: {
         marginRight: Spacing.sm,
@@ -341,6 +347,7 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: Spacing.md,
         fontSize: FontSizes.md,
+        color: Colors.secondary,
     },
     filtersContainer: {
         flexDirection: 'row',
@@ -377,19 +384,21 @@ const styles = StyleSheet.create({
     proCard: {
         flexDirection: 'row',
         backgroundColor: Colors.white,
-        borderRadius: 12,
-        padding: Spacing.md,
+        borderRadius: 20,
+        padding: Spacing.lg,
         marginBottom: Spacing.md,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowRadius: 12,
+        elevation: 4,
+        borderWidth: 1,
+        borderColor: Colors.gray.light,
     },
     proAvatar: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
+        width: 70,
+        height: 70,
+        borderRadius: 20,
         backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
@@ -398,14 +407,14 @@ const styles = StyleSheet.create({
     proAvatarText: {
         color: Colors.white,
         fontSize: FontSizes.xl,
-        fontWeight: 'bold',
+        fontWeight: '700',
     },
     proInfo: {
         flex: 1,
     },
     proName: {
         fontSize: FontSizes.lg,
-        fontWeight: 'bold',
+        fontWeight: '700',
         color: Colors.secondary,
         marginBottom: Spacing.xs,
     },
@@ -416,7 +425,7 @@ const styles = StyleSheet.create({
     },
     proCity: {
         fontSize: FontSizes.sm,
-        color: Colors.gray.medium,
+        color: Colors.gray.dark,
         marginLeft: Spacing.xs,
     },
     categories: {
