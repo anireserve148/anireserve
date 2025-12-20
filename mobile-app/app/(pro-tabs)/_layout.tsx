@@ -49,6 +49,15 @@ export default function ProTabsLayout() {
                 }}
             />
             <Tabs.Screen
+                name="messages"
+                options={{
+                    title: 'Messages',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="chatbubbles" size={size} color={color} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
                 name="clients"
                 options={{
                     title: 'Clients',
