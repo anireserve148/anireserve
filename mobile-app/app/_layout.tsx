@@ -7,8 +7,8 @@ import { api } from '../services/api';
 import { storage } from '../services/storage';
 
 export default function RootLayout() {
-    const notificationListener = useRef<any>();
-    const responseListener = useRef<any>();
+    const notificationListener = useRef<any>(null);
+    const responseListener = useRef<any>(null);
 
     useEffect(() => {
         // RESTORE TOKEN ON APP START
@@ -17,21 +17,24 @@ export default function RootLayout() {
         // Register for push notifications
         registerForPushNotifications();
 
-        // Listen to notification events
-        notificationListener.current = notificationService.addNotificationReceivedListener((notification) => {
-            console.log('Notification received:', notification);
-        });
+        // Listen to notification events (only on native, not web)
+        if (typeof Notifications.addNotificationReceivedListener === 'function') {
+            notificationListener.current = notificationService.addNotificationReceivedListener((notification) => {
+                console.log('Notification received:', notification);
+            });
 
-        responseListener.current = notificationService.addNotificationResponseReceivedListener((response) => {
-            console.log('Notification tapped:', response);
-        });
+            responseListener.current = notificationService.addNotificationResponseReceivedListener((response) => {
+                console.log('Notification tapped:', response);
+            });
+        }
 
         return () => {
-            if (notificationListener.current) {
-                Notifications.removeNotificationSubscription(notificationListener.current);
+            // Use .remove() method on the subscription object (new expo-notifications API)
+            if (notificationListener.current?.remove) {
+                notificationListener.current.remove();
             }
-            if (responseListener.current) {
-                Notifications.removeNotificationSubscription(responseListener.current);
+            if (responseListener.current?.remove) {
+                responseListener.current.remove();
             }
         };
     }, []);
