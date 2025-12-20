@@ -7,6 +7,7 @@ import {
     ActivityIndicator,
     TouchableOpacity,
     RefreshControl,
+    Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
@@ -42,6 +43,32 @@ export default function ReservationsScreen() {
         setIsRefreshing(true);
         await loadReservations();
         setIsRefreshing(false);
+    };
+
+    const handleCancel = (reservationId: string) => {
+        Alert.alert(
+            'Annuler la réservation',
+            'Êtes-vous sûr de vouloir annuler cette réservation ?',
+            [
+                { text: 'Non', style: 'cancel' },
+                {
+                    text: 'Oui, annuler',
+                    style: 'destructive',
+                    onPress: async () => {
+                        // TODO: API call to cancel
+                        Alert.alert('Info', 'Fonctionnalité bientôt disponible');
+                    },
+                },
+            ]
+        );
+    };
+
+    const handleContact = (proName: string) => {
+        Alert.alert('Contacter', `Contacter ${proName}`, [
+            { text: 'Appeler', onPress: () => Alert.alert('Info', 'Fonctionnalité bientôt disponible') },
+            { text: 'Message', onPress: () => Alert.alert('Info', 'Fonctionnalité bientôt disponible') },
+            { text: 'Annuler', style: 'cancel' },
+        ]);
     };
 
     const formatDate = (dateString: string) => {
@@ -82,16 +109,34 @@ export default function ReservationsScreen() {
                     </View>
 
                     <View style={styles.infoRow}>
-                        <Ionicons name="pricetag" size={16} color={Colors.gray.medium} />
-                        <Text style={styles.infoText}>{item.serviceType}</Text>
+                        <Ionicons name="cash" size={16} color={Colors.gray.medium} />
+                        <Text style={styles.infoText}>{item.totalPrice}€</Text>
                     </View>
                 </View>
 
-                {item.status === 'PENDING' && (
-                    <TouchableOpacity style={styles.actionButton}>
-                        <Text style={styles.actionButtonText}>Annuler</Text>
+                {/* Actions */}
+                <View style={styles.actionsContainer}>
+                    {item.status === 'PENDING' && (
+                        <TouchableOpacity
+                            style={[styles.actionButton, styles.cancelButton]}
+                            onPress={() => handleCancel(item.id)}
+                        >
+                            <Ionicons name="close-circle-outline" size={18} color={Colors.error} />
+                            <Text style={[styles.actionButtonText, styles.cancelButtonText]}>
+                                Annuler
+                            </Text>
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.contactButton]}
+                        onPress={() => handleContact(item.pro.user.name)}
+                    >
+                        <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
+                        <Text style={[styles.actionButtonText, styles.contactButtonText]}>
+                            Contacter
+                        </Text>
                     </TouchableOpacity>
-                )}
+                </View>
             </View>
         );
     };
@@ -192,17 +237,35 @@ const styles = StyleSheet.create({
         color: Colors.gray.dark,
         marginLeft: Spacing.sm,
     },
-    actionButton: {
+    actionsContainer: {
+        flexDirection: 'row',
+        gap: Spacing.sm,
         marginTop: Spacing.md,
-        backgroundColor: Colors.error + '20',
+    },
+    actionButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
         padding: Spacing.sm,
         borderRadius: 8,
-        alignItems: 'center',
+        gap: Spacing.xs,
+    },
+    cancelButton: {
+        backgroundColor: Colors.error + '20',
+    },
+    contactButton: {
+        backgroundColor: Colors.primary + '20',
     },
     actionButtonText: {
-        color: Colors.error,
         fontWeight: 'bold',
         fontSize: FontSizes.sm,
+    },
+    cancelButtonText: {
+        color: Colors.error,
+    },
+    contactButtonText: {
+        color: Colors.primary,
     },
     emptyContainer: {
         alignItems: 'center',
