@@ -71,6 +71,22 @@ class ApiService {
         });
     }
 
+    async registerPro(data: {
+        name: string;
+        email: string;
+        password: string;
+        phoneNumber: string;
+        cityId: string;
+        categoryId: string;
+        bio?: string;
+        hourlyRate?: number;
+    }): Promise<ApiResponse<{ message: string }>> {
+        return this.request('/api/mobile/register-pro', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
     async uploadPhoto(imageBase64: string): Promise<ApiResponse<{ user: User }>> {
         return this.request('/api/mobile/upload-photo', {
             method: 'POST',

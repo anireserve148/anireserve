@@ -131,6 +131,23 @@ export default function RegisterScreen() {
                         Déjà un compte ? <Text style={styles.linkTextBold}>Se connecter</Text>
                     </Text>
                 </TouchableOpacity>
+
+                {/* Pro Registration Link */}
+                <View style={styles.proSection}>
+                    <View style={styles.divider}>
+                        <View style={styles.dividerLine} />
+                        <Text style={styles.dividerText}>ou</Text>
+                        <View style={styles.dividerLine} />
+                    </View>
+                    <TouchableOpacity
+                        style={styles.proButton}
+                        onPress={() => router.push('/register-pro')}
+                    >
+                        <Ionicons name="briefcase" size={20} color={Colors.primary} />
+                        <Text style={styles.proButtonText}>Devenir Professionnel</Text>
+                        <Ionicons name="arrow-forward" size={20} color={Colors.primary} />
+                    </TouchableOpacity>
+                </View>
             </View>
         </ScrollView>
     );
@@ -219,5 +236,39 @@ const styles = StyleSheet.create({
     linkTextBold: {
         color: Colors.primary,
         fontWeight: 'bold',
+    },
+    proSection: {
+        marginTop: Spacing.xl,
+    },
+    divider: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: Spacing.lg,
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: Colors.gray.medium,
+    },
+    dividerText: {
+        marginHorizontal: Spacing.md,
+        color: Colors.gray.medium,
+        fontSize: FontSizes.sm,
+    },
+    proButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: Colors.primary + '10',
+        borderWidth: 2,
+        borderColor: Colors.primary,
+        borderRadius: 12,
+        padding: Spacing.md,
+        gap: Spacing.sm,
+    },
+    proButtonText: {
+        fontSize: FontSizes.md,
+        fontWeight: 'bold',
+        color: Colors.primary,
     },
 });
