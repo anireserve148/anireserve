@@ -2,41 +2,42 @@ export const API_URL = __DEV__
     ? 'https://anireserve.com'
     : 'https://anireserve.com';
 
-// 🎨 Style TESLA / APPLE - Élégant mais plus doux
+// 🎨 Style AniReserve - Frais et accueillant
 export const Colors = {
-    // Couleurs principales - Gris élégant (moins agressif)
-    primary: '#1C1C1E',       // Gris foncé Apple (pas noir pur)
-    primaryLight: '#2C2C2E',  // Gris moyen
+    // Couleurs principales AniReserve
+    primary: '#2EB190',       // Vert AniReserve
+    primaryLight: '#4CC9A8',  // Vert clair
+    primaryDark: '#238B70',   // Vert foncé
 
-    secondary: '#3A3A3C',     // Gris secondaire
-    secondaryLight: '#636366', // Gris clair
+    secondary: '#1E3A5F',     // Bleu marine élégant
+    secondaryLight: '#2E5A8F',
 
-    accent: '#007AFF',        // Bleu Apple
-    accentLight: '#5AC8FA',   // Bleu clair
+    accent: '#2EB190',        // Vert AniReserve (accent = primary)
+    accentLight: '#7DD9C0',   // Vert très clair
 
-    // Neutres élégants
+    // Neutres doux
     white: '#FFFFFF',
-    black: '#000000',
-    background: '#FAFAFA',    // Gris très clair
+    black: '#1A1A1A',
+    background: '#F8FAF9',    // Fond légèrement teinté vert
     card: '#FFFFFF',
 
     gray: {
-        lightest: '#F5F5F7',  // Apple gray
-        light: '#E8E8ED',
-        medium: '#86868B',
-        dark: '#515154',
-        darker: '#1D1D1F',
+        lightest: '#F4F7F6',  // Gris teinté vert
+        light: '#E0E8E5',
+        medium: '#8A9B95',
+        dark: '#4A5C55',
+        darker: '#2A3A35',
     },
 
     // États
-    success: '#34C759',       // Apple green
-    error: '#FF3B30',         // Apple red
-    warning: '#FF9500',       // Apple orange
-    info: '#0071E3',          // Apple blue
+    success: '#2EB190',       // Vert AniReserve
+    error: '#E74C3C',         // Rouge doux
+    warning: '#F39C12',       // Orange chaleureux
+    info: '#3498DB',          // Bleu info
 
     // Overlays
-    overlay: 'rgba(0,0,0,0.5)',
-    cardShadow: 'rgba(0,0,0,0.08)',
+    overlay: 'rgba(0,0,0,0.4)',
+    cardShadow: 'rgba(46,177,144,0.1)',
 };
 
 export const Spacing = {

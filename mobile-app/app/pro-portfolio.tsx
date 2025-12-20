@@ -60,45 +60,25 @@ export default function ProPortfolioScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={Colors.primary} />
+                    <Ionicons name="arrow-back" size={24} color={Colors.white} />
                 </TouchableOpacity>
                 <Text style={styles.title}>Mon Portfolio</Text>
                 <TouchableOpacity onPress={handleAddPhoto} style={styles.addBtn}>
-                    <Ionicons name="add" size={28} color={Colors.white} />
+                    <Ionicons name="add" size={28} color={Colors.primary} />
                 </TouchableOpacity>
             </View>
 
-            {/* Stats */}
+            {/* Stats - simplified */}
             <View style={styles.statsBar}>
-                <View style={styles.stat}>
-                    <Text style={styles.statValue}>{photos.length}</Text>
-                    <Text style={styles.statLabel}>Photos</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.stat}>
-                    <Text style={styles.statValue}>{photos.reduce((sum, p) => sum + p.likes, 0)}</Text>
-                    <Text style={styles.statLabel}>Total ❤️</Text>
-                </View>
-                <View style={styles.statDivider} />
-                <View style={styles.stat}>
-                    <Text style={styles.statValue}>{Math.round(photos.reduce((sum, p) => sum + p.likes, 0) / photos.length)}</Text>
-                    <Text style={styles.statLabel}>Moy. ❤️</Text>
-                </View>
-            </View>
-
-            {/* Info */}
-            <View style={styles.infoCard}>
-                <Ionicons name="bulb-outline" size={20} color={Colors.accent} />
-                <Text style={styles.infoText}>
-                    Montrez votre travail ! Les clients adorent voir des exemples avant de réserver.
-                </Text>
+                <Text style={styles.statsText}>📸 {photos.length} photos</Text>
+                <Text style={styles.statsHint}>Montrez votre travail aux clients !</Text>
             </View>
 
             {/* Grid */}
             <ScrollView contentContainerStyle={styles.grid}>
                 {/* Add Photo Card */}
                 <TouchableOpacity style={styles.addPhotoCard} onPress={handleAddPhoto}>
-                    <Ionicons name="camera-outline" size={32} color={Colors.gray.medium} />
+                    <Ionicons name="camera-outline" size={32} color={Colors.primary} />
                     <Text style={styles.addPhotoText}>Ajouter</Text>
                 </TouchableOpacity>
 
@@ -110,10 +90,6 @@ export default function ProPortfolioScreen() {
                         onPress={() => setSelectedPhoto(photo)}
                     >
                         <Image source={{ uri: photo.url }} style={styles.photo} />
-                        <View style={styles.photoOverlay}>
-                            <Ionicons name="heart" size={14} color={Colors.white} />
-                            <Text style={styles.photoLikes}>{photo.likes}</Text>
-                        </View>
                     </TouchableOpacity>
                 ))}
             </ScrollView>
@@ -132,11 +108,7 @@ export default function ProPortfolioScreen() {
                                 <Image source={{ uri: selectedPhoto.url }} style={styles.modalImage} />
                                 <View style={styles.modalInfo}>
                                     <Text style={styles.modalCaption}>{selectedPhoto.caption}</Text>
-                                    <View style={styles.modalStats}>
-                                        <Ionicons name="heart" size={18} color={Colors.error} />
-                                        <Text style={styles.modalLikes}>{selectedPhoto.likes}</Text>
-                                        <Text style={styles.modalDate}>{selectedPhoto.createdAt}</Text>
-                                    </View>
+                                    <Text style={styles.modalDate}>Ajouté le {selectedPhoto.createdAt}</Text>
                                 </View>
                                 <View style={styles.modalActions}>
                                     <TouchableOpacity
@@ -164,16 +136,15 @@ export default function ProPortfolioScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.background,
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
+        backgroundColor: Colors.primary,
         padding: Spacing.md,
         paddingTop: 50,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.gray.light,
     },
     backBtn: {
         width: 44,
@@ -184,37 +155,31 @@ const styles = StyleSheet.create({
     title: {
         fontSize: FontSizes.xl,
         fontWeight: '700',
-        color: Colors.primary,
+        color: Colors.white,
     },
     addBtn: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: Colors.accent,
+        backgroundColor: Colors.white,
         justifyContent: 'center',
         alignItems: 'center',
     },
     statsBar: {
-        flexDirection: 'row',
-        backgroundColor: Colors.gray.lightest,
-        padding: Spacing.lg,
-    },
-    stat: {
-        flex: 1,
+        backgroundColor: Colors.primary,
+        padding: Spacing.md,
         alignItems: 'center',
     },
-    statValue: {
-        fontSize: FontSizes.xxl,
+    statsText: {
+        fontSize: FontSizes.lg,
         fontWeight: '700',
-        color: Colors.primary,
+        color: Colors.white,
     },
-    statLabel: {
+    statsHint: {
         fontSize: FontSizes.sm,
-        color: Colors.gray.medium,
-    },
-    statDivider: {
-        width: 1,
-        backgroundColor: Colors.gray.light,
+        color: Colors.white,
+        opacity: 0.8,
+        marginTop: Spacing.xs,
     },
     infoCard: {
         flexDirection: 'row',
