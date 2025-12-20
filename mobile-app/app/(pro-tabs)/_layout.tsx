@@ -10,8 +10,9 @@ export default function ProTabsLayout() {
                 tabBarActiveTintColor: Colors.accent,
                 tabBarInactiveTintColor: Colors.gray.medium,
                 tabBarStyle: {
-                    backgroundColor: Colors.primary,
-                    borderTopColor: 'transparent',
+                    backgroundColor: Colors.white,
+                    borderTopColor: Colors.gray.light,
+                    borderTopWidth: 1,
                     height: 70,
                     paddingBottom: 12,
                     paddingTop: 10,
@@ -21,9 +22,9 @@ export default function ProTabsLayout() {
                     fontWeight: '600',
                 },
                 headerStyle: {
-                    backgroundColor: Colors.primary,
+                    backgroundColor: Colors.white,
                 },
-                headerTintColor: Colors.white,
+                headerTintColor: Colors.primary,
                 headerTitleStyle: {
                     fontWeight: '700',
                     fontSize: 18,

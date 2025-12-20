@@ -2,42 +2,45 @@ export const API_URL = __DEV__
     ? 'https://anireserve.com'
     : 'https://anireserve.com';
 
-// 🎨 Style AniReserve - Frais et accueillant
+// 🎨 Modern Minimal - Blanc dominant, vert en accent
 export const Colors = {
-    // Couleurs principales AniReserve
-    primary: '#2EB190',       // Vert AniReserve
-    primaryLight: '#4CC9A8',  // Vert clair
-    primaryDark: '#238B70',   // Vert foncé
+    // Textes et éléments principaux
+    primary: '#2C3E50',       // Bleu-gris élégant (textes)
+    primaryLight: '#34495E',
+    primaryDark: '#1A252F',
 
-    secondary: '#1E3A5F',     // Bleu marine élégant
-    secondaryLight: '#2E5A8F',
+    // Accent = Vert AniReserve (UNIQUEMENT boutons/CTAs)
+    accent: '#2EB190',        // Vert AniReserve
+    accentLight: '#5FCFAF',
+    accentDark: '#238B70',
 
-    accent: '#2EB190',        // Vert AniReserve (accent = primary)
-    accentLight: '#7DD9C0',   // Vert très clair
+    // Secondaire
+    secondary: '#3498DB',     // Bleu doux
+    secondaryLight: '#5DADE2',
 
-    // Neutres doux
+    // Fond blanc dominant
     white: '#FFFFFF',
     black: '#1A1A1A',
-    background: '#F8FAF9',    // Fond légèrement teinté vert
-    card: '#FFFFFF',
+    background: '#FFFFFF',    // Blanc pur
+    card: '#F8F9FA',          // Gris très léger pour cartes
 
     gray: {
-        lightest: '#F4F7F6',  // Gris teinté vert
-        light: '#E0E8E5',
-        medium: '#8A9B95',
-        dark: '#4A5C55',
-        darker: '#2A3A35',
+        lightest: '#F8F9FA',  // Presque blanc
+        light: '#E9ECEF',     // Gris clair
+        medium: '#6C757D',    // Gris moyen
+        dark: '#495057',      // Gris foncé
+        darker: '#343A40',    // Gris très foncé
     },
 
     // États
-    success: '#2EB190',       // Vert AniReserve
-    error: '#E74C3C',         // Rouge doux
-    warning: '#F39C12',       // Orange chaleureux
-    info: '#3498DB',          // Bleu info
+    success: '#27AE60',       // Vert succès (différent de accent)
+    error: '#E74C3C',         // Rouge
+    warning: '#F39C12',       // Orange
+    info: '#3498DB',          // Bleu
 
     // Overlays
     overlay: 'rgba(0,0,0,0.4)',
-    cardShadow: 'rgba(46,177,144,0.1)',
+    cardShadow: 'rgba(0,0,0,0.08)',
 };
 
 export const Spacing = {

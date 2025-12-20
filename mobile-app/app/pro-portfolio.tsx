@@ -60,7 +60,7 @@ export default function ProPortfolioScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={24} color={Colors.white} />
+                    <Ionicons name="arrow-back" size={24} color={Colors.primary} />
                 </TouchableOpacity>
                 <Text style={styles.title}>Mon Portfolio</Text>
                 <TouchableOpacity onPress={handleAddPhoto} style={styles.addBtn}>
@@ -142,9 +142,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.white,
         padding: Spacing.md,
         paddingTop: 50,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.gray.light,
     },
     backBtn: {
         width: 44,
@@ -155,30 +157,29 @@ const styles = StyleSheet.create({
     title: {
         fontSize: FontSizes.xl,
         fontWeight: '700',
-        color: Colors.white,
+        color: Colors.primary,
     },
     addBtn: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.accent,
         justifyContent: 'center',
         alignItems: 'center',
     },
     statsBar: {
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.card,
         padding: Spacing.md,
         alignItems: 'center',
     },
     statsText: {
         fontSize: FontSizes.lg,
         fontWeight: '700',
-        color: Colors.white,
+        color: Colors.primary,
     },
     statsHint: {
         fontSize: FontSizes.sm,
-        color: Colors.white,
-        opacity: 0.8,
+        color: Colors.gray.medium,
         marginTop: Spacing.xs,
     },
     infoCard: {
