@@ -67,6 +67,20 @@ export default function ProDetailScreen() {
         router.push(`/booking/${id}`);
     };
 
+    const handleContact = async () => {
+        if (!pro?.user?.id) {
+            Alert.alert('Erreur', 'Professionnel non trouvé');
+            return;
+        }
+        // Create or get existing conversation
+        const result = await api.createConversation(pro.user.id);
+        if (result.success && result.data?.id) {
+            router.push(`/chat/${result.data.id}`);
+        } else {
+            Alert.alert('Erreur', 'Impossible de démarrer la conversation');
+        }
+    };
+
     if (isLoading) {
         return (
             <View style={styles.centerContainer}>
@@ -171,11 +185,17 @@ export default function ProDetailScreen() {
                 </View>
             )}
 
-            {/* Book Button */}
-            <TouchableOpacity style={styles.bookButton} onPress={handleBook}>
-                <Ionicons name="calendar" size={24} color={Colors.white} />
-                <Text style={styles.bookButtonText}>Réserver</Text>
-            </TouchableOpacity>
+            {/* Action Buttons */}
+            <View style={styles.actionButtons}>
+                <TouchableOpacity style={styles.contactButton} onPress={handleContact}>
+                    <Ionicons name="chatbubble" size={24} color={Colors.primary} />
+                    <Text style={styles.contactButtonText}>Contacter</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.bookButton} onPress={handleBook}>
+                    <Ionicons name="calendar" size={24} color={Colors.white} />
+                    <Text style={styles.bookButtonText}>Réserver</Text>
+                </TouchableOpacity>
+            </View>
 
             <View style={{ height: 40 }} />
         </ScrollView>
@@ -346,11 +366,33 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.xs,
         color: Colors.gray.medium,
     },
-    bookButton: {
+    actionButtons: {
         flexDirection: 'row',
-        backgroundColor: Colors.primary,
         marginHorizontal: Spacing.lg,
         marginTop: Spacing.lg,
+        gap: Spacing.md,
+    },
+    contactButton: {
+        flex: 1,
+        flexDirection: 'row',
+        backgroundColor: Colors.white,
+        borderWidth: 2,
+        borderColor: Colors.primary,
+        padding: Spacing.lg,
+        borderRadius: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    contactButtonText: {
+        fontSize: FontSizes.md,
+        fontWeight: 'bold',
+        color: Colors.primary,
+        marginLeft: Spacing.sm,
+    },
+    bookButton: {
+        flex: 1,
+        flexDirection: 'row',
+        backgroundColor: Colors.primary,
         padding: Spacing.lg,
         borderRadius: 15,
         alignItems: 'center',
@@ -362,7 +404,7 @@ const styles = StyleSheet.create({
         elevation: 8,
     },
     bookButtonText: {
-        fontSize: FontSizes.lg,
+        fontSize: FontSizes.md,
         fontWeight: 'bold',
         color: Colors.white,
         marginLeft: Spacing.sm,
