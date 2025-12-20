@@ -125,6 +125,13 @@ class ApiService {
         });
     }
 
+    async cancelReservation(reservationId: string): Promise<ApiResponse<Reservation>> {
+        return this.request('/api/mobile/reservations', {
+            method: 'PATCH',
+            body: JSON.stringify({ reservationId, status: 'CANCELLED' }),
+        });
+    }
+
     // Favorites
     async getFavorites(): Promise<ApiResponse<ProProfile[]>> {
         return this.request('/api/mobile/favorites');

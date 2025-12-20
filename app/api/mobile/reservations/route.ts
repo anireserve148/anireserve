@@ -6,7 +6,7 @@ import { z } from 'zod';
 // CORS headers
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
@@ -137,6 +137,88 @@ export async function POST(request: NextRequest) {
         console.error('Create reservation error:', error);
         return NextResponse.json(
             { error: 'Erreur lors de la création de la réservation' },
+            { status: 500, headers: corsHeaders }
+        );
+    }
+}
+
+// Cancel a reservation
+export async function PATCH(request: NextRequest) {
+    try {
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return NextResponse.json(
+                { error: 'Non autorisé' },
+                { status: 401, headers: corsHeaders }
+            );
+        }
+
+        const token = authHeader.substring(7);
+        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+
+        const body = await request.json();
+        const { reservationId, status } = body;
+
+        if (!reservationId) {
+            return NextResponse.json(
+                { error: 'ID de réservation requis' },
+                { status: 400, headers: corsHeaders }
+            );
+        }
+
+        // Find reservation
+        const reservation = await prisma.reservation.findUnique({
+            where: { id: reservationId },
+        });
+
+        if (!reservation) {
+            return NextResponse.json(
+                { error: 'Réservation non trouvée' },
+                { status: 404, headers: corsHeaders }
+            );
+        }
+
+        // Check ownership
+        if (reservation.clientId !== decoded.userId) {
+            return NextResponse.json(
+                { error: 'Non autorisé' },
+                { status: 403, headers: corsHeaders }
+            );
+        }
+
+        // Only PENDING reservations can be cancelled
+        if (status === 'CANCELLED' && reservation.status !== 'PENDING') {
+            return NextResponse.json(
+                { error: 'Seules les réservations en attente peuvent être annulées' },
+                { status: 400, headers: corsHeaders }
+            );
+        }
+
+        // Update reservation
+        const updated = await prisma.reservation.update({
+            where: { id: reservationId },
+            data: { status },
+            include: {
+                pro: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                image: true,
+                            },
+                        },
+                        city: true,
+                    },
+                },
+            },
+        });
+
+        return NextResponse.json(updated, { headers: corsHeaders });
+    } catch (error) {
+        console.error('Update reservation error:', error);
+        return NextResponse.json(
+            { error: 'Erreur lors de la mise à jour' },
             { status: 500, headers: corsHeaders }
         );
     }

@@ -9,6 +9,7 @@ import {
     RefreshControl,
     Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
 import { Reservation } from '../../types';
@@ -22,6 +23,7 @@ const STATUS_CONFIG = {
 };
 
 export default function ReservationsScreen() {
+    const router = useRouter();
     const [reservations, setReservations] = useState<Reservation[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -55,18 +57,36 @@ export default function ReservationsScreen() {
                     text: 'Oui, annuler',
                     style: 'destructive',
                     onPress: async () => {
-                        // TODO: API call to cancel
-                        Alert.alert('Info', 'Fonctionnalité bientôt disponible');
+                        const result = await api.cancelReservation(reservationId);
+                        if (result.success) {
+                            Alert.alert('Succès', 'Réservation annulée');
+                            loadReservations(); // Refresh list
+                        } else {
+                            Alert.alert('Erreur', result.error || 'Impossible d\'annuler');
+                        }
                     },
                 },
             ]
         );
     };
 
-    const handleContact = (proName: string) => {
+    const handleContact = (proUserId: string | null, proName: string) => {
+        if (!proUserId) {
+            Alert.alert('Erreur', 'Professionnel non trouvé');
+            return;
+        }
         Alert.alert('Contacter', `Contacter ${proName}`, [
-            { text: 'Appeler', onPress: () => Alert.alert('Info', 'Fonctionnalité bientôt disponible') },
-            { text: 'Message', onPress: () => Alert.alert('Info', 'Fonctionnalité bientôt disponible') },
+            {
+                text: 'Message',
+                onPress: async () => {
+                    const result = await api.createConversation(proUserId);
+                    if (result.success && result.data?.id) {
+                        router.push(`/chat/${result.data.id}`);
+                    } else {
+                        Alert.alert('Erreur', 'Impossible de démarrer la conversation');
+                    }
+                },
+            },
             { text: 'Annuler', style: 'cancel' },
         ]);
     };
@@ -108,10 +128,12 @@ export default function ReservationsScreen() {
                         </Text>
                     </View>
 
-                    <View style={styles.infoRow}>
-                        <Ionicons name="cash" size={16} color={Colors.gray.medium} />
-                        <Text style={styles.infoText}>{item.totalPrice}€</Text>
-                    </View>
+                    {(item as any).totalPrice && (
+                        <View style={styles.infoRow}>
+                            <Ionicons name="cash" size={16} color={Colors.gray.medium} />
+                            <Text style={styles.infoText}>{(item as any).totalPrice}₪</Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* Actions */}
@@ -129,7 +151,7 @@ export default function ReservationsScreen() {
                     )}
                     <TouchableOpacity
                         style={[styles.actionButton, styles.contactButton]}
-                        onPress={() => handleContact(item.pro.user.name)}
+                        onPress={() => handleContact((item.pro.user as any).id || null, item.pro.user.name || 'Pro')}
                     >
                         <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
                         <Text style={[styles.actionButtonText, styles.contactButtonText]}>
