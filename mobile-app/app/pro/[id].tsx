@@ -64,7 +64,25 @@ export default function ProDetailScreen() {
     };
 
     const handleBook = () => {
-        router.push(`/booking/${id}`);
+        router.push({
+            pathname: '/quick-book',
+            params: {
+                id: id as string,
+                name: pro?.user?.name || 'Pro',
+                rate: String(pro?.hourlyRate || 100),
+            },
+        });
+    };
+
+    const handleQuickBook = () => {
+        router.push({
+            pathname: '/quick-book',
+            params: {
+                id: id as string,
+                name: pro?.user?.name || 'Pro',
+                rate: String(pro?.hourlyRate || 100),
+            },
+        });
     };
 
     const handleContact = async () => {

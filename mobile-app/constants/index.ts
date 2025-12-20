@@ -2,17 +2,17 @@ export const API_URL = __DEV__
     ? 'https://anireserve.com'
     : 'https://anireserve.com';
 
-// 🎨 Style TESLA / APPLE - Minimaliste & Élégant
+// 🎨 Style TESLA / APPLE - Élégant mais plus doux
 export const Colors = {
-    // Couleurs principales - Noir élégant
-    primary: '#000000',       // Noir pur (Tesla style)
-    primaryLight: '#1A1A1A',  // Noir léger
+    // Couleurs principales - Gris élégant (moins agressif)
+    primary: '#1C1C1E',       // Gris foncé Apple (pas noir pur)
+    primaryLight: '#2C2C2E',  // Gris moyen
 
-    secondary: '#1D1D1F',     // Gris très foncé (Apple style)
-    secondaryLight: '#86868B', // Gris Apple
+    secondary: '#3A3A3C',     // Gris secondaire
+    secondaryLight: '#636366', // Gris clair
 
-    accent: '#0071E3',        // Bleu Apple
-    accentLight: '#2997FF',   // Bleu clair
+    accent: '#007AFF',        // Bleu Apple
+    accentLight: '#5AC8FA',   // Bleu clair
 
     // Neutres élégants
     white: '#FFFFFF',

@@ -136,6 +136,24 @@ export default function HomeScreen() {
                         </View>
                     )}
                     <Text style={styles.price}>{item.hourlyRate}₪/h</Text>
+
+                    {/* Quick Book Button */}
+                    <TouchableOpacity
+                        style={styles.quickBookButton}
+                        onPress={(e) => {
+                            e.stopPropagation();
+                            router.push({
+                                pathname: '/quick-book',
+                                params: {
+                                    id: item.id,
+                                    name: item.user.name || 'Pro',
+                                    rate: String(item.hourlyRate || 100),
+                                },
+                            });
+                        }}
+                    >
+                        <Ionicons name="flash" size={16} color={Colors.white} />
+                    </TouchableOpacity>
                 </View>
             </TouchableOpacity>
         );
@@ -466,6 +484,14 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.md,
         fontWeight: 'bold',
         color: Colors.secondary,
+    },
+    quickBookButton: {
+        marginTop: Spacing.sm,
+        backgroundColor: Colors.accent,
+        borderRadius: 8,
+        padding: Spacing.sm,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     emptyContainer: {
         alignItems: 'center',
