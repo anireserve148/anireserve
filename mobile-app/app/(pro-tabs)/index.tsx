@@ -71,14 +71,21 @@ export default function ProDashboardScreen() {
         setRefreshing(false);
     };
 
-    const handleAcceptBooking = (id: string) => {
-        // TODO: Accept booking API
-        console.log('Accept booking:', id);
+    const handleAcceptBooking = (id: string, clientName: string) => {
+        // Remove the booking from pending list
+        setPendingBookings(prev => prev.filter(b => b.id !== id));
+        // Add to today's bookings (mock)
+        if (typeof window !== 'undefined') {
+            window.alert(`✅ Réservation acceptée pour ${clientName}`);
+        }
     };
 
-    const handleRejectBooking = (id: string) => {
-        // TODO: Reject booking API
-        console.log('Reject booking:', id);
+    const handleRejectBooking = (id: string, clientName: string) => {
+        // Remove the booking from pending list
+        setPendingBookings(prev => prev.filter(b => b.id !== id));
+        if (typeof window !== 'undefined') {
+            window.alert(`❌ Réservation refusée pour ${clientName}`);
+        }
     };
 
     return (
@@ -134,13 +141,13 @@ export default function ProDashboardScreen() {
                             <View style={styles.actionButtons}>
                                 <TouchableOpacity
                                     style={styles.acceptButton}
-                                    onPress={() => handleAcceptBooking(booking.id)}
+                                    onPress={() => handleAcceptBooking(booking.id, booking.clientName)}
                                 >
                                     <Ionicons name="checkmark" size={20} color={Colors.white} />
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     style={styles.rejectButton}
-                                    onPress={() => handleRejectBooking(booking.id)}
+                                    onPress={() => handleRejectBooking(booking.id, booking.clientName)}
                                 >
                                     <Ionicons name="close" size={20} color={Colors.white} />
                                 </TouchableOpacity>
@@ -181,19 +188,31 @@ export default function ProDashboardScreen() {
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>⚡ Actions rapides</Text>
                 <View style={styles.quickActions}>
-                    <TouchableOpacity style={styles.actionCard}>
+                    <TouchableOpacity
+                        style={styles.actionCard}
+                        onPress={() => router.push('/(pro-tabs)/bookings')}
+                    >
                         <Ionicons name="calendar-outline" size={28} color={Colors.primary} />
-                        <Text style={styles.actionText}>Gérer disponibilités</Text>
+                        <Text style={styles.actionText}>Mes réservations</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionCard}>
+                    <TouchableOpacity
+                        style={styles.actionCard}
+                        onPress={() => router.push('/(pro-tabs)/settings')}
+                    >
                         <Ionicons name="pricetag-outline" size={28} color={Colors.primary} />
                         <Text style={styles.actionText}>Modifier tarifs</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionCard}>
+                    <TouchableOpacity
+                        style={styles.actionCard}
+                        onPress={() => router.push('/(pro-tabs)/settings')}
+                    >
                         <Ionicons name="person-outline" size={28} color={Colors.primary} />
                         <Text style={styles.actionText}>Mon profil</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionCard}>
+                    <TouchableOpacity
+                        style={styles.actionCard}
+                        onPress={() => router.push('/(pro-tabs)/earnings')}
+                    >
                         <Ionicons name="stats-chart-outline" size={28} color={Colors.primary} />
                         <Text style={styles.actionText}>Statistiques</Text>
                     </TouchableOpacity>

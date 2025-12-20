@@ -95,14 +95,6 @@ export default function ProEarningsScreen() {
                 ))}
             </View>
 
-            {/* Withdrawal Button */}
-            <View style={styles.section}>
-                <TouchableOpacity style={styles.withdrawButton}>
-                    <Ionicons name="wallet-outline" size={24} color={Colors.white} />
-                    <Text style={styles.withdrawText}>Retirer mes gains</Text>
-                </TouchableOpacity>
-            </View>
-
             <View style={{ height: 40 }} />
         </ScrollView>
     );
