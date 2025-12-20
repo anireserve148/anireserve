@@ -1,50 +1,42 @@
 export const API_URL = __DEV__
-    ? 'https://anireserve.com'  // Use production (localhost won't work on phone)
-    : 'https://anireserve.com'; // Production
+    ? 'https://anireserve.com'
+    : 'https://anireserve.com';
 
-// 🎨 Nouvelle palette CHALEUREUSE et MODERNE
+// 🎨 Style TESLA / APPLE - Minimaliste & Élégant
 export const Colors = {
-    // Couleurs principales - Tons chauds
-    primary: '#FF6B6B',       // Corail chaud
-    primaryDark: '#E55555',   // Corail foncé
-    primaryLight: '#FF8E8E',  // Corail clair
+    // Couleurs principales - Noir élégant
+    primary: '#000000',       // Noir pur (Tesla style)
+    primaryLight: '#1A1A1A',  // Noir léger
 
-    secondary: '#2D3436',     // Gris charbon élégant
-    secondaryLight: '#636E72', // Gris moyen
+    secondary: '#1D1D1F',     // Gris très foncé (Apple style)
+    secondaryLight: '#86868B', // Gris Apple
 
-    accent: '#FFC93C',        // Or/Jaune soleil
-    accentLight: '#FFE066',   // Jaune clair
+    accent: '#0071E3',        // Bleu Apple
+    accentLight: '#2997FF',   // Bleu clair
 
-    // Dégradés
-    gradient: {
-        start: '#FF6B6B',     // Corail
-        middle: '#FF8E53',    // Orange
-        end: '#FFC93C',       // Or
-    },
-
-    // Neutres
+    // Neutres élégants
     white: '#FFFFFF',
-    black: '#1A1A2E',
-    background: '#FFF9F5',    // Crème chaud
+    black: '#000000',
+    background: '#FAFAFA',    // Gris très clair
     card: '#FFFFFF',
 
     gray: {
-        lightest: '#FAFAFA',
-        light: '#F5F0EB',     // Beige clair
-        medium: '#B2B2B2',
-        dark: '#6B7280',
-        darker: '#374151',
+        lightest: '#F5F5F7',  // Apple gray
+        light: '#E8E8ED',
+        medium: '#86868B',
+        dark: '#515154',
+        darker: '#1D1D1F',
     },
 
     // États
-    success: '#00C853',       // Vert vif
-    error: '#FF5252',         // Rouge vif
-    warning: '#FFB300',       // Ambre
-    info: '#00B4D8',          // Bleu clair
+    success: '#34C759',       // Apple green
+    error: '#FF3B30',         // Apple red
+    warning: '#FF9500',       // Apple orange
+    info: '#0071E3',          // Apple blue
 
     // Overlays
     overlay: 'rgba(0,0,0,0.5)',
-    cardShadow: 'rgba(255,107,107,0.15)',
+    cardShadow: 'rgba(0,0,0,0.08)',
 };
 
 export const Spacing = {
@@ -60,42 +52,42 @@ export const FontSizes = {
     xs: 12,
     sm: 14,
     md: 16,
-    lg: 18,
-    xl: 24,
-    xxl: 32,
-    xxxl: 40,
+    lg: 17,   // Apple standard
+    xl: 22,
+    xxl: 28,
+    xxxl: 34,
 };
 
-// Ombres pour effet premium
+// Ombres subtiles style Apple
 export const Shadows = {
     small: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 3,
+        elevation: 1,
     },
     medium: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
         shadowRadius: 8,
-        elevation: 4,
+        elevation: 3,
     },
     large: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
         shadowRadius: 16,
-        elevation: 8,
+        elevation: 6,
     },
 };
 
-// Border radius constants
+// Border radius - Subtil et moderne
 export const BorderRadius = {
     sm: 8,
     md: 12,
     lg: 16,
-    xl: 24,
+    xl: 20,
     full: 9999,
 };

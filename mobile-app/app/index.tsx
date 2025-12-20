@@ -108,24 +108,17 @@ export default function LoginScreen() {
             style={styles.container}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-            {/* Background decoration */}
-            <View style={styles.decorTop} />
-            <View style={styles.decorBottom} />
-
             <View style={styles.content}>
-                {/* Logo Section */}
+                {/* Logo Section - Tesla/Apple Style */}
                 <View style={styles.logoSection}>
-                    <View style={styles.logoCircle}>
-                        <Ionicons name="paw" size={50} color={Colors.white} />
-                    </View>
                     <Text style={styles.logo}>AniReserve</Text>
-                    <Text style={styles.tagline}>Votre pro animalier en Israël 🐾</Text>
+                    <Text style={styles.tagline}>Trouvez votre professionnel</Text>
                 </View>
 
                 {/* Form Card */}
                 <View style={styles.formCard}>
-                    <Text style={styles.welcomeText}>Bienvenue ! 👋</Text>
-                    <Text style={styles.subtitle}>Connectez-vous pour continuer</Text>
+                    <Text style={styles.welcomeText}>Connexion</Text>
+                    <Text style={styles.subtitle}>Entrez vos identifiants pour continuer</Text>
 
                     {/* Email Input */}
                     <View style={styles.inputContainer}>
@@ -165,10 +158,7 @@ export default function LoginScreen() {
                         {isLoading ? (
                             <ActivityIndicator color={Colors.white} />
                         ) : (
-                            <>
-                                <Text style={styles.buttonText}>Se connecter</Text>
-                                <Ionicons name="arrow-forward" size={20} color={Colors.white} />
-                            </>
+                            <Text style={styles.buttonText}>Se connecter</Text>
                         )}
                     </TouchableOpacity>
 
@@ -214,137 +204,93 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background || '#FFF9F5',
-    },
-    decorTop: {
-        position: 'absolute',
-        top: -100,
-        right: -100,
-        width: 250,
-        height: 250,
-        borderRadius: 125,
-        backgroundColor: Colors.primary + '20',
-    },
-    decorBottom: {
-        position: 'absolute',
-        bottom: -80,
-        left: -80,
-        width: 200,
-        height: 200,
-        borderRadius: 100,
-        backgroundColor: Colors.accent + '30',
+        backgroundColor: Colors.white,
     },
     content: {
         flex: 1,
         justifyContent: 'center',
-        padding: Spacing.lg,
+        padding: Spacing.xl,
     },
     logoSection: {
         alignItems: 'center',
-        marginBottom: Spacing.xl,
-    },
-    logoCircle: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
-        backgroundColor: Colors.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: Spacing.md,
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-        elevation: 8,
+        marginBottom: Spacing.xxl,
     },
     logo: {
-        fontSize: 36,
-        fontWeight: '800',
-        color: Colors.secondary,
-        letterSpacing: -1,
+        fontSize: 42,
+        fontWeight: '700',
+        color: Colors.black,
+        letterSpacing: -1.5,
     },
     tagline: {
         fontSize: FontSizes.md,
-        color: Colors.gray.dark,
-        marginTop: Spacing.xs,
+        color: Colors.gray.medium,
+        marginTop: Spacing.sm,
+        letterSpacing: 0.3,
     },
     formCard: {
         backgroundColor: Colors.white,
-        borderRadius: 24,
-        padding: Spacing.xl,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.1,
-        shadowRadius: 20,
-        elevation: 10,
     },
     welcomeText: {
-        fontSize: FontSizes.xl,
-        fontWeight: '700',
-        color: Colors.secondary,
+        fontSize: FontSizes.xxl,
+        fontWeight: '600',
+        color: Colors.black,
         marginBottom: Spacing.xs,
+        letterSpacing: -0.5,
     },
     subtitle: {
         fontSize: FontSizes.sm,
-        color: Colors.gray.dark,
-        marginBottom: Spacing.lg,
+        color: Colors.gray.medium,
+        marginBottom: Spacing.xl,
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.gray.light,
-        borderRadius: 14,
+        backgroundColor: Colors.gray.lightest,
+        borderRadius: 12,
         paddingHorizontal: Spacing.md,
         marginBottom: Spacing.md,
         borderWidth: 1,
-        borderColor: 'transparent',
+        borderColor: Colors.gray.light,
     },
     input: {
         flex: 1,
         padding: Spacing.md,
-        fontSize: FontSizes.md,
-        color: Colors.secondary,
+        fontSize: FontSizes.lg,
+        color: Colors.black,
     },
     button: {
-        flexDirection: 'row',
-        backgroundColor: Colors.primary,
-        borderRadius: 14,
+        backgroundColor: Colors.black,
+        borderRadius: 12,
         padding: Spacing.lg,
         alignItems: 'center',
         justifyContent: 'center',
-        marginTop: Spacing.md,
-        gap: Spacing.sm,
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.35,
-        shadowRadius: 12,
-        elevation: 6,
+        marginTop: Spacing.lg,
     },
     buttonDisabled: {
-        opacity: 0.6,
+        opacity: 0.5,
     },
     buttonText: {
         color: Colors.white,
-        fontSize: FontSizes.md,
-        fontWeight: '700',
+        fontSize: FontSizes.lg,
+        fontWeight: '600',
     },
     linkButton: {
-        marginTop: Spacing.lg,
+        marginTop: Spacing.xl,
         alignItems: 'center',
     },
     linkText: {
         fontSize: FontSizes.sm,
-        color: Colors.gray.dark,
+        color: Colors.gray.medium,
         textAlign: 'center',
     },
     linkTextBold: {
-        color: Colors.primary,
-        fontWeight: '700',
+        color: Colors.black,
+        fontWeight: '600',
     },
     divider: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: Spacing.lg,
+        marginVertical: Spacing.xl,
     },
     dividerLine: {
         flex: 1,
@@ -361,15 +307,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: Colors.white,
-        borderWidth: 2,
+        borderWidth: 1,
         borderColor: Colors.gray.light,
-        borderRadius: 14,
+        borderRadius: 12,
         padding: Spacing.md,
         gap: Spacing.sm,
     },
     googleButtonText: {
         fontSize: FontSizes.md,
-        fontWeight: '600',
-        color: Colors.secondary,
+        fontWeight: '500',
+        color: Colors.black,
     },
 });
