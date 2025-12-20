@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
     FlatList,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes } from '../../constants';
 
@@ -45,6 +46,7 @@ const STATUS_LABELS = {
 };
 
 export default function ProBookingsScreen() {
+    const router = useRouter();
     const [filter, setFilter] = useState<string>('all');
     const [bookings] = useState<Booking[]>(MOCK_BOOKINGS);
 
@@ -125,31 +127,41 @@ export default function ProBookingsScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Filters */}
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.filterContainer}
-                contentContainerStyle={styles.filterContent}
-            >
-                {[
-                    { key: 'all', label: 'Tout' },
-                    { key: 'PENDING', label: 'En attente' },
-                    { key: 'CONFIRMED', label: 'Confirmé' },
-                    { key: 'COMPLETED', label: 'Terminé' },
-                    { key: 'CANCELLED', label: 'Annulé' },
-                ].map((f) => (
-                    <TouchableOpacity
-                        key={f.key}
-                        style={[styles.filterBtn, filter === f.key && styles.filterBtnActive]}
-                        onPress={() => setFilter(f.key)}
-                    >
-                        <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>
-                            {f.label}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
+            {/* Header with Agenda button */}
+            <View style={styles.headerBar}>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.filterContent}
+                    style={styles.filterScroll}
+                >
+                    {[
+                        { key: 'all', label: 'Tout' },
+                        { key: 'PENDING', label: 'En attente' },
+                        { key: 'CONFIRMED', label: 'Confirmé' },
+                        { key: 'COMPLETED', label: 'Terminé' },
+                        { key: 'CANCELLED', label: 'Annulé' },
+                    ].map((f) => (
+                        <TouchableOpacity
+                            key={f.key}
+                            style={[styles.filterBtn, filter === f.key && styles.filterBtnActive]}
+                            onPress={() => setFilter(f.key)}
+                        >
+                            <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>
+                                {f.label}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
+
+                {/* Agenda Button */}
+                <TouchableOpacity
+                    style={styles.agendaBtn}
+                    onPress={() => router.push('/pro-agenda')}
+                >
+                    <Ionicons name="today" size={24} color={Colors.white} />
+                </TouchableOpacity>
+            </View>
 
             {/* Bookings List */}
             <FlatList
@@ -307,5 +319,22 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.md,
         color: Colors.gray.medium,
         marginTop: Spacing.md,
+    },
+    headerBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.white,
+        paddingRight: Spacing.md,
+    },
+    filterScroll: {
+        flex: 1,
+    },
+    agendaBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: Colors.accent,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

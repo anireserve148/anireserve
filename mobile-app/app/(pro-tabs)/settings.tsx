@@ -36,6 +36,12 @@ export default function ProSettingsScreen() {
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Mon profil</Text>
 
+                <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/pro-services')}>
+                    <Ionicons name="briefcase-outline" size={24} color={Colors.primary} />
+                    <Text style={styles.menuText}>Mes services</Text>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
+                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.menuItem}>
                     <Ionicons name="person-outline" size={24} color={Colors.primary} />
                     <Text style={styles.menuText}>Modifier mon profil</Text>
@@ -101,9 +107,15 @@ export default function ProSettingsScreen() {
                     />
                 </View>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/pro-schedule')}>
                     <Ionicons name="calendar-outline" size={24} color={Colors.primary} />
                     <Text style={styles.menuText}>Gérer mes horaires</Text>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/pro-agenda')}>
+                    <Ionicons name="today-outline" size={24} color={Colors.primary} />
+                    <Text style={styles.menuText}>Mon agenda</Text>
                     <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
                 </TouchableOpacity>
             </View>
