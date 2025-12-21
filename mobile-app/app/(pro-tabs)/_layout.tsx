@@ -1,17 +1,17 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants';
+import { ProColors } from '../../constants';
 import { View, Text, StyleSheet } from 'react-native';
 
 export default function ProTabsLayout() {
     return (
         <Tabs
             screenOptions={{
-                tabBarActiveTintColor: Colors.accent,
-                tabBarInactiveTintColor: Colors.gray.medium,
+                tabBarActiveTintColor: ProColors.accent,
+                tabBarInactiveTintColor: ProColors.textMuted,
                 tabBarStyle: {
-                    backgroundColor: Colors.white,
-                    borderTopColor: Colors.gray.light,
+                    backgroundColor: ProColors.card,
+                    borderTopColor: ProColors.border,
                     borderTopWidth: 1,
                     height: 70,
                     paddingBottom: 12,
@@ -22,13 +22,14 @@ export default function ProTabsLayout() {
                     fontWeight: '600',
                 },
                 headerStyle: {
-                    backgroundColor: Colors.white,
+                    backgroundColor: ProColors.background,
                 },
-                headerTintColor: Colors.primary,
+                headerTintColor: ProColors.text,
                 headerTitleStyle: {
                     fontWeight: '700',
                     fontSize: 18,
                 },
+                headerShown: false,
             }}
         >
             <Tabs.Screen

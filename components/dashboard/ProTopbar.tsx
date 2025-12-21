@@ -21,13 +21,13 @@ export function ProTopbar({
     const [searchQuery, setSearchQuery] = useState('')
 
     return (
-        <header className="sticky top-0 z-40 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-40 border-b border-[#2A2A4A] bg-[#0F0F23]">
             <div className="flex items-center justify-between px-4 md:px-8 py-4">
                 {/* Mobile Menu Button */}
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="md:hidden"
+                    className="md:hidden text-white hover:bg-[#1A1A2E]"
                     onClick={onMenuClick}
                 >
                     <Menu className="w-5 h-5" />
@@ -35,21 +35,21 @@ export function ProTopbar({
 
                 {/* Search */}
                 <div className="hidden md:flex relative max-w-md flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6C6C8A]" />
                     <Input
                         placeholder="Rechercher un client, un service..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 bg-muted/50 border-0 focus-visible:ring-turquoise"
+                        className="pl-10 bg-[#1A1A2E] border-[#2A2A4A] text-white placeholder:text-[#6C6C8A] focus-visible:ring-[#2EB190] focus-visible:border-[#2EB190]"
                     />
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-4">
                     {/* Notifications */}
-                    <Button variant="ghost" size="icon" className="relative">
+                    <Button variant="ghost" size="icon" className="relative text-white hover:bg-[#1A1A2E]">
                         <Bell className="w-5 h-5" />
-                        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gold text-[10px] font-bold flex items-center justify-center text-navy">
+                        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#E74C3C] text-[10px] font-bold flex items-center justify-center text-white">
                             3
                         </span>
                     </Button>
@@ -57,7 +57,7 @@ export function ProTopbar({
                     {/* New Slot Button */}
                     <Button
                         onClick={onNewSlot}
-                        className="hidden sm:flex gap-2 bg-turquoise hover:bg-turquoise/90"
+                        className="hidden sm:flex gap-2 bg-[#2EB190] hover:bg-[#238B70] text-white"
                     >
                         <Plus className="w-4 h-4" />
                         Nouveau créneau
@@ -65,14 +65,14 @@ export function ProTopbar({
 
                     {/* User Avatar */}
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-turquoise to-turquoise/70 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2EB190] to-[#7B68EE] flex items-center justify-center ring-2 ring-[#2A2A4A]">
                             <span className="text-white text-sm font-semibold">
                                 {userName.charAt(0).toUpperCase()}
                             </span>
                         </div>
                         <div className="hidden lg:block text-right">
-                            <p className="text-sm font-medium">{userName}</p>
-                            <p className="text-xs text-muted-foreground">{userRole}</p>
+                            <p className="text-sm font-medium text-white">{userName}</p>
+                            <p className="text-xs text-[#6C6C8A]">{userRole}</p>
                         </div>
                     </div>
                 </div>

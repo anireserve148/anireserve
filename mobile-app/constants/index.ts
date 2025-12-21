@@ -2,7 +2,7 @@ export const API_URL = __DEV__
     ? 'https://anireserve.com'
     : 'https://anireserve.com';
 
-// 🎨 Modern Minimal - Blanc dominant, vert en accent
+// 🎨 Modern Minimal - Blanc dominant, vert en accent (CLIENT INTERFACE)
 export const Colors = {
     // Textes et éléments principaux
     primary: '#2C3E50',       // Bleu-gris élégant (textes)
@@ -41,6 +41,51 @@ export const Colors = {
     // Overlays
     overlay: 'rgba(0,0,0,0.4)',
     cardShadow: 'rgba(0,0,0,0.08)',
+};
+
+// 🌙 PRO DARK THEME - Interface Pro moderne style FundPip
+export const ProColors = {
+    // Backgrounds
+    background: '#0F0F23',     // Très sombre
+    backgroundLight: '#16162D', // Légèrement plus clair
+    card: '#1A1A2E',           // Cartes
+    cardHover: '#252545',      // Cartes hover
+
+    // Textes
+    text: '#FFFFFF',
+    textSecondary: '#A0A0B8',
+    textMuted: '#6C6C8A',
+
+    // Accent principal (vert AniReserve)
+    accent: '#2EB190',
+    accentLight: '#5FCFAF',
+    accentGlow: 'rgba(46, 177, 144, 0.3)',
+
+    // Accent secondaire (violet/purple)
+    purple: '#7B68EE',
+    purpleLight: '#9D8FFF',
+    purpleGlow: 'rgba(123, 104, 238, 0.3)',
+
+    // États
+    success: '#27AE60',
+    error: '#E74C3C',
+    warning: '#F39C12',
+    info: '#3498DB',
+
+    // Médailles podium
+    gold: '#FFD700',
+    silver: '#C0C0C0',
+    bronze: '#CD7F32',
+
+    // Borders
+    border: '#2A2A4A',
+    borderLight: '#3A3A5A',
+
+    // Gradients
+    gradientStart: '#1A1A2E',
+    gradientEnd: '#0F0F23',
+    purpleGradientStart: '#2A1A4A',
+    purpleGradientEnd: '#1A1A2E',
 };
 
 export const Spacing = {
@@ -83,6 +128,24 @@ export const Shadows = {
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 16,
+        elevation: 6,
+    },
+};
+
+// Ombres pour le dark theme Pro
+export const ProShadows = {
+    glow: {
+        shadowColor: '#2EB190',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
+        elevation: 8,
+    },
+    card: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 12,
         elevation: 6,
     },
 };

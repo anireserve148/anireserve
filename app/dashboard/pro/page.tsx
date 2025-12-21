@@ -1,23 +1,11 @@
-import { auth, signOut } from '@/auth';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, DollarSign, Users, Briefcase } from 'lucide-react';
-import { AgendaEditor } from '@/components/agenda-editor';
-import { ReservationManager } from '@/components/reservation-manager';
-import { ManualBookingForm } from '@/components/manual-booking-form';
-import { ProProfileEdit } from '@/components/pro-profile-edit';
-import { ServiceManager } from '@/components/service-manager';
-import { ProCalendar } from '@/components/pro/pro-calendar';
-import { ProClientsTable } from '@/components/pro/pro-clients-table';
-import { getProAnalytics } from '@/app/lib/pro-analytics-actions';
-import { RevenueChart } from '@/components/admin/revenue-chart';
-import { MetricCard } from '@/components/dashboard/MetricCard';
-import { AgendaBoard } from '@/components/dashboard/AgendaBoard';
-import { RequestsListClient } from '@/components/dashboard/RequestsListClient';
-import { ReviewResponseForm } from '@/components/reviews/review-response-form';
+import { Calendar, DollarSign, Users, TrendingUp, Star, Clock, ChevronRight } from 'lucide-react';
 import { getDashboardMetrics, getUpcomingSchedule, getPendingRequests } from '@/app/lib/dashboard-actions';
+import { ProLeaderboard } from '@/components/pro/pro-leaderboard';
+import Link from 'next/link';
 
 export default async function ProDashboard() {
     const session = await auth();
@@ -25,46 +13,28 @@ export default async function ProDashboard() {
     if (!session?.user?.id) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen">
-                <p>Votre session a expiré. Veuillez vous reconnecter.</p>
-                <a href="/login" className="text-primary hover:underline mt-2">Aller à la page de connexion</a>
+                <p className="text-white">Votre session a expiré. Veuillez vous reconnecter.</p>
+                <a href="/login" className="text-[#2EB190] hover:underline mt-2">Aller à la page de connexion</a>
             </div>
         );
     }
 
     // Fetch all data in parallel
-    const [proProfile, allCategories, analyticsData, metricsResult, scheduleResult, requestsResult] = await Promise.all([
+    const [proProfile, metricsResult, scheduleResult, requestsResult] = await Promise.all([
         prisma.proProfile.findUnique({
             where: { userId: session?.user?.id },
             include: {
                 reservations: {
                     include: { client: true },
-                    orderBy: { createdAt: 'desc' }
-                },
-                city: true,
-                serviceCategories: true,
-                availability: true,
-                gallery: {
-                    orderBy: { order: 'asc' }
-                },
-                services: {
-                    include: {
-                        category: true
-                    },
-                    orderBy: { createdAt: 'desc' }
+                    orderBy: { createdAt: 'desc' },
+                    take: 5
                 },
                 reviews: {
-                    include: {
-                        client: true
-                    },
-                    orderBy: { createdAt: 'desc' }
+                    orderBy: { createdAt: 'desc' },
+                    take: 3
                 }
             }
         }),
-        prisma.serviceCategory.findMany({
-            where: { parentId: null },
-            orderBy: { name: 'asc' }
-        }),
-        getProAnalytics().catch(() => ({ revenueData: [], clients: [] })),
         getDashboardMetrics(),
         getUpcomingSchedule(),
         getPendingRequests()
@@ -73,219 +43,232 @@ export default async function ProDashboard() {
     // Extract metrics data
     const metrics = metricsResult.success ? metricsResult.data : { revenueWeek: 0, occupancyRate: 0, noShowRate: 0, pendingRequests: 0 };
     const { revenueWeek, occupancyRate, noShowRate, pendingRequests } = metrics;
-
-    // Extract schedule and requests
     const schedule = scheduleResult.success ? scheduleResult.data : [];
     const requests = requestsResult.success ? requestsResult.data : [];
 
     if (!proProfile) {
-        return <div>Profile not found. Please contact support.</div>;
+        return <div className="text-white">Profile not found. Please contact support.</div>;
     }
 
     const totalEarnings = proProfile.reservations
         .filter(r => r.status === 'COMPLETED' || r.status === 'CONFIRMED')
         .reduce((acc, curr) => acc + curr.totalPrice, 0);
 
-    const pendingCount = proProfile.reservations.filter(r => r.status === 'PENDING').length;
-
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50/50 pt-24 pb-10">
-            <main className="flex-1 p-8 max-w-7xl mx-auto w-full space-y-10 animate-slide-up">
-
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-4xl font-bold font-poppins text-navy">Espace Pro</h1>
-                            <span className="bg-turquoise/10 text-turquoise px-3 py-1 rounded-full text-sm font-semibold">Vérifié</span>
-                        </div>
-                        <p className="text-gray-500 mt-2 text-lg">Bienvenue, {session?.user?.name}. Gérer votre activité.</p>
-                    </div>
-                    <div className="flex gap-3">
-                        <ManualBookingForm />
-                        <Button className="bg-navy hover:bg-navy-light text-white shadow-lg shadow-navy/20">
-                            <Users className="w-4 h-4 mr-2" />
-                            Voir mon profil public
-                        </Button>
-                    </div>
+        <div className="space-y-8">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white">
+                        Bonjour, {session?.user?.name?.split(' ')[0]} 👋
+                    </h1>
+                    <p className="text-[#A0A0B8] mt-1">
+                        {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </p>
                 </div>
+                <Link href="/dashboard/pro/agenda">
+                    <Button className="bg-[#2EB190] hover:bg-[#238B70] text-white">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Voir mon agenda
+                    </Button>
+                </Link>
+            </div>
 
-                <Tabs defaultValue="overview" className="space-y-8">
-                    <TabsList className="grid w-full grid-cols-4 max-w-2xl bg-white p-1 rounded-full shadow-sm">
-                        <TabsTrigger value="overview" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Aperçu</TabsTrigger>
-                        <TabsTrigger value="calendar" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Calendrier</TabsTrigger>
-                        <TabsTrigger value="clients" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Clients</TabsTrigger>
-                        <TabsTrigger value="services" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Services & Profil</TabsTrigger>
-                    </TabsList>
-
-                    {/* OVERVIEW TAB */}
-                    <TabsContent value="overview" className="space-y-8 animate-in fade-in-50">
-                        {/* KPIs Grid - 4 columns */}
-                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                            <MetricCard
-                                label="CA semaine"
-                                value={`${revenueWeek.toLocaleString('fr-FR')} ₪`}
-                                changeLabel="vs semaine dernière"
-                                changeValue="+8%"
-                            />
-                            <MetricCard
-                                label="Taux d'occupation"
-                                value={`${Math.round(occupancyRate * 100)}%`}
-                                progress={occupancyRate}
-                            />
-                            <MetricCard
-                                label="Taux de no-show"
-                                value={`${(noShowRate * 100).toFixed(1)}%`}
-                                accent="orange"
-                                progress={noShowRate}
-                            />
-                            <MetricCard
-                                label="Demandes en attente"
-                                value={pendingRequests.toString()}
-                            />
-                        </div>
-
-                        {/* Agenda + Requests Grid */}
-                        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                            <div className="xl:col-span-8">
-                                <AgendaBoard schedule={schedule} />
+            {/* Stats Grid */}
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {/* Revenue */}
+                <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#2EB190]/50 transition-colors">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="w-12 h-12 rounded-xl bg-[#2EB190]/20 flex items-center justify-center">
+                                <DollarSign className="w-6 h-6 text-[#2EB190]" />
                             </div>
-                            <div className="xl:col-span-4">
-                                <RequestsListClient requests={requests} />
-                            </div>
+                            <span className="text-[#2EB190] text-sm font-medium bg-[#2EB190]/20 px-2 py-1 rounded-full">
+                                +12%
+                            </span>
                         </div>
+                        <p className="text-2xl font-bold text-white">{revenueWeek.toLocaleString('fr-FR')} ₪</p>
+                        <p className="text-[#6C6C8A] text-sm mt-1">Revenus cette semaine</p>
+                    </CardContent>
+                </Card>
 
-                        {/* Legacy Stats - Keep for reference */}
-                        <div className="border-t pt-8">
-                            <h3 className="text-lg font-semibold text-navy mb-4">Statistiques Détaillées</h3>
-                            <div className="grid gap-6 md:grid-cols-3">
-                                <Card className="border-none shadow-xl shadow-gray-200/50 bg-gradient-to-br from-navy to-navy-light text-white relative overflow-hidden group hover:scale-[1.02] transition-transform">
-                                    <div className="absolute right-0 top-0 h-40 w-40 bg-white/5 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                                        <CardTitle className="text-sm font-medium text-white/80">Revenu Total</CardTitle>
-                                        <DollarSign className="h-5 w-5 text-turquoise" />
-                                    </CardHeader>
-                                    <CardContent className="relative z-10">
-                                        <div className="text-4xl font-bold font-poppins">{totalEarnings.toFixed(2)}€</div>
-                                        <p className="text-xs text-white/60 mt-1">Générés sur la plateforme</p>
-                                    </CardContent>
-                                </Card>
+                {/* Bookings */}
+                <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#7B68EE]/50 transition-colors">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="w-12 h-12 rounded-xl bg-[#7B68EE]/20 flex items-center justify-center">
+                                <Calendar className="w-6 h-6 text-[#7B68EE]" />
+                            </div>
+                            <span className="text-[#7B68EE] text-sm font-medium bg-[#7B68EE]/20 px-2 py-1 rounded-full">
+                                +5
+                            </span>
+                        </div>
+                        <p className="text-2xl font-bold text-white">{schedule.length}</p>
+                        <p className="text-[#6C6C8A] text-sm mt-1">RDV cette semaine</p>
+                    </CardContent>
+                </Card>
 
-                                <Card className="border-none shadow-xl shadow-gray-200/50 bg-white group hover:scale-[1.02] transition-transform">
-                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                        <CardTitle className="text-sm font-medium text-gray-500">Activité</CardTitle>
-                                        <Calendar className="h-5 w-5 text-turquoise" />
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="flex items-baseline justify-between">
-                                            <div className="text-4xl font-bold text-navy">{proProfile.reservations.length}</div>
-                                            <div className="text-sm font-medium text-orange-500 bg-orange-50 px-2 py-1 rounded-full">
-                                                {pendingCount} en attente
+                {/* Pending Requests */}
+                <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#F39C12]/50 transition-colors">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="w-12 h-12 rounded-xl bg-[#F39C12]/20 flex items-center justify-center">
+                                <Clock className="w-6 h-6 text-[#F39C12]" />
+                            </div>
+                            {pendingRequests > 0 && (
+                                <span className="text-[#F39C12] text-sm font-medium bg-[#F39C12]/20 px-2 py-1 rounded-full animate-pulse">
+                                    À traiter
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-2xl font-bold text-white">{pendingRequests}</p>
+                        <p className="text-[#6C6C8A] text-sm mt-1">Demandes en attente</p>
+                    </CardContent>
+                </Card>
+
+                {/* Rating */}
+                <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#FFD700]/50 transition-colors">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="w-12 h-12 rounded-xl bg-[#FFD700]/20 flex items-center justify-center">
+                                <Star className="w-6 h-6 text-[#FFD700]" />
+                            </div>
+                            <span className="text-[#FFD700] text-sm font-medium">⭐</span>
+                        </div>
+                        <p className="text-2xl font-bold text-white">{proProfile.averageRating?.toFixed(1) || '5.0'}</p>
+                        <p className="text-[#6C6C8A] text-sm mt-1">Note moyenne</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                {/* Left Column - Upcoming */}
+                <div className="xl:col-span-8 space-y-6">
+                    {/* Pending Requests */}
+                    {requests.length > 0 && (
+                        <Card className="bg-[#1A1A2E] border-[#2A2A4A]">
+                            <CardHeader className="flex flex-row items-center justify-between border-b border-[#2A2A4A] pb-4">
+                                <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+                                    🔔 Demandes en attente
+                                    <span className="bg-[#E74C3C] text-white text-xs px-2 py-0.5 rounded-full">
+                                        {requests.length}
+                                    </span>
+                                </CardTitle>
+                                <Link href="/dashboard/pro/requests" className="text-[#2EB190] text-sm hover:underline flex items-center gap-1">
+                                    Voir tout <ChevronRight className="w-4 h-4" />
+                                </Link>
+                            </CardHeader>
+                            <CardContent className="p-4 space-y-3">
+                                {requests.slice(0, 3).map((req: any) => (
+                                    <div key={req.id} className="flex items-center justify-between p-4 bg-[#16162D] rounded-xl border border-[#F39C12]/30">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-[#F39C12]/20 flex items-center justify-center">
+                                                <span className="text-[#F39C12] font-bold">{req.client?.name?.[0] || 'C'}</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-white font-medium">{req.client?.name || 'Client'}</p>
+                                                <p className="text-[#6C6C8A] text-sm">
+                                                    {new Date(req.date).toLocaleDateString('fr-FR')} à {req.time}
+                                                </p>
                                             </div>
                                         </div>
-                                        <p className="text-xs text-gray-400 mt-1">Réservations totales</p>
-                                    </CardContent>
-                                </Card>
+                                        <div className="text-right">
+                                            <p className="text-[#2EB190] font-bold">{req.totalPrice}₪</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    )}
 
-                                <Card className="border-none shadow-xl shadow-gray-200/50 bg-white group hover:scale-[1.02] transition-transform">
-                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                        <CardTitle className="text-sm font-medium text-gray-500">Clients Uniques</CardTitle>
-                                        <Users className="h-5 w-5 text-turquoise" />
-                                    </CardHeader>
-                                    <CardContent>
-                                        <div className="text-4xl font-bold text-navy">{analyticsData.clients.length}</div>
-                                        <p className="text-xs text-gray-400 mt-1">Clients servis</p>
-                                    </CardContent>
-                                </Card>
-                            </div>
-                        </div>
-
-                        {/* Reviews Section */}
-                        {proProfile.reviews && proProfile.reviews.length > 0 && (
-                            <div className="border-t pt-8">
-                                <h3 className="text-lg font-semibold text-navy mb-4">Avis Clients ({proProfile.reviews.length})</h3>
-                                <div className="grid gap-4">
-                                    {proProfile.reviews.slice(0, 5).map(review => (
-                                        <Card key={review.id} className="border-none shadow-sm">
-                                            <CardContent className="p-6">
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex-1">
-                                                        <div className="flex items-center gap-3 mb-2">
-                                                            <div className="w-10 h-10 rounded-full bg-navy/10 flex items-center justify-center">
-                                                                <span className="text-navy font-bold">{review.client.name?.[0] || 'C'}</span>
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-semibold text-navy">{review.client.name}</p>
-                                                                <div className="flex items-center gap-1">
-                                                                    {[...Array(5)].map((_, i) => (
-                                                                        <span key={i} className={`text-sm ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
-                                                                            ★
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        {review.comment && (
-                                                            <p className="text-gray-600 text-sm mb-3 ml-13">{review.comment}</p>
-                                                        )}
-                                                        {review.proResponse && (
-                                                            <div className="ml-13 bg-gray-50 p-3 rounded-lg">
-                                                                <p className="text-xs text-gray-500 mb-1">Votre réponse :</p>
-                                                                <p className="text-sm text-gray-700">{review.proResponse}</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    {!review.proResponse && (
-                                                        <ReviewResponseForm
-                                                            reviewId={review.id}
-                                                            clientName={review.client.name || 'Client'}
-                                                            rating={review.rating}
-                                                            comment={review.comment}
-                                                        />
-                                                    )}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
+                    {/* Schedule */}
+                    <Card className="bg-[#1A1A2E] border-[#2A2A4A]">
+                        <CardHeader className="flex flex-row items-center justify-between border-b border-[#2A2A4A] pb-4">
+                            <CardTitle className="text-lg font-semibold text-white">📅 Prochains RDV</CardTitle>
+                            <Link href="/dashboard/pro/agenda" className="text-[#2EB190] text-sm hover:underline flex items-center gap-1">
+                                Agenda complet <ChevronRight className="w-4 h-4" />
+                            </Link>
+                        </CardHeader>
+                        <CardContent className="p-4 space-y-3">
+                            {schedule.length === 0 ? (
+                                <div className="text-center py-8 text-[#6C6C8A]">
+                                    Aucun RDV prévu
                                 </div>
-                            </div>
-                        )}
-                    </TabsContent>
+                            ) : (
+                                schedule.slice(0, 5).map((item: any) => (
+                                    <div key={item.id} className="flex items-center justify-between p-4 bg-[#16162D] rounded-xl hover:bg-[#252545] transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-[#2EB190] text-white px-3 py-1 rounded-lg text-sm font-bold">
+                                                {item.time}
+                                            </div>
+                                            <div>
+                                                <p className="text-white font-medium">{item.client?.name || 'Client'}</p>
+                                                <p className="text-[#6C6C8A] text-sm">{item.service?.name || 'Service'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[#2EB190] font-bold">{item.totalPrice}₪</p>
+                                            <span className="text-xs text-[#27AE60] bg-[#27AE60]/20 px-2 py-0.5 rounded-full">
+                                                Confirmé
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
 
-                    {/* CALENDAR TAB */}
-                    <TabsContent value="calendar" className="space-y-6 animate-in fade-in-50 h-[800px]">
-                        <ProCalendar reservations={proProfile.reservations} />
-                    </TabsContent>
+                {/* Right Column - Leaderboard */}
+                <div className="xl:col-span-4">
+                    <ProLeaderboard />
+                </div>
+            </div>
 
-                    {/* CLIENTS TAB */}
-                    <TabsContent value="clients" className="space-y-6 animate-in fade-in-50">
-                        <ProClientsTable clients={analyticsData.clients} />
-                    </TabsContent>
-
-                    {/* SERVICES & PROFILE TAB */}
-                    <TabsContent value="services" className="space-y-6 animate-in fade-in-50">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            <div className="lg:col-span-2">
-                                <ServiceManager
-                                    services={proProfile.services}
-                                    availableCategories={allCategories}
-                                    defaultHourlyRate={proProfile.hourlyRate}
-                                />
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Link href="/dashboard/pro/agenda" className="block">
+                    <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#2EB190] transition-colors cursor-pointer group">
+                        <CardContent className="p-6 text-center">
+                            <div className="w-14 h-14 rounded-xl bg-[#2EB190]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                <Calendar className="w-7 h-7 text-[#2EB190]" />
                             </div>
-                            <div>
-                                <ProProfileEdit
-                                    initialData={{
-                                        userId: proProfile.userId,
-                                        bio: proProfile.bio,
-                                        hourlyRate: proProfile.hourlyRate,
-                                        gallery: proProfile.gallery
-                                    }}
-                                />
+                            <p className="text-white font-medium">Agenda</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+                <Link href="/dashboard/pro/services" className="block">
+                    <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#7B68EE] transition-colors cursor-pointer group">
+                        <CardContent className="p-6 text-center">
+                            <div className="w-14 h-14 rounded-xl bg-[#7B68EE]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                <DollarSign className="w-7 h-7 text-[#7B68EE]" />
                             </div>
-                        </div>
-                    </TabsContent>
-                </Tabs>
-            </main>
+                            <p className="text-white font-medium">Services</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+                <Link href="/dashboard/pro/clients" className="block">
+                    <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#3498DB] transition-colors cursor-pointer group">
+                        <CardContent className="p-6 text-center">
+                            <div className="w-14 h-14 rounded-xl bg-[#3498DB]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                <Users className="w-7 h-7 text-[#3498DB]" />
+                            </div>
+                            <p className="text-white font-medium">Clients</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+                <Link href="/dashboard/pro/stats" className="block">
+                    <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#FFD700] transition-colors cursor-pointer group">
+                        <CardContent className="p-6 text-center">
+                            <div className="w-14 h-14 rounded-xl bg-[#FFD700]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                <TrendingUp className="w-7 h-7 text-[#FFD700]" />
+                            </div>
+                            <p className="text-white font-medium">Statistiques</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+            </div>
         </div>
     );
 }

@@ -15,7 +15,7 @@ export default async function ProDashboardLayout({
     }
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-[#0F0F23]">
             {/* Sidebar */}
             <ProSidebar />
 
