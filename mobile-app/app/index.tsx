@@ -189,6 +189,14 @@ export default function LoginScreen() {
                         )}
                     </TouchableOpacity>
 
+                    {/* Forgot Password Link */}
+                    <TouchableOpacity
+                        style={styles.forgotLink}
+                        onPress={() => router.push('/forgot-password')}
+                    >
+                        <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
+                    </TouchableOpacity>
+
                     {/* Register Link */}
                     <TouchableOpacity
                         style={styles.linkButton}
@@ -198,6 +206,16 @@ export default function LoginScreen() {
                         <Text style={styles.linkText}>
                             Nouveau ici ? <Text style={styles.linkTextBold}>Créer un compte</Text>
                         </Text>
+                    </TouchableOpacity>
+
+                    {/* Pro Register Link */}
+                    <TouchableOpacity
+                        style={styles.proLinkButton}
+                        onPress={() => router.push('/register-pro')}
+                    >
+                        <Ionicons name="briefcase-outline" size={18} color={Colors.secondary} />
+                        <Text style={styles.proLinkText}>Vous êtes professionnel ? </Text>
+                        <Text style={styles.proLinkTextBold}>Devenir Pro</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -321,5 +339,33 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.md,
         fontWeight: '500',
         color: Colors.black,
+    },
+    forgotLink: {
+        alignItems: 'center',
+        marginTop: Spacing.md,
+    },
+    forgotText: {
+        fontSize: FontSizes.sm,
+        color: Colors.primary,
+        fontWeight: '500',
+    },
+    proLinkButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: Spacing.lg,
+        paddingVertical: Spacing.md,
+        backgroundColor: Colors.secondary + '10',
+        borderRadius: 12,
+        gap: 4,
+    },
+    proLinkText: {
+        fontSize: FontSizes.sm,
+        color: Colors.secondary,
+    },
+    proLinkTextBold: {
+        fontSize: FontSizes.sm,
+        color: Colors.secondary,
+        fontWeight: '700',
     },
 });
