@@ -8,6 +8,7 @@ import {
     ScrollView,
     Alert,
     ActivityIndicator,
+    Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,10 +58,11 @@ export default function RegisterScreen() {
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             <View style={styles.header}>
-                <View style={styles.logoContainer}>
-                    <Text style={styles.logoText}>A</Text>
-                </View>
-                <Text style={styles.brandName}>AniReserve</Text>
+                <Image
+                    source={require('../assets/logo.png')}
+                    style={styles.logo}
+                    resizeMode="contain"
+                />
                 <Text style={styles.title}>Créer un compte</Text>
                 <Text style={styles.subtitle}>Rejoignez AniReserve</Text>
             </View>
@@ -167,25 +169,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: Spacing.xxl,
     },
-    logoContainer: {
-        width: 120,
+    logo: {
+        width: 200,
         height: 120,
-        borderRadius: 60,
-        backgroundColor: Colors.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: Spacing.sm,
-    },
-    logoText: {
-        fontSize: 48,
-        fontWeight: '800',
-        color: '#FFFFFF',
-    },
-    brandName: {
-        fontSize: FontSizes.xl,
-        fontWeight: '800',
-        color: Colors.primary,
-        marginBottom: Spacing.md,
+        marginBottom: Spacing.lg,
     },
     title: {
         fontSize: FontSizes.xxl,
