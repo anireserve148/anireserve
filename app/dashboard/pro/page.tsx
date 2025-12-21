@@ -59,6 +59,11 @@ export default async function ProDashboard() {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="bg-[#7B68EE] text-white text-xs font-bold px-3 py-1 rounded-full">
+                            ESPACE PRO
+                        </span>
+                    </div>
                     <h1 className="text-3xl font-bold text-white">
                         Bonjour, {session?.user?.name?.split(' ')[0]} 👋
                     </h1>
