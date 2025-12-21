@@ -63,10 +63,14 @@ export default function RegisterPage() {
                 <BackButton href="/" label="Retour à l'accueil" />
                 <Card className="shadow-2xl border-primary/20 bg-background/95 backdrop-blur">
                     <CardHeader className="text-center">
-                        <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                            <UserPlus className="w-8 h-8 text-primary" />
+                        {/* Logo */}
+                        <div className="flex flex-col items-center mb-4">
+                            <div className="w-16 h-16 bg-gradient-to-br from-[#2EB190] to-[#1E3A5F] rounded-2xl flex items-center justify-center mb-3 shadow-lg">
+                                <span className="text-white text-2xl font-bold">A</span>
+                            </div>
+                            <span className="text-xl font-bold text-[#1E3A5F]">AniReserve</span>
                         </div>
-                        <CardTitle className="text-3xl text-primary font-bold">Créer un compte</CardTitle>
+                        <CardTitle className="text-2xl text-primary font-bold">Créer un compte</CardTitle>
                         <CardDescription>
                             Rejoignez AniReserve et trouvez les meilleurs professionnels en Israël
                         </CardDescription>

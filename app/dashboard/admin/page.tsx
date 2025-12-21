@@ -77,9 +77,18 @@ export default async function AdminDashboardPage() {
         }),
         getAdminAnalytics(),
         prisma.serviceCategory.findMany({
+            where: { parentId: null }, // Only fetch parent categories
             include: {
                 _count: {
                     select: { proServices: true }
+                },
+                children: {
+                    include: {
+                        _count: {
+                            select: { proServices: true }
+                        }
+                    },
+                    orderBy: { name: 'asc' }
                 }
             },
             orderBy: { name: 'asc' }
