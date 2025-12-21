@@ -1,9 +1,9 @@
-import { auth, signOut } from '@/auth';
+import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, CreditCard, User, MapPin, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, CreditCard, User, MapPin, MessageSquare, Search, Heart, ChevronRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { ClientProfileEdit } from '@/components/client-profile-edit';
 import { ReviewForm } from '@/components/reviews/review-form';
@@ -14,9 +14,9 @@ export default async function DashboardPage() {
 
     if (!session?.user?.id) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen">
-                <p>Votre session a expiré. Veuillez vous reconnecter.</p>
-                <a href="/login" className="text-primary hover:underline mt-2">Aller à la page de connexion</a>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-[#f5f7fa]">
+                <p className="text-[#1E3A5F]">Votre session a expiré. Veuillez vous reconnecter.</p>
+                <a href="/login" className="text-[#3DBAA2] hover:underline mt-2">Aller à la page de connexion</a>
             </div>
         );
     }
@@ -42,186 +42,220 @@ export default async function DashboardPage() {
 
     const pendingReservations = user?.clientReservations.filter(r => r.status === 'PENDING').length || 0;
     const activeReservations = user?.clientReservations.filter(r => r.status === 'CONFIRMED').length || 0;
+    const upcomingReservations = user?.clientReservations
+        .filter(r => (r.status === 'CONFIRMED' || r.status === 'PENDING') && new Date(r.startDate) >= new Date())
+        .slice(0, 3) || [];
+
+    const firstName = session.user.name?.split(' ')[0] || 'Client';
 
     return (
-        <div className="min-h-screen bg-gray-50/50 pb-20 pt-24">
-            <main className="container mx-auto px-4 max-w-6xl space-y-10">
-                {/* Welcome Section */}
-                <div className="flex flex-col md:flex-row justify-between items-end gap-6 animate-slide-up">
-                    <div>
-                        <h1 className="text-4xl font-bold tracking-tight text-navy font-poppins">Bonjour, {session.user.name} 👋</h1>
-                        <p className="text-gray-500 mt-2 text-lg">Gérez vos réservations et retrouvez vos professionnels favoris.</p>
-                    </div>
-                    <Link href="/search">
-                        <Button className="h-12 px-6 rounded-full bg-[#3DBAA2] hover:bg-[#34a08b] text-white shadow-lg shadow-[#3DBAA2]/20 font-semibold transition-all hover:scale-105">
-                            Trouver un professionnel
-                        </Button>
-                    </Link>
+        <div className="min-h-screen bg-[#f5f7fa] pb-20">
+            {/* Header Hero Section */}
+            <div className="bg-[#1E3A5F] pt-24 pb-32 px-4 relative overflow-hidden">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-20 left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-10 right-20 w-48 h-48 bg-[#3DBAA2] rounded-full blur-3xl"></div>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid gap-6 md:grid-cols-3 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                    <Card className="border-none shadow-xl shadow-gray-200/50 bg-gradient-to-br from-[#3DBAA2] to-[#34a08b] text-white relative overflow-hidden group hover:scale-[1.02] transition-transform">
-                        <div className="absolute right-0 top-0 h-32 w-32 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                            <CardTitle className="text-sm font-medium text-white/90">Réservations en cours</CardTitle>
-                            <Calendar className="h-5 w-5 text-white/80" />
-                        </CardHeader>
-                        <CardContent className="relative z-10">
-                            <div className="text-4xl font-bold">{activeReservations}</div>
-                            <p className="text-xs text-white/80 mt-1">Confirmées et à venir</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-none shadow-xl shadow-gray-200/50 bg-white relative overflow-hidden group hover:scale-[1.02] transition-transform">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-gray-500">En attente</CardTitle>
-                            <Clock className="h-5 w-5 text-yellow-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-4xl font-bold text-navy">{pendingReservations}</div>
-                            <p className="text-xs text-gray-400 mt-1">En attente de validation</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-none shadow-xl shadow-gray-200/50 bg-white relative overflow-hidden group hover:scale-[1.02] transition-transform">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-gray-500">Total Dépensé</CardTitle>
-                            <CreditCard className="h-5 w-5 text-navy" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-4xl font-bold text-navy">
-                                {user?.clientReservations
-                                    .filter(r => r.status === 'COMPLETED' || r.status === 'CONFIRMED')
-                                    .reduce((acc, curr) => acc + curr.totalPrice, 0)}₪
-                            </div>
-                            <p className="text-xs text-gray-400 mt-1">Sur les réservations terminées</p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-                    {/* Reservations List */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold text-navy font-poppins">Historique</h2>
-                            {(user?.clientReservations.length || 0) > 3 && (
-                                <Link href="/dashboard/reservations">
-                                    <Button variant="link" className="text-[#3DBAA2]">Voir tout</Button>
-                                </Link>
-                            )}
+                <div className="container mx-auto max-w-6xl relative z-10">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl md:text-4xl font-bold text-white">
+                                Bonjour, {firstName} ! 👋
+                            </h1>
+                            <p className="text-white/70 mt-2 text-lg">
+                                {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                            </p>
                         </div>
 
-                        {user?.clientReservations.length === 0 ? (
-                            <Card className="border-dashed border-2 bg-transparent shadow-none">
-                                <CardContent className="flex flex-col items-center justify-center h-64 text-center p-6">
-                                    <div className="rounded-full bg-gray-100 p-4 mb-4">
-                                        <Calendar className="h-8 w-8 text-gray-400" />
-                                    </div>
-                                    <h3 className="font-semibold text-xl text-navy">Aucune réservation</h3>
-                                    <p className="text-gray-500 max-w-sm mt-2 mb-6">
-                                        Vous n'avez pas encore réservé de professionnel. Lancez une recherche pour trouver la perle rare.
-                                    </p>
-                                    <Link href="/search">
-                                        <Button className="bg-navy hover:bg-navy-light text-white rounded-full">Explorer les services</Button>
-                                    </Link>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="space-y-4">
-                                {user?.clientReservations.map(res => (
-                                    <div key={res.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 flex flex-col sm:flex-row gap-6 items-start sm:items-center group">
-                                        <div className="h-16 w-16 rounded-2xl bg-gray-100 flex items-center justify-center shrink-0 text-2xl group-hover:bg-turquoise/10 transition-colors">
-                                            {res.pro.user.name?.[0] || 'P'}
-                                        </div>
-                                        <div className="flex-1 w-full">
-                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                                                <div>
-                                                    <h4 className="font-bold text-lg text-navy">{res.pro.user.name}</h4>
-                                                    <div className="flex items-center text-sm text-gray-500 mt-1 gap-2">
-                                                        <MapPin className="h-3 w-3" />
-                                                        {res.pro.city.name}
-                                                    </div>
-                                                </div>
-                                                <Badge className={`px-3 py-1.5 rounded-full text-xs font-semibold ${res.status === 'CONFIRMED' || res.status === 'COMPLETED' ? 'bg-green-100 text-green-700 hover:bg-green-200' :
-                                                    res.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' :
-                                                        'bg-red-100 text-red-700 hover:bg-red-200'
-                                                    }`}>
-                                                    {res.status === 'CONFIRMED' ? 'Confirmé' :
-                                                        res.status === 'COMPLETED' ? 'Terminé' :
-                                                            res.status === 'PENDING' ? 'En attente' :
-                                                                res.status === 'REJECTED' ? 'Refusé' : 'Annulé'}
-                                                </Badge>
-                                            </div>
-
-                                            <div className="flex flex-wrap items-center gap-6 mt-4 pt-4 border-t border-gray-50 w-full">
-                                                <div className="flex items-center text-sm text-gray-600 font-medium">
-                                                    <Calendar className="w-4 h-4 mr-2 text-[#3DBAA2]" />
-                                                    {new Date(res.startDate).toLocaleDateString()}
-                                                </div>
-                                                <div className="flex items-center text-sm text-gray-600 font-medium">
-                                                    <Clock className="w-4 h-4 mr-2 text-[#3DBAA2]" />
-                                                    {new Date(res.startDate).getHours()}h
-                                                </div>
-                                                <div className="font-bold text-lg text-navy">
-                                                    {res.totalPrice}₪
-                                                </div>
-
-                                                {/* Actions */}
-                                                <div className="flex items-center gap-2 ml-auto">
-                                                    {/* Add to Calendar Button - For CONFIRMED and COMPLETED */}
-                                                    {(res.status === 'CONFIRMED' || res.status === 'COMPLETED') && (
-                                                        <AddToCalendarButton
-                                                            reservation={{
-                                                                id: res.id,
-                                                                startDate: res.startDate,
-                                                                endDate: res.endDate,
-                                                                proName: res.pro.user.name || 'Professionnel',
-                                                                proAddress: `${res.pro.city.name}`,
-                                                                serviceDescription: undefined
-                                                            }}
-                                                        />
-                                                    )}
-
-                                                    {/* Contact Pro Button */}
-                                                    <Link href={`/dashboard/messages?proId=${res.proId}`}>
-                                                        <Button variant="outline" size="sm" className="text-[#3DBAA2] border-[#3DBAA2] hover:bg-[#3DBAA2]/10">
-                                                            <MessageSquare className="w-4 h-4 mr-1" />
-                                                            Contacter
-                                                        </Button>
-                                                    </Link>
-
-                                                    {/* Review Button - Only for COMPLETED reservations */}
-                                                    {res.status === 'COMPLETED' && !res.review && (
-                                                        <ReviewForm
-                                                            reservationId={res.id}
-                                                            proName={res.pro.user.name || "Professionnel"}
-                                                        />
-                                                    )}
-                                                    {res.review && (
-                                                        <span className="text-sm text-gray-500 italic flex items-center">
-                                                            <span className="mr-1">★</span> Avis publié
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        {/* Profile Avatar */}
+                        <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/30">
+                            <span className="text-white text-xl font-bold">{firstName[0]}</span>
+                        </div>
                     </div>
 
-                    {/* Profile & Quick Actions */}
+                    {/* Quick Action Pills */}
+                    <div className="flex gap-3 mt-6 overflow-x-auto pb-2">
+                        <Link href="/search" className="bg-white text-[#1E3A5F] px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 hover:bg-gray-100 transition-colors whitespace-nowrap">
+                            <Search className="w-4 h-4" /> Rechercher
+                        </Link>
+                        <Link href="/dashboard/favorites" className="bg-white/20 text-white px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 hover:bg-white/30 transition-colors whitespace-nowrap">
+                            <Heart className="w-4 h-4" /> Favoris
+                        </Link>
+                        <Link href="/dashboard/messages" className="bg-white/20 text-white px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 hover:bg-white/30 transition-colors whitespace-nowrap">
+                            <MessageSquare className="w-4 h-4" /> Messages
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content - Overlapping Cards */}
+            <div className="container mx-auto max-w-6xl px-4 -mt-20 relative z-20">
+                {/* Stats Cards Row */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-shadow">
+                        <CardContent className="p-6 flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-[#3DBAA2]/10 flex items-center justify-center">
+                                <Calendar className="w-7 h-7 text-[#3DBAA2]" />
+                            </div>
+                            <div>
+                                <p className="text-3xl font-bold text-[#1E3A5F]">{activeReservations}</p>
+                                <p className="text-sm text-gray-500">RDV confirmés</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-shadow">
+                        <CardContent className="p-6 flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center">
+                                <Clock className="w-7 h-7 text-amber-500" />
+                            </div>
+                            <div>
+                                <p className="text-3xl font-bold text-[#1E3A5F]">{pendingReservations}</p>
+                                <p className="text-sm text-gray-500">En attente</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-white border-0 shadow-lg hover:shadow-xl transition-shadow">
+                        <CardContent className="p-6 flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-[#1E3A5F]/10 flex items-center justify-center">
+                                <CreditCard className="w-7 h-7 text-[#1E3A5F]" />
+                            </div>
+                            <div>
+                                <p className="text-3xl font-bold text-[#1E3A5F]">
+                                    {user?.clientReservations
+                                        .filter(r => r.status === 'COMPLETED' || r.status === 'CONFIRMED')
+                                        .reduce((acc, curr) => acc + curr.totalPrice, 0)}₪
+                                </p>
+                                <p className="text-sm text-gray-500">Total dépensé</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Two Column Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left Column - Upcoming & History */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Upcoming Section */}
+                        {upcomingReservations.length > 0 && (
+                            <Card className="bg-white border-0 shadow-lg overflow-hidden">
+                                <CardHeader className="bg-gradient-to-r from-[#1E3A5F] to-[#2C4A6B] text-white pb-6">
+                                    <div className="flex items-center justify-between">
+                                        <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                                            <Calendar className="w-5 h-5" /> Prochains RDV
+                                        </CardTitle>
+                                        <Badge className="bg-white/20 text-white hover:bg-white/30">
+                                            {upcomingReservations.length}
+                                        </Badge>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="divide-y">
+                                    {upcomingReservations.map(res => (
+                                        <div key={res.id} className="py-4 flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-xl bg-[#1E3A5F]/10 flex items-center justify-center text-[#1E3A5F] font-bold">
+                                                {res.pro.user.name?.[0] || 'P'}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="font-semibold text-[#1E3A5F]">{res.pro.user.name}</h4>
+                                                <p className="text-sm text-gray-500 flex items-center gap-1">
+                                                    <MapPin className="w-3 h-3" /> {res.pro.city.name}
+                                                </p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-sm font-medium text-[#1E3A5F]">
+                                                    {new Date(res.startDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                                                </p>
+                                                <p className="text-xs text-gray-500">{new Date(res.startDate).getHours()}h</p>
+                                            </div>
+                                            <Badge className={`${res.status === 'CONFIRMED' ? 'bg-[#3DBAA2] hover:bg-[#3DBAA2]' : 'bg-amber-500 hover:bg-amber-500'} text-white`}>
+                                                {res.status === 'CONFIRMED' ? '✓' : '⏳'}
+                                            </Badge>
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* History Section */}
+                        <Card className="bg-white border-0 shadow-lg">
+                            <CardHeader className="flex flex-row items-center justify-between pb-4">
+                                <CardTitle className="text-lg font-semibold text-[#1E3A5F]">Historique</CardTitle>
+                                {(user?.clientReservations.length || 0) > 3 && (
+                                    <Link href="/dashboard/reservations" className="text-[#3DBAA2] text-sm font-medium flex items-center gap-1 hover:underline">
+                                        Voir tout <ChevronRight className="w-4 h-4" />
+                                    </Link>
+                                )}
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {user?.clientReservations.length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                                            <Calendar className="w-8 h-8 text-gray-400" />
+                                        </div>
+                                        <h3 className="font-semibold text-[#1E3A5F] mb-2">Aucune réservation</h3>
+                                        <p className="text-gray-500 text-sm mb-4">Trouvez votre premier professionnel</p>
+                                        <Link href="/search">
+                                            <Button className="bg-[#3DBAA2] hover:bg-[#34a08b] text-white rounded-full">
+                                                Explorer les services
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    user?.clientReservations.slice(0, 5).map(res => (
+                                        <div key={res.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                                            <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-[#1E3A5F] font-bold">
+                                                {res.pro.user.name?.[0] || 'P'}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="font-semibold text-[#1E3A5F]">{res.pro.user.name}</h4>
+                                                <div className="flex items-center gap-3 text-sm text-gray-500">
+                                                    <span className="flex items-center gap-1">
+                                                        <Calendar className="w-3 h-3" />
+                                                        {new Date(res.startDate).toLocaleDateString('fr-FR')}
+                                                    </span>
+                                                    <span className="font-medium text-[#3DBAA2]">{res.totalPrice}₪</span>
+                                                </div>
+                                            </div>
+                                            <Badge className={`px-3 py-1 rounded-full text-xs font-semibold ${res.status === 'CONFIRMED' || res.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                                                    res.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                                                        'bg-red-100 text-red-700'
+                                                }`}>
+                                                {res.status === 'CONFIRMED' ? 'Confirmé' :
+                                                    res.status === 'COMPLETED' ? 'Terminé' :
+                                                        res.status === 'PENDING' ? 'En attente' :
+                                                            res.status === 'REJECTED' ? 'Refusé' : 'Annulé'}
+                                            </Badge>
+                                            <div className="flex items-center gap-2">
+                                                <Link href={`/dashboard/messages?proId=${res.proId}`}>
+                                                    <Button variant="ghost" size="icon" className="text-[#1E3A5F] hover:bg-[#1E3A5F]/10">
+                                                        <MessageSquare className="w-4 h-4" />
+                                                    </Button>
+                                                </Link>
+                                                {res.status === 'COMPLETED' && !res.review && (
+                                                    <ReviewForm reservationId={res.id} proName={res.pro.user.name || "Pro"} />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Right Column - Profile & Actions */}
                     <div className="space-y-6">
-                        <Card className="border-none shadow-lg shadow-navy/5 bg-white overflow-hidden">
-                            <div className="h-24 bg-navy relative">
-                                <div className="absolute -bottom-8 left-6 h-16 w-16 rounded-full border-4 border-white bg-gray-200">
-                                    {/* Avatar placeholder */}
+                        {/* Profile Card */}
+                        <Card className="bg-white border-0 shadow-lg overflow-hidden">
+                            <div className="h-20 bg-gradient-to-r from-[#1E3A5F] to-[#2C4A6B] relative">
+                                <div className="absolute -bottom-8 left-6 w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center text-[#1E3A5F] text-2xl font-bold border-4 border-white">
+                                    {firstName[0]}
                                 </div>
                             </div>
-                            <div className="pt-10 px-6 pb-6">
-                                <h3 className="font-bold text-lg text-navy">{user?.name || session.user.name}</h3>
+                            <div className="pt-12 px-6 pb-6">
+                                <h3 className="font-bold text-lg text-[#1E3A5F]">{user?.name || session.user.name}</h3>
                                 <p className="text-gray-500 text-sm mb-4">{user?.email || session.user.email}</p>
                                 <ClientProfileEdit user={{
                                     name: user?.name || session.user.name || '',
@@ -232,19 +266,36 @@ export default async function DashboardPage() {
                             </div>
                         </Card>
 
-                        <Card className="bg-[#3DBAA2] text-white border-none shadow-lg shadow-[#3DBAA2]/20">
-                            <CardHeader>
-                                <CardTitle className="text-white flex items-center gap-2">
-                                    <Sparkles className="h-5 w-5" />
-                                    Besoin d'aide ?
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-white/90 text-sm mb-4 leading-relaxed">
-                                    Une question sur une réservation ? Notre support est disponible 7j/7 pour vous aider.
+                        {/* Quick Search Card */}
+                        <Card className="bg-gradient-to-br from-[#3DBAA2] to-[#2a9a84] text-white border-0 shadow-lg">
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Search className="w-6 h-6" />
+                                    <h3 className="font-bold text-lg">Trouver un pro</h3>
+                                </div>
+                                <p className="text-white/80 text-sm mb-4">
+                                    Découvrez les meilleurs professionnels près de chez vous
                                 </p>
-                                <a href="mailto:contact@anireserve.com?subject=Support AniReserve">
-                                    <Button className="w-full bg-white text-[#3DBAA2] hover:bg-gray-50 font-bold border-none">
+                                <Link href="/search">
+                                    <Button className="w-full bg-white text-[#3DBAA2] hover:bg-gray-100 font-semibold">
+                                        Rechercher
+                                    </Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+
+                        {/* Support Card */}
+                        <Card className="bg-[#1E3A5F] text-white border-0 shadow-lg">
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <Sparkles className="w-5 h-5" />
+                                    <h3 className="font-semibold">Besoin d'aide ?</h3>
+                                </div>
+                                <p className="text-white/70 text-sm mb-4">
+                                    Notre support est disponible 7j/7
+                                </p>
+                                <a href="mailto:contact@anireserve.com">
+                                    <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
                                         📧 Contacter le support
                                     </Button>
                                 </a>
@@ -252,9 +303,7 @@ export default async function DashboardPage() {
                         </Card>
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 }
-
-import { Sparkles } from "lucide-react";
