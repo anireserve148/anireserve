@@ -16,7 +16,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProSettingsScreen() {
     const router = useRouter();
-    const [hourlyRate, setHourlyRate] = useState('120');
     const [isAvailable, setIsAvailable] = useState(true);
     const [notifications, setNotifications] = useState(true);
     const [instantBooking, setInstantBooking] = useState(false);
@@ -63,20 +62,16 @@ export default function ProSettingsScreen() {
 
             {/* Pricing Section */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Tarifs</Text>
+                <Text style={styles.sectionTitle}>Mes services & tarifs</Text>
 
-                <View style={styles.inputRow}>
-                    <Text style={styles.inputLabel}>Tarif horaire</Text>
-                    <View style={styles.priceInput}>
-                        <TextInput
-                            style={styles.input}
-                            value={hourlyRate}
-                            onChangeText={setHourlyRate}
-                            keyboardType="numeric"
-                        />
-                        <Text style={styles.currency}>₪/h</Text>
+                <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/pro-services')}>
+                    <Ionicons name="pricetags-outline" size={24} color={Colors.primary} />
+                    <View style={styles.menuTextContainer}>
+                        <Text style={styles.menuText}>Gérer mes prestations</Text>
+                        <Text style={styles.menuSubtext}>Ajouter/modifier vos services et tarifs</Text>
                     </View>
-                </View>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
+                </TouchableOpacity>
             </View>
 
             {/* Availability Section */}
@@ -185,6 +180,15 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: FontSizes.md,
         color: Colors.primary,
+    },
+    menuTextContainer: {
+        flex: 1,
+        marginLeft: Spacing.sm,
+    },
+    menuSubtext: {
+        fontSize: FontSizes.sm,
+        color: Colors.gray.medium,
+        marginTop: 2,
     },
     inputRow: {
         flexDirection: 'row',
