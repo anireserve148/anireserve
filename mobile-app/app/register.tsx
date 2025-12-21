@@ -58,8 +58,9 @@ export default function RegisterScreen() {
         <ScrollView style={styles.container} contentContainerStyle={styles.content}>
             <View style={styles.header}>
                 <View style={styles.logoContainer}>
-                    <Ionicons name="paw" size={60} color={Colors.primary} />
+                    <Text style={styles.logoText}>A</Text>
                 </View>
+                <Text style={styles.brandName}>AniReserve</Text>
                 <Text style={styles.title}>Créer un compte</Text>
                 <Text style={styles.subtitle}>Rejoignez AniReserve</Text>
             </View>
@@ -170,10 +171,21 @@ const styles = StyleSheet.create({
         width: 120,
         height: 120,
         borderRadius: 60,
-        backgroundColor: Colors.primary + '20',
+        backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: Spacing.lg,
+        marginBottom: Spacing.sm,
+    },
+    logoText: {
+        fontSize: 48,
+        fontWeight: '800',
+        color: '#FFFFFF',
+    },
+    brandName: {
+        fontSize: FontSizes.xl,
+        fontWeight: '800',
+        color: Colors.primary,
+        marginBottom: Spacing.md,
     },
     title: {
         fontSize: FontSizes.xxl,
