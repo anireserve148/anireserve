@@ -3,6 +3,7 @@ import { LoginCredentials, User, ApiResponse, ProProfile, Reservation, ServiceCa
 
 class ApiService {
     private token: string | null = null;
+    public baseUrl: string = API_URL;
 
     setToken(token: string) {
         this.token = token;
@@ -94,6 +95,22 @@ class ApiService {
         hourlyRate?: number;
     }): Promise<ApiResponse<{ message: string }>> {
         return this.request('/api/mobile/register-pro', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async submitProApplication(data: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone: string;
+        password: string;
+        cityIds: string[];
+        categoryIds: string[];
+        idPhotoUrl: string;
+    }): Promise<ApiResponse<{ success: boolean }>> {
+        return this.request('/api/pro-application', {
             method: 'POST',
             body: JSON.stringify(data),
         });

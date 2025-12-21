@@ -10,12 +10,12 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
+    Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
+import * as ImagePicker from 'expo-image-picker';
 import { api } from '../services/api';
-import { storage } from '../services/storage';
 import { Colors, Spacing, FontSizes } from '../constants';
 
 interface City {
@@ -26,24 +26,27 @@ interface City {
 interface Category {
     id: string;
     name: string;
+    parentId?: string | null;
 }
 
 export default function RegisterProScreen() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [cities, setCities] = useState<City[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
 
     // Form fields
-    const [name, setName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [phone, setPhone] = useState('');
-    const [cityId, setCityId] = useState('');
-    const [categoryId, setCategoryId] = useState('');
-    const [bio, setBio] = useState('');
-    const [hourlyRate, setHourlyRate] = useState('');
+    const [selectedCities, setSelectedCities] = useState<string[]>([]);
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [idPhotoUri, setIdPhotoUri] = useState<string | null>(null);
+    const [idPhotoUrl, setIdPhotoUrl] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
@@ -51,22 +54,89 @@ export default function RegisterProScreen() {
     }, []);
 
     const loadData = async () => {
-        // Load cities
         const citiesResult = await api.getCities();
         if (citiesResult.success && citiesResult.data) {
             setCities(citiesResult.data);
         }
 
-        // Load categories
         const categoriesResult = await api.getCategories();
         if (categoriesResult.success && categoriesResult.data) {
             setCategories(categoriesResult.data);
         }
     };
 
+    const toggleCity = (cityId: string) => {
+        setSelectedCities(prev =>
+            prev.includes(cityId)
+                ? prev.filter(id => id !== cityId)
+                : [...prev, cityId]
+        );
+    };
+
+    const toggleCategory = (categoryId: string) => {
+        setSelectedCategories(prev =>
+            prev.includes(categoryId)
+                ? prev.filter(id => id !== categoryId)
+                : [...prev, categoryId]
+        );
+    };
+
+    const pickImage = async () => {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+            Alert.alert('Permission requise', 'Veuillez autoriser l\'accès à vos photos');
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.8,
+        });
+
+        if (!result.canceled && result.assets[0]) {
+            setIdPhotoUri(result.assets[0].uri);
+            await uploadImage(result.assets[0].uri);
+        }
+    };
+
+    const uploadImage = async (uri: string) => {
+        setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', {
+                uri,
+                type: 'image/jpeg',
+                name: 'id_photo.jpg',
+            } as any);
+
+            const response = await fetch(`${api.baseUrl}/api/upload`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setIdPhotoUrl(data.url);
+                Alert.alert('Succès', 'Photo téléchargée');
+            } else {
+                throw new Error('Upload failed');
+            }
+        } catch (error) {
+            Alert.alert('Erreur', 'Impossible de télécharger la photo');
+            setIdPhotoUri(null);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const handleRegister = async () => {
         // Validation
-        if (!name.trim() || !email.trim() || !password || !phone.trim()) {
+        if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim() || !password) {
             Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
             return;
         }
@@ -76,51 +146,53 @@ export default function RegisterProScreen() {
             return;
         }
 
-        if (password.length < 8) {
-            Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 8 caractères');
+        if (password.length < 6) {
+            Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 6 caractères');
             return;
         }
 
-        if (!cityId) {
-            Alert.alert('Erreur', 'Veuillez sélectionner une ville');
+        if (selectedCities.length === 0) {
+            Alert.alert('Erreur', 'Sélectionnez au moins une ville');
             return;
         }
 
-        if (!categoryId) {
-            Alert.alert('Erreur', 'Veuillez sélectionner une catégorie');
+        if (selectedCategories.length === 0) {
+            Alert.alert('Erreur', 'Sélectionnez au moins une catégorie');
+            return;
+        }
+
+        if (!idPhotoUrl) {
+            Alert.alert('Erreur', 'La photo de Teoudat Zehut est requise');
             return;
         }
 
         setIsLoading(true);
 
-        const result = await api.registerPro({
-            name: name.trim(),
+        const result = await api.submitProApplication({
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
             email: email.trim().toLowerCase(),
+            phone: phone.trim(),
             password,
-            phoneNumber: phone.trim(),
-            cityId,
-            categoryId,
-            bio: bio.trim(),
-            hourlyRate: parseFloat(hourlyRate) || 100,
+            cityIds: selectedCities,
+            categoryIds: selectedCategories,
+            idPhotoUrl,
         });
 
         setIsLoading(false);
 
-        if (result.success && result.data) {
+        if (result.success) {
             Alert.alert(
-                'Inscription envoyée !',
-                'Votre demande a été enregistrée. Un administrateur la validera sous 24-48h.',
-                [
-                    {
-                        text: 'OK',
-                        onPress: () => router.replace('/login'),
-                    },
-                ]
+                'Demande envoyée ! ✅',
+                'Votre candidature a été enregistrée. Un administrateur la validera sous 24-48h. Vous recevrez un email de confirmation.',
+                [{ text: 'OK', onPress: () => router.replace('/login') }]
             );
         } else {
-            Alert.alert('Erreur', result.error || 'Impossible de créer le compte');
+            Alert.alert('Erreur', result.error || 'Impossible de soumettre la candidature');
         }
     };
+
+    const parentCategories = categories.filter(c => !c.parentId);
 
     return (
         <KeyboardAvoidingView
@@ -145,177 +217,202 @@ export default function RegisterProScreen() {
                     </Text>
                 </View>
 
-                {/* Form */}
-                <View style={styles.form}>
-                    {/* Name */}
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Nom complet *</Text>
-                        <View style={styles.inputContainer}>
-                            <Ionicons name="person-outline" size={20} color={Colors.gray.medium} />
+                {/* Section 1: Personal Info */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <View style={styles.sectionNumber}>
+                            <Text style={styles.sectionNumberText}>1</Text>
+                        </View>
+                        <Text style={styles.sectionTitle}>Informations Personnelles</Text>
+                    </View>
+
+                    <View style={styles.row}>
+                        <View style={styles.halfInput}>
+                            <Text style={styles.label}>Prénom *</Text>
                             <TextInput
                                 style={styles.input}
-                                value={name}
-                                onChangeText={setName}
+                                value={firstName}
+                                onChangeText={setFirstName}
+                                placeholder="Votre prénom"
+                                placeholderTextColor={Colors.gray.medium}
+                            />
+                        </View>
+                        <View style={styles.halfInput}>
+                            <Text style={styles.label}>Nom *</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={lastName}
+                                onChangeText={setLastName}
                                 placeholder="Votre nom"
                                 placeholderTextColor={Colors.gray.medium}
                             />
                         </View>
                     </View>
 
-                    {/* Email */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Email *</Text>
-                        <View style={styles.inputContainer}>
-                            <Ionicons name="mail-outline" size={20} color={Colors.gray.medium} />
-                            <TextInput
-                                style={styles.input}
-                                value={email}
-                                onChangeText={setEmail}
-                                placeholder="votre@email.com"
-                                placeholderTextColor={Colors.gray.medium}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                            />
-                        </View>
+                        <TextInput
+                            style={styles.input}
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="votre@email.com"
+                            placeholderTextColor={Colors.gray.medium}
+                            keyboardType="email-address"
+                            autoCapitalize="none"
+                        />
                     </View>
 
-                    {/* Phone */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Téléphone *</Text>
-                        <View style={styles.inputContainer}>
-                            <Ionicons name="call-outline" size={20} color={Colors.gray.medium} />
-                            <TextInput
-                                style={styles.input}
-                                value={phone}
-                                onChangeText={setPhone}
-                                placeholder="+972 XXX XXX XXXX"
-                                placeholderTextColor={Colors.gray.medium}
-                                keyboardType="phone-pad"
-                            />
-                        </View>
+                        <TextInput
+                            style={styles.input}
+                            value={phone}
+                            onChangeText={setPhone}
+                            placeholder="05X-XXX-XXXX"
+                            placeholderTextColor={Colors.gray.medium}
+                            keyboardType="phone-pad"
+                        />
                     </View>
 
-                    {/* Password */}
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Mot de passe *</Text>
-                        <View style={styles.inputContainer}>
-                            <Ionicons name="lock-closed-outline" size={20} color={Colors.gray.medium} />
-                            <TextInput
-                                style={styles.input}
-                                value={password}
-                                onChangeText={setPassword}
-                                placeholder="Min. 8 caractères"
-                                placeholderTextColor={Colors.gray.medium}
-                                secureTextEntry={!showPassword}
-                            />
-                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                <Ionicons
-                                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                                    size={20}
-                                    color={Colors.gray.medium}
+                    <View style={styles.row}>
+                        <View style={styles.halfInput}>
+                            <Text style={styles.label}>Mot de passe *</Text>
+                            <View style={styles.passwordContainer}>
+                                <TextInput
+                                    style={styles.passwordInput}
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    placeholder="Min. 6 caractères"
+                                    placeholderTextColor={Colors.gray.medium}
+                                    secureTextEntry={!showPassword}
                                 />
-                            </TouchableOpacity>
+                                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                    <Ionicons
+                                        name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                                        size={20}
+                                        color={Colors.gray.medium}
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
-
-                    {/* Confirm Password */}
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Confirmer le mot de passe *</Text>
-                        <View style={styles.inputContainer}>
-                            <Ionicons name="lock-closed-outline" size={20} color={Colors.gray.medium} />
+                        <View style={styles.halfInput}>
+                            <Text style={styles.label}>Confirmer *</Text>
                             <TextInput
                                 style={styles.input}
                                 value={confirmPassword}
                                 onChangeText={setConfirmPassword}
-                                placeholder="Répétez le mot de passe"
+                                placeholder="Répétez"
                                 placeholderTextColor={Colors.gray.medium}
                                 secureTextEntry={!showPassword}
                             />
                         </View>
                     </View>
+                </View>
 
-                    {/* City Picker */}
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Ville *</Text>
-                        <View style={styles.pickerContainer}>
-                            <Ionicons name="location-outline" size={20} color={Colors.gray.medium} />
-                            <Picker
-                                selectedValue={cityId}
-                                onValueChange={setCityId}
-                                style={styles.picker}
+                {/* Section 2: Cities & Services */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <View style={styles.sectionNumber}>
+                            <Text style={styles.sectionNumberText}>2</Text>
+                        </View>
+                        <Text style={styles.sectionTitle}>Villes & Services</Text>
+                    </View>
+
+                    <Text style={styles.label}>Villes de travail *</Text>
+                    <View style={styles.checkboxGrid}>
+                        {cities.map(city => (
+                            <TouchableOpacity
+                                key={city.id}
+                                style={[
+                                    styles.checkboxItem,
+                                    selectedCities.includes(city.id) && styles.checkboxItemSelected
+                                ]}
+                                onPress={() => toggleCity(city.id)}
                             >
-                                <Picker.Item label="Sélectionnez une ville" value="" />
-                                {cities.map((city) => (
-                                    <Picker.Item key={city.id} label={city.name} value={city.id} />
-                                ))}
-                            </Picker>
-                        </View>
+                                <Ionicons
+                                    name={selectedCities.includes(city.id) ? 'checkbox' : 'square-outline'}
+                                    size={20}
+                                    color={selectedCities.includes(city.id) ? Colors.primary : Colors.gray.medium}
+                                />
+                                <Text style={[
+                                    styles.checkboxLabel,
+                                    selectedCities.includes(city.id) && styles.checkboxLabelSelected
+                                ]}>
+                                    {city.name}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
 
-                    {/* Category Picker */}
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Catégorie *</Text>
-                        <View style={styles.pickerContainer}>
-                            <Ionicons name="grid-outline" size={20} color={Colors.gray.medium} />
-                            <Picker
-                                selectedValue={categoryId}
-                                onValueChange={setCategoryId}
-                                style={styles.picker}
+                    <Text style={[styles.label, { marginTop: Spacing.lg }]}>Catégories de service *</Text>
+                    <View style={styles.checkboxGrid}>
+                        {parentCategories.map(cat => (
+                            <TouchableOpacity
+                                key={cat.id}
+                                style={[
+                                    styles.checkboxItem,
+                                    selectedCategories.includes(cat.id) && styles.checkboxItemSelected
+                                ]}
+                                onPress={() => toggleCategory(cat.id)}
                             >
-                                <Picker.Item label="Sélectionnez une catégorie" value="" />
-                                {categories.map((cat) => (
-                                    <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
-                                ))}
-                            </Picker>
-                        </View>
-                    </View>
-
-                    {/* Hourly Rate */}
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Tarif horaire (₪)</Text>
-                        <View style={styles.inputContainer}>
-                            <Ionicons name="cash-outline" size={20} color={Colors.gray.medium} />
-                            <TextInput
-                                style={styles.input}
-                                value={hourlyRate}
-                                onChangeText={setHourlyRate}
-                                placeholder="100"
-                                placeholderTextColor={Colors.gray.medium}
-                                keyboardType="numeric"
-                            />
-                            <Text style={styles.currency}>₪/h</Text>
-                        </View>
-                    </View>
-
-                    {/* Bio */}
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Bio / Description</Text>
-                        <View style={[styles.inputContainer, styles.textAreaContainer]}>
-                            <TextInput
-                                style={[styles.input, styles.textArea]}
-                                value={bio}
-                                onChangeText={setBio}
-                                placeholder="Décrivez votre expérience et vos services..."
-                                placeholderTextColor={Colors.gray.medium}
-                                multiline
-                                numberOfLines={4}
-                                textAlignVertical="top"
-                            />
-                        </View>
+                                <Ionicons
+                                    name={selectedCategories.includes(cat.id) ? 'checkbox' : 'square-outline'}
+                                    size={20}
+                                    color={selectedCategories.includes(cat.id) ? Colors.primary : Colors.gray.medium}
+                                />
+                                <Text style={[
+                                    styles.checkboxLabel,
+                                    selectedCategories.includes(cat.id) && styles.checkboxLabelSelected
+                                ]}>
+                                    {cat.name}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
                 </View>
 
-                {/* Terms */}
-                <View style={styles.termsContainer}>
-                    <Ionicons name="information-circle-outline" size={20} color={Colors.gray.medium} />
-                    <Text style={styles.termsText}>
-                        En vous inscrivant, vous acceptez nos conditions d'utilisation et notre politique de confidentialité.
-                    </Text>
+                {/* Section 3: ID Document */}
+                <View style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <View style={styles.sectionNumber}>
+                            <Text style={styles.sectionNumberText}>3</Text>
+                        </View>
+                        <Text style={styles.sectionTitle}>Document d'Identité</Text>
+                    </View>
+
+                    <Text style={styles.label}>Photo de votre Teoudat Zehut *</Text>
+                    <TouchableOpacity style={styles.uploadArea} onPress={pickImage} disabled={isUploading}>
+                        {isUploading ? (
+                            <View style={styles.uploadPlaceholder}>
+                                <ActivityIndicator size="large" color={Colors.primary} />
+                                <Text style={styles.uploadText}>Téléchargement...</Text>
+                            </View>
+                        ) : idPhotoUri ? (
+                            <View style={styles.imagePreview}>
+                                <Image source={{ uri: idPhotoUri }} style={styles.previewImage} resizeMode="cover" />
+                                <TouchableOpacity
+                                    style={styles.changeButton}
+                                    onPress={() => {
+                                        setIdPhotoUri(null);
+                                        setIdPhotoUrl('');
+                                    }}
+                                >
+                                    <Text style={styles.changeButtonText}>Changer la photo</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <View style={styles.uploadPlaceholder}>
+                                <Ionicons name="cloud-upload-outline" size={48} color={Colors.gray.medium} />
+                                <Text style={styles.uploadText}>Appuyez pour sélectionner une photo</Text>
+                                <Text style={styles.uploadSubtext}>Format accepté : JPG, PNG (max 5MB)</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
                 </View>
 
-                {/* Register Button */}
+                {/* Submit Button */}
                 <TouchableOpacity
-                    style={[styles.registerButton, isLoading && styles.registerButtonDisabled]}
+                    style={[styles.submitButton, isLoading && styles.submitButtonDisabled]}
                     onPress={handleRegister}
                     disabled={isLoading}
                 >
@@ -324,16 +421,17 @@ export default function RegisterProScreen() {
                     ) : (
                         <>
                             <Ionicons name="checkmark-circle" size={24} color={Colors.white} />
-                            <Text style={styles.registerButtonText}>S'inscrire comme Pro</Text>
+                            <Text style={styles.submitButtonText}>Soumettre ma candidature</Text>
                         </>
                     )}
                 </TouchableOpacity>
 
+                <Text style={styles.termsText}>
+                    En soumettant ce formulaire, vous acceptez nos conditions générales d'utilisation pour les professionnels.
+                </Text>
+
                 {/* Login Link */}
-                <TouchableOpacity
-                    style={styles.loginLink}
-                    onPress={() => router.push('/login')}
-                >
+                <TouchableOpacity style={styles.loginLink} onPress={() => router.push('/login')}>
                     <Text style={styles.loginLinkText}>
                         Déjà un compte ? <Text style={styles.loginLinkBold}>Se connecter</Text>
                     </Text>
@@ -348,7 +446,7 @@ export default function RegisterProScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.gray.light,
+        backgroundColor: '#F5F7FA',
     },
     header: {
         flexDirection: 'row',
@@ -368,8 +466,6 @@ const styles = StyleSheet.create({
         fontSize: FontSizes.lg,
         fontWeight: 'bold',
         color: Colors.white,
-        flex: 1,
-        textAlign: 'center',
     },
     headerRight: {
         width: 40,
@@ -380,7 +476,7 @@ const styles = StyleSheet.create({
     infoBanner: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.primary + '10',
+        backgroundColor: Colors.primary + '15',
         padding: Spacing.md,
         margin: Spacing.md,
         borderRadius: 12,
@@ -392,77 +488,147 @@ const styles = StyleSheet.create({
         color: Colors.primary,
         fontWeight: '600',
     },
-    form: {
+    section: {
         backgroundColor: Colors.white,
-        padding: Spacing.lg,
         marginHorizontal: Spacing.md,
+        marginBottom: Spacing.md,
         borderRadius: 16,
+        padding: Spacing.lg,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: Spacing.lg,
+        gap: Spacing.sm,
+    },
+    sectionNumber: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: Colors.secondary,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    sectionNumberText: {
+        color: Colors.white,
+        fontSize: FontSizes.sm,
+        fontWeight: 'bold',
+    },
+    sectionTitle: {
+        fontSize: FontSizes.lg,
+        fontWeight: 'bold',
+        color: Colors.secondary,
+    },
+    row: {
+        flexDirection: 'row',
+        gap: Spacing.md,
+    },
+    halfInput: {
+        flex: 1,
         marginBottom: Spacing.md,
     },
     inputGroup: {
-        marginBottom: Spacing.lg,
+        marginBottom: Spacing.md,
     },
     label: {
         fontSize: FontSizes.sm,
-        fontWeight: 'bold',
-        color: Colors.secondary,
-        marginBottom: Spacing.sm,
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: Colors.gray.light,
-        borderRadius: 12,
-        paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.sm,
-        gap: Spacing.sm,
+        fontWeight: '600',
+        color: Colors.primary,
+        marginBottom: Spacing.xs,
     },
     input: {
-        flex: 1,
+        backgroundColor: Colors.gray.light,
+        borderRadius: 10,
+        padding: Spacing.md,
         fontSize: FontSizes.md,
         color: Colors.secondary,
-        paddingVertical: Spacing.sm,
     },
-    pickerContainer: {
+    passwordContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: Colors.gray.light,
-        borderRadius: 12,
-        paddingLeft: Spacing.md,
+        borderRadius: 10,
+        paddingHorizontal: Spacing.md,
     },
-    picker: {
+    passwordInput: {
         flex: 1,
-        height: 50,
-    },
-    currency: {
+        padding: Spacing.md,
         fontSize: FontSizes.md,
-        color: Colors.gray.medium,
-        fontWeight: 'bold',
+        color: Colors.secondary,
     },
-    textAreaContainer: {
-        alignItems: 'flex-start',
-        paddingVertical: Spacing.md,
-    },
-    textArea: {
-        minHeight: 100,
-        textAlignVertical: 'top',
-    },
-    termsContainer: {
+    checkboxGrid: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
-        marginHorizontal: Spacing.lg,
-        marginBottom: Spacing.lg,
+        flexWrap: 'wrap',
+        gap: Spacing.xs,
+    },
+    checkboxItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.gray.light,
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+        borderRadius: 8,
+        gap: Spacing.xs,
+        marginBottom: Spacing.xs,
+    },
+    checkboxItemSelected: {
+        backgroundColor: Colors.primary + '15',
+        borderColor: Colors.primary,
+        borderWidth: 1,
+    },
+    checkboxLabel: {
+        fontSize: FontSizes.sm,
+        color: Colors.gray.dark,
+    },
+    checkboxLabelSelected: {
+        color: Colors.primary,
+        fontWeight: '600',
+    },
+    uploadArea: {
+        borderWidth: 2,
+        borderColor: Colors.gray.light,
+        borderStyle: 'dashed',
+        borderRadius: 12,
+        padding: Spacing.lg,
+        alignItems: 'center',
+        backgroundColor: '#FAFAFA',
+    },
+    uploadPlaceholder: {
+        alignItems: 'center',
         gap: Spacing.sm,
     },
-    termsText: {
-        flex: 1,
+    uploadText: {
+        fontSize: FontSizes.md,
+        color: Colors.gray.dark,
+    },
+    uploadSubtext: {
         fontSize: FontSizes.sm,
         color: Colors.gray.medium,
-        lineHeight: 20,
     },
-    registerButton: {
+    imagePreview: {
+        width: '100%',
+        alignItems: 'center',
+        gap: Spacing.md,
+    },
+    previewImage: {
+        width: '100%',
+        height: 200,
+        borderRadius: 8,
+    },
+    changeButton: {
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.lg,
+        backgroundColor: Colors.gray.light,
+        borderRadius: 8,
+    },
+    changeButtonText: {
+        fontSize: FontSizes.sm,
+        color: Colors.secondary,
+        fontWeight: '600',
+    },
+    submitButton: {
         flexDirection: 'row',
-        backgroundColor: Colors.primary,
+        backgroundColor: Colors.secondary,
         marginHorizontal: Spacing.md,
         padding: Spacing.lg,
         borderRadius: 12,
@@ -470,13 +636,21 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         gap: Spacing.sm,
     },
-    registerButtonDisabled: {
+    submitButtonDisabled: {
         backgroundColor: Colors.gray.medium,
     },
-    registerButtonText: {
+    submitButtonText: {
         fontSize: FontSizes.lg,
         fontWeight: 'bold',
         color: Colors.white,
+    },
+    termsText: {
+        fontSize: FontSizes.xs,
+        color: Colors.gray.medium,
+        textAlign: 'center',
+        marginHorizontal: Spacing.lg,
+        marginTop: Spacing.md,
+        lineHeight: 18,
     },
     loginLink: {
         alignItems: 'center',
