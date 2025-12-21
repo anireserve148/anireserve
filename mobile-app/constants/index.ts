@@ -2,77 +2,83 @@ export const API_URL = __DEV__
     ? 'https://anireserve.com'
     : 'https://anireserve.com';
 
-// 🎨 Modern Minimal - Blanc dominant, vert en accent (CLIENT INTERFACE)
+// 🎨 PALETTE ANIRESERVE - Une seule palette cohérente
+// Basée sur le logo: Vert émeraude, Navy, Jaune accent
 export const Colors = {
-    // Textes et éléments principaux
-    primary: '#2C3E50',       // Bleu-gris élégant (textes)
-    primaryLight: '#34495E',
-    primaryDark: '#1A252F',
+    // === MARQUE PRINCIPALE ===
+    primary: '#2EB190',        // Vert AniReserve (principal)
+    primaryLight: '#5FCFAF',
+    primaryDark: '#238B70',
 
-    // Accent = Vert AniReserve (UNIQUEMENT boutons/CTAs)
-    accent: '#2EB190',        // Vert AniReserve
-    accentLight: '#5FCFAF',
-    accentDark: '#238B70',
+    // Navy (textes et éléments forts)
+    secondary: '#1E3A5F',      // Navy AniReserve
+    secondaryLight: '#2C4A6B',
+    secondaryDark: '#162C47',
 
-    // Secondaire
-    secondary: '#3498DB',     // Bleu doux
-    secondaryLight: '#5DADE2',
+    // Accent (touches de couleur)
+    accent: '#F4D03F',         // Jaune du logo (ampoule)
+    accentLight: '#F7DC6F',
+    accentDark: '#D4AC0D',
 
-    // Fond blanc dominant
+    // === NEUTRES ===
     white: '#FFFFFF',
     black: '#1A1A1A',
-    background: '#FFFFFF',    // Blanc pur
-    card: '#F8F9FA',          // Gris très léger pour cartes
+    background: '#F5F7FA',     // Gris très clair pour le fond
+    card: '#FFFFFF',           // Cartes blanches
 
     gray: {
-        lightest: '#F8F9FA',  // Presque blanc
-        light: '#E9ECEF',     // Gris clair
-        medium: '#6C757D',    // Gris moyen
-        dark: '#495057',      // Gris foncé
-        darker: '#343A40',    // Gris très foncé
+        lightest: '#F8FAFC',   // Fond clair
+        light: '#E2E8F0',      // Bordures
+        medium: '#94A3B8',     // Texte secondaire
+        dark: '#475569',       // Texte principal
+        darker: '#1E293B',     // Texte fort
     },
 
-    // États
-    success: '#27AE60',       // Vert succès (différent de accent)
-    error: '#E74C3C',         // Rouge
-    warning: '#F39C12',       // Orange
-    info: '#3498DB',          // Bleu
+    // === ÉTATS ===
+    success: '#10B981',        // Vert succès
+    error: '#EF4444',          // Rouge erreur
+    warning: '#F59E0B',        // Orange warning
+    info: '#3B82F6',           // Bleu info
 
-    // Overlays
-    overlay: 'rgba(0,0,0,0.4)',
+    // === OVERLAYS ===
+    overlay: 'rgba(0,0,0,0.5)',
     cardShadow: 'rgba(0,0,0,0.08)',
+
+    // === TRANSPARENCES ===
+    primaryAlpha: (opacity: number) => `rgba(46, 177, 144, ${opacity})`,
+    secondaryAlpha: (opacity: number) => `rgba(30, 58, 95, ${opacity})`,
 };
 
-// 🌙 PRO DARK THEME - Interface Pro moderne style FundPip
+// 🌙 PALETTE PRO (Dark Theme) - Utilisée UNIQUEMENT pour le dashboard Pro
 export const ProColors = {
     // Backgrounds
-    background: '#0F0F23',     // Très sombre
-    backgroundLight: '#16162D', // Légèrement plus clair
-    card: '#1A1A2E',           // Cartes
-    cardHover: '#252545',      // Cartes hover
+    background: '#0F0F23',
+    backgroundLight: '#16162D',
+    card: '#1A1A2E',
+    cardHover: '#252545',
 
     // Textes
     text: '#FFFFFF',
     textSecondary: '#A0A0B8',
     textMuted: '#6C6C8A',
 
-    // Accent principal (vert AniReserve)
-    accent: '#2EB190',
-    accentLight: '#5FCFAF',
-    accentGlow: 'rgba(46, 177, 144, 0.3)',
+    // Couleurs de marque (mêmes que Colors)
+    primary: '#2EB190',
+    primaryLight: '#5FCFAF',
+    secondary: '#1E3A5F',
+    accent: '#F4D03F',
 
-    // Accent secondaire (violet/purple)
+    // Accent violet pour le pro
     purple: '#7B68EE',
     purpleLight: '#9D8FFF',
-    purpleGlow: 'rgba(123, 104, 238, 0.3)',
 
-    // États
-    success: '#27AE60',
-    error: '#E74C3C',
-    warning: '#F39C12',
-    info: '#3498DB',
+    // États (mêmes que Colors)
+    success: '#10B981',
+    error: '#EF4444',
+    warning: '#F59E0B',
+    info: '#3B82F6',
 
-    // Médailles podium
+    // Médailles
     gold: '#FFD700',
     silver: '#C0C0C0',
     bronze: '#CD7F32',
@@ -80,12 +86,6 @@ export const ProColors = {
     // Borders
     border: '#2A2A4A',
     borderLight: '#3A3A5A',
-
-    // Gradients
-    gradientStart: '#1A1A2E',
-    gradientEnd: '#0F0F23',
-    purpleGradientStart: '#2A1A4A',
-    purpleGradientEnd: '#1A1A2E',
 };
 
 export const Spacing = {
@@ -98,44 +98,42 @@ export const Spacing = {
 };
 
 export const FontSizes = {
-    xs: 12,
-    sm: 14,
-    md: 16,
-    lg: 17,   // Apple standard
-    xl: 22,
-    xxl: 28,
-    xxxl: 34,
+    xs: 11,
+    sm: 13,
+    md: 15,
+    lg: 17,
+    xl: 20,
+    xxl: 24,
+    xxxl: 32,
 };
 
-// Ombres subtiles style Apple
 export const Shadows = {
     small: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.04,
+        shadowOpacity: 0.05,
         shadowRadius: 3,
         elevation: 1,
     },
     medium: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.08,
         shadowRadius: 8,
         elevation: 3,
     },
     large: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.12,
         shadowRadius: 16,
         elevation: 6,
     },
 };
 
-// Ombres pour le dark theme Pro
 export const ProShadows = {
     glow: {
-        shadowColor: '#2EB190',
+        shadowColor: Colors.primary,
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.3,
         shadowRadius: 12,
@@ -150,7 +148,6 @@ export const ProShadows = {
     },
 };
 
-// Border radius - Subtil et moderne
 export const BorderRadius = {
     sm: 8,
     md: 12,

@@ -12,18 +12,10 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ProColors, Spacing, FontSizes, Colors } from '../../constants';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
-interface TopPro {
-    id: string;
-    name: string;
-    image?: string;
-    rating: number;
-    bookings: number;
-    revenue: string;
-}
+
 
 interface Stat {
     label: string;
@@ -43,10 +35,17 @@ interface Booking {
     status: string;
 }
 
-const MOCK_TOP_PROS: TopPro[] = [
-    { id: '2', name: 'Marie L.', rating: 4.9, bookings: 156, revenue: '45,200₪' },
-    { id: '1', name: 'David C.', rating: 5.0, bookings: 203, revenue: '62,800₪' }, // 1st
-    { id: '3', name: 'Sarah B.', rating: 4.8, bookings: 134, revenue: '38,400₪' },
+interface TopClient {
+    id: string;
+    name: string;
+    totalBookings: number;
+    totalSpent: string;
+}
+
+const MOCK_TOP_CLIENTS: TopClient[] = [
+    { id: '1', name: 'David Cohen', totalBookings: 12, totalSpent: '1,800₪' },
+    { id: '2', name: 'Marie Levy', totalBookings: 8, totalSpent: '1,250₪' },
+    { id: '3', name: 'Sarah Ben', totalBookings: 6, totalSpent: '920₪' },
 ];
 
 export default function ProDashboardScreen() {
@@ -70,64 +69,7 @@ export default function ProDashboardScreen() {
         setRefreshing(false);
     };
 
-    const renderPodium = () => {
-        const [second, first, third] = MOCK_TOP_PROS;
 
-        return (
-            <View style={styles.podiumContainer}>
-                <Text style={styles.sectionTitle}>🏆 Top Pros du mois</Text>
-                <View style={styles.podium}>
-                    {/* 2nd Place */}
-                    <View style={styles.podiumItem}>
-                        <View style={[styles.podiumAvatar, styles.silverBorder]}>
-                            <Text style={styles.avatarText}>{second.name[0]}</Text>
-                        </View>
-                        <View style={styles.rankBadge}>
-                            <Text style={styles.rankText}>2</Text>
-                        </View>
-                        <Text style={styles.podiumName}>{second.name}</Text>
-                        <Text style={styles.podiumStat}>⭐ {second.rating}</Text>
-                        <View style={[styles.podiumBar, styles.silverBar]}>
-                            <Text style={styles.podiumRevenue}>{second.revenue}</Text>
-                        </View>
-                    </View>
-
-                    {/* 1st Place */}
-                    <View style={[styles.podiumItem, styles.firstPlace]}>
-                        <View style={styles.crownContainer}>
-                            <Text style={styles.crown}>👑</Text>
-                        </View>
-                        <View style={[styles.podiumAvatar, styles.podiumAvatarLarge, styles.goldBorder]}>
-                            <Text style={[styles.avatarText, styles.avatarTextLarge]}>{first.name[0]}</Text>
-                        </View>
-                        <View style={[styles.rankBadge, styles.goldBadge]}>
-                            <Text style={styles.rankText}>1</Text>
-                        </View>
-                        <Text style={[styles.podiumName, styles.firstName]}>{first.name}</Text>
-                        <Text style={styles.podiumStat}>⭐ {first.rating}</Text>
-                        <View style={[styles.podiumBar, styles.goldBar]}>
-                            <Text style={styles.podiumRevenue}>{first.revenue}</Text>
-                        </View>
-                    </View>
-
-                    {/* 3rd Place */}
-                    <View style={styles.podiumItem}>
-                        <View style={[styles.podiumAvatar, styles.bronzeBorder]}>
-                            <Text style={styles.avatarText}>{third.name[0]}</Text>
-                        </View>
-                        <View style={[styles.rankBadge, styles.bronzeBadge]}>
-                            <Text style={styles.rankText}>3</Text>
-                        </View>
-                        <Text style={styles.podiumName}>{third.name}</Text>
-                        <Text style={styles.podiumStat}>⭐ {third.rating}</Text>
-                        <View style={[styles.podiumBar, styles.bronzeBar]}>
-                            <Text style={styles.podiumRevenue}>{third.revenue}</Text>
-                        </View>
-                    </View>
-                </View>
-            </View>
-        );
-    };
 
     return (
         <ScrollView
@@ -176,8 +118,25 @@ export default function ProDashboardScreen() {
                 ))}
             </View>
 
-            {/* Leaderboard Podium */}
-            {renderPodium()}
+            {/* Top Clients */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>⭐ Mes meilleurs clients</Text>
+                <View style={styles.topClientsGrid}>
+                    {MOCK_TOP_CLIENTS.map((client, index) => (
+                        <View key={client.id} style={styles.topClientCard}>
+                            <View style={styles.topClientRank}>
+                                <Text style={styles.topClientRankText}>{index + 1}</Text>
+                            </View>
+                            <View style={styles.topClientAvatar}>
+                                <Text style={styles.topClientAvatarText}>{client.name[0]}</Text>
+                            </View>
+                            <Text style={styles.topClientName}>{client.name}</Text>
+                            <Text style={styles.topClientStat}>{client.totalBookings} RDV</Text>
+                            <Text style={styles.topClientSpent}>{client.totalSpent}</Text>
+                        </View>
+                    ))}
+                </View>
+            </View>
 
             {/* Recent Bookings */}
             <View style={styles.section}>
@@ -450,36 +409,68 @@ const styles = StyleSheet.create({
     firstName: {
         fontSize: FontSizes.md,
     },
-    podiumStat: {
-        fontSize: FontSizes.xs,
-        color: ProColors.textSecondary,
-        marginTop: 2,
+    // Top Clients Section
+    topClientsGrid: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: Spacing.sm,
+        marginTop: Spacing.md,
     },
-    podiumBar: {
-        width: '80%',
-        marginTop: Spacing.sm,
-        paddingVertical: Spacing.sm,
-        borderRadius: 8,
+    topClientCard: {
+        flex: 1,
+        backgroundColor: ProColors.card,
+        borderRadius: 16,
+        padding: Spacing.md,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: ProColors.border,
+    },
+    topClientRank: {
+        position: 'absolute',
+        top: -8,
+        right: -8,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: ProColors.accent,
+        justifyContent: 'center',
         alignItems: 'center',
     },
-    goldBar: {
-        backgroundColor: ProColors.gold + '30',
-        height: 80,
-        justifyContent: 'flex-end',
-        paddingBottom: Spacing.sm,
-    },
-    silverBar: {
-        backgroundColor: ProColors.silver + '30',
-        height: 60,
-    },
-    bronzeBar: {
-        backgroundColor: ProColors.bronze + '30',
-        height: 50,
-    },
-    podiumRevenue: {
+    topClientRankText: {
         fontSize: FontSizes.xs,
         fontWeight: '700',
         color: ProColors.text,
+    },
+    topClientAvatar: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: ProColors.purple + '30',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: Spacing.sm,
+    },
+    topClientAvatarText: {
+        fontSize: FontSizes.lg,
+        fontWeight: '700',
+        color: ProColors.purple,
+    },
+    topClientName: {
+        fontSize: FontSizes.sm,
+        fontWeight: '600',
+        color: ProColors.text,
+        textAlign: 'center',
+        marginBottom: 2,
+    },
+    topClientStat: {
+        fontSize: FontSizes.xs,
+        color: ProColors.textSecondary,
+    },
+    topClientSpent: {
+        fontSize: FontSizes.sm,
+        fontWeight: '700',
+        color: ProColors.accent,
+        marginTop: 4,
     },
     bookingCard: {
         flexDirection: 'row',
