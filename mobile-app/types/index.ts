@@ -27,6 +27,7 @@ export interface ProProfile {
     serviceCategories: ServiceCategory[];
     reviews: Review[];
     services?: { id: string; name: string; description: string | null; price: number }[];
+    gallery?: { id: string; imageUrl: string; caption: string | null }[];
 }
 
 export interface ServiceCategory {

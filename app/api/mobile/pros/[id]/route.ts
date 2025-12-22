@@ -25,6 +25,20 @@ export async function GET(
             include: {
                 user: true,
                 city: true,
+                serviceCategories: true,
+                services: true,
+                gallery: {
+                    orderBy: { order: 'asc' },
+                },
+                reviews: {
+                    include: {
+                        client: {
+                            select: { name: true },
+                        },
+                    },
+                    orderBy: { createdAt: 'desc' },
+                    take: 10,
+                },
             },
         });
 

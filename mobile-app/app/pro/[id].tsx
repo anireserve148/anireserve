@@ -7,6 +7,9 @@ import {
     ActivityIndicator,
     TouchableOpacity,
     Alert,
+    Image,
+    Dimensions,
+    Modal,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,12 +17,15 @@ import { api } from '../../services/api';
 import { ProProfile } from '../../types';
 import { Colors, Spacing, FontSizes } from '../../constants';
 
+const { width: screenWidth } = Dimensions.get('window');
+
 export default function ProDetailScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
     const [pro, setPro] = useState<ProProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isFavorite, setIsFavorite] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     useEffect(() => {
         if (id) {
@@ -178,6 +184,65 @@ export default function ProDetailScreen() {
                     </View>
                 </View>
             )}
+
+            {/* Portfolio Gallery */}
+            {pro.gallery && pro.gallery.length > 0 && (
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>📸 Portfolio ({pro.gallery.length})</Text>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.galleryContainer}
+                    >
+                        {pro.gallery.map((item) => (
+                            <TouchableOpacity
+                                key={item.id}
+                                onPress={() => setSelectedImage(item.imageUrl)}
+                                style={styles.galleryItem}
+                            >
+                                <Image
+                                    source={{ uri: item.imageUrl }}
+                                    style={styles.galleryImage}
+                                    resizeMode="cover"
+                                />
+                                {item.caption && (
+                                    <Text style={styles.galleryCaption} numberOfLines={1}>
+                                        {item.caption}
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                </View>
+            )}
+
+            {/* Image Modal */}
+            <Modal
+                visible={!!selectedImage}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setSelectedImage(null)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setSelectedImage(null)}
+                >
+                    <TouchableOpacity
+                        style={styles.closeButton}
+                        onPress={() => setSelectedImage(null)}
+                    >
+                        <Ionicons name="close" size={30} color={Colors.white} />
+                    </TouchableOpacity>
+                    {selectedImage && (
+                        <Image
+                            source={{ uri: selectedImage }}
+                            style={styles.modalImage}
+                            resizeMode="contain"
+                        />
+                    )}
+                </TouchableOpacity>
+            </Modal>
 
             {/* Reviews */}
             {pro.reviews.length > 0 && (
@@ -426,5 +491,49 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: Colors.white,
         marginLeft: Spacing.sm,
+    },
+    // Portfolio Gallery Styles
+    galleryContainer: {
+        paddingVertical: Spacing.sm,
+        gap: Spacing.md,
+    },
+    galleryItem: {
+        marginRight: Spacing.md,
+    },
+    galleryImage: {
+        width: 150,
+        height: 150,
+        borderRadius: 12,
+        backgroundColor: Colors.gray.light,
+    },
+    galleryCaption: {
+        fontSize: FontSizes.sm,
+        color: Colors.gray.dark,
+        marginTop: Spacing.xs,
+        maxWidth: 150,
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 50,
+        right: 20,
+        zIndex: 10,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalImage: {
+        width: screenWidth - 40,
+        height: screenWidth - 40,
+        borderRadius: 12,
     },
 });
