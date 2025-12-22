@@ -50,14 +50,7 @@ export default function TabsLayout() {
                     fontSize: 11,
                     fontWeight: '600',
                 },
-                headerStyle: {
-                    backgroundColor: Colors.white,
-                },
-                headerTintColor: Colors.primary,
-                headerTitleStyle: {
-                    fontWeight: '700',
-                    fontSize: 18,
-                },
+                headerShown: false, // Hide all headers
             }}
         >
             <Tabs.Screen

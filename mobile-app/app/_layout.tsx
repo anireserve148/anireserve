@@ -63,13 +63,7 @@ export default function RootLayout() {
     return (
         <Stack
             screenOptions={{
-                headerStyle: {
-                    backgroundColor: Colors.primary,
-                },
-                headerTintColor: Colors.white,
-                headerTitleStyle: {
-                    fontWeight: 'bold',
-                },
+                headerShown: false, // Hide all headers by default
             }}
         >
             <Stack.Screen
@@ -80,6 +74,36 @@ export default function RootLayout() {
             />
             <Stack.Screen
                 name="(tabs)"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="(pro-tabs)"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="register"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="register-pro"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="forgot-password"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="pro/[id]"
                 options={{
                     headerShown: false,
                 }}
