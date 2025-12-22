@@ -59,6 +59,10 @@ export async function GET(request: NextRequest) {
                 },
                 city: true,
                 serviceCategories: true,
+                gallery: {
+                    orderBy: { order: 'asc' },
+                    take: 3, // First 3 images for feed preview
+                },
                 reviews: {
                     select: {
                         id: true,

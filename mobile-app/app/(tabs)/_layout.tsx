@@ -36,29 +36,33 @@ export default function TabsLayout() {
     return (
         <Tabs
             screenOptions={{
-                tabBarActiveTintColor: Colors.accent,
+                tabBarActiveTintColor: Colors.secondary,
                 tabBarInactiveTintColor: Colors.gray.medium,
                 tabBarStyle: {
-                    backgroundColor: Colors.white,
-                    borderTopColor: Colors.gray.light,
-                    borderTopWidth: 1,
-                    height: 70,
-                    paddingBottom: 12,
-                    paddingTop: 10,
+                    backgroundColor: '#fff',
+                    borderTopColor: '#DBDBDB',
+                    borderTopWidth: 0.5,
+                    height: 85,
+                    paddingBottom: 28,
+                    paddingTop: 8,
                 },
                 tabBarLabelStyle: {
-                    fontSize: 11,
-                    fontWeight: '600',
+                    fontSize: 10,
+                    fontWeight: '500',
                 },
-                headerShown: false, // Hide all headers
+                headerShown: false,
             }}
         >
             <Tabs.Screen
                 name="index"
                 options={{
                     title: 'Accueil',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="home" size={size} color={color} />
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? "home" : "home-outline"}
+                            size={26}
+                            color={color}
+                        />
                     ),
                 }}
             />
@@ -66,9 +70,13 @@ export default function TabsLayout() {
                 name="reservations"
                 options={{
                     title: 'Réservations',
-                    tabBarIcon: ({ color, size }) => (
+                    tabBarIcon: ({ color, focused }) => (
                         <View>
-                            <Ionicons name="calendar" size={size} color={color} />
+                            <Ionicons
+                                name={focused ? "calendar" : "calendar-outline"}
+                                size={26}
+                                color={color}
+                            />
                             {pendingReservations > 0 && (
                                 <View style={styles.badge}>
                                     <Text style={styles.badgeText}>
@@ -84,8 +92,12 @@ export default function TabsLayout() {
                 name="favorites"
                 options={{
                     title: 'Favoris',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="heart" size={size} color={color} />
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? "heart" : "heart-outline"}
+                            size={26}
+                            color={focused ? "#FF3B5C" : color}
+                        />
                     ),
                 }}
             />
@@ -93,9 +105,13 @@ export default function TabsLayout() {
                 name="messages"
                 options={{
                     title: 'Messages',
-                    tabBarIcon: ({ color, size }) => (
+                    tabBarIcon: ({ color, focused }) => (
                         <View>
-                            <Ionicons name="chatbubbles" size={size} color={color} />
+                            <Ionicons
+                                name={focused ? "paper-plane" : "paper-plane-outline"}
+                                size={24}
+                                color={color}
+                            />
                             {unreadMessages > 0 && (
                                 <View style={styles.badge}>
                                     <Text style={styles.badgeText}>
@@ -111,8 +127,12 @@ export default function TabsLayout() {
                 name="profile"
                 options={{
                     title: 'Profil',
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="person" size={size} color={color} />
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons
+                            name={focused ? "person-circle" : "person-circle-outline"}
+                            size={28}
+                            color={color}
+                        />
                     ),
                 }}
             />
