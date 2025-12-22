@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "TURBOPACK=0 next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -31,7 +31,7 @@
     "ics": "^3.8.1",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.556.0",
-    "next": "^16.0.10",
+    "next": "15.1.0",
     "next-auth": "^5.0.0-beta.30",
     "next-themes": "^0.4.6",
     "react": "19.2.1",
@@ -51,7 +51,7 @@
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.22",
     "eslint": "^9",
-    "eslint-config-next": "16.0.8",
+    "eslint-config-next": "15.1.0",
     "postcss": "^8.5.6",
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.1",
