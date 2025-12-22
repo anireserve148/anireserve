@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { email, name, image, googleId } = validation.data;
+        const { email, name, image } = validation.data;
 
         // Check if user exists
         let user = await prisma.user.findUnique({
@@ -42,14 +42,11 @@ export async function POST(request: NextRequest) {
         });
 
         if (user) {
-            // Update existing user with Google ID if not set
-            if (!user.googleId) {
+            // Update existing user image if provided
+            if (image && !user.image) {
                 user = await prisma.user.update({
                     where: { id: user.id },
-                    data: {
-                        googleId,
-                        image: image || user.image,
-                    },
+                    data: { image },
                 });
             }
         } else {
@@ -59,7 +56,7 @@ export async function POST(request: NextRequest) {
                     name,
                     email: email.toLowerCase(),
                     image,
-                    googleId,
+                    password: '', // Empty password for Google users
                     role: 'CLIENT',
                 },
             });
