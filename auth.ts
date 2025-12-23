@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
+import Apple from 'next-auth/providers/apple';
 import { authConfig } from './auth.config';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
@@ -17,6 +18,11 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        }),
+        // Apple OAuth Provider
+        Apple({
+            clientId: process.env.APPLE_CLIENT_ID!,
+            clientSecret: process.env.APPLE_CLIENT_SECRET!,
         }),
         // Email/Password Provider
         Credentials({
@@ -44,18 +50,18 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     ],
     callbacks: {
         async signIn({ user, account, profile }) {
-            // For Google sign-in, create or update user in database
-            if (account?.provider === 'google' && user.email) {
+            // For Google or Apple sign-in, create or update user in database
+            if ((account?.provider === 'google' || account?.provider === 'apple') && user.email) {
                 const existingUser = await prisma.user.findUnique({
                     where: { email: user.email }
                 });
 
                 if (!existingUser) {
-                    // Create new user with Google account
+                    // Create new user with OAuth account
                     await prisma.user.create({
                         data: {
                             email: user.email,
-                            name: user.name || 'Utilisateur Google',
+                            name: user.name || 'Utilisateur',
                             password: '', // No password for OAuth users
                             role: 'CLIENT',
                             image: user.image || null,
@@ -76,7 +82,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         async jwt({ token, user, account }) {
             if (user) {
                 // For OAuth, fetch the user from DB to get role
-                if (account?.provider === 'google' && user.email) {
+                if ((account?.provider === 'google' || account?.provider === 'apple') && user.email) {
                     const dbUser = await prisma.user.findUnique({
                         where: { email: user.email }
                     });
