@@ -84,6 +84,17 @@ class ApiService {
         });
     }
 
+    async appleLogin(data: {
+        email: string;
+        name: string;
+        appleId: string;
+    }): Promise<ApiResponse<{ user: User; token: string }>> {
+        return this.request('/api/mobile/apple-login', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
     async registerPro(data: {
         name: string;
         email: string;

@@ -14,6 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../services/api';
 import { storage } from '../services/storage';
@@ -27,6 +28,7 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [isAppleLoading, setIsAppleLoading] = useState(false);
 
     // Google OAuth - Replace with your actual Google Client IDs from Google Console
     const [request, response, promptAsync] = Google.useAuthRequest({
@@ -72,6 +74,47 @@ export default function LoginScreen() {
             Alert.alert('Erreur', 'Connexion Google échouée');
         } finally {
             setIsGoogleLoading(false);
+        }
+    };
+
+    // Apple Sign In handler
+    const handleAppleSignIn = async () => {
+        setIsAppleLoading(true);
+        try {
+            const credential = await AppleAuthentication.signInAsync({
+                requestedScopes: [
+                    AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+                    AppleAuthentication.AppleAuthenticationScope.EMAIL,
+                ],
+            });
+
+            // Get user info from Apple credential
+            const email = credential.email || `${credential.user}@privaterelay.appleid.com`;
+            const name = credential.fullName?.givenName
+                ? `${credential.fullName.givenName} ${credential.fullName.familyName || ''}`
+                : 'Utilisateur Apple';
+
+            // Send to our backend for login/register
+            const result = await api.appleLogin({
+                email,
+                name,
+                appleId: credential.user,
+            });
+
+            if (result.success && result.data) {
+                await storage.saveToken(result.data.token);
+                await storage.saveUser(result.data.user);
+                api.setToken(result.data.token);
+                router.replace('/(tabs)');
+            } else {
+                Alert.alert('Erreur', result.error || 'Connexion Apple échouée');
+            }
+        } catch (error: any) {
+            if (error.code !== 'ERR_CANCELED') {
+                Alert.alert('Erreur', 'Connexion Apple échouée');
+            }
+        } finally {
+            setIsAppleLoading(false);
         }
     };
 
@@ -188,6 +231,17 @@ export default function LoginScreen() {
                             </>
                         )}
                     </TouchableOpacity>
+
+                    {/* Apple Sign In - Only show on iOS */}
+                    {Platform.OS === 'ios' && (
+                        <AppleAuthentication.AppleAuthenticationButton
+                            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                            cornerRadius={12}
+                            style={styles.appleButton}
+                            onPress={handleAppleSignIn}
+                        />
+                    )}
 
                     {/* Forgot Password Link */}
                     <TouchableOpacity
@@ -334,6 +388,11 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: Spacing.md,
         gap: Spacing.sm,
+    },
+    appleButton: {
+        width: '100%',
+        height: 50,
+        marginTop: Spacing.md,
     },
     googleButtonText: {
         fontSize: FontSizes.md,
