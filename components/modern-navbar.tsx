@@ -89,12 +89,12 @@ export function ModernNavbar({ user }: { user?: { name?: string | null; role?: s
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/login?mode=client">
+                                    <Link href="/login/client">
                                         <Button variant="outline" className="border-emerald-500 text-emerald-600 hover:bg-emerald-50">
                                             Connexion Client
                                         </Button>
                                     </Link>
-                                    <Link href="/login?mode=pro">
+                                    <Link href="/login/pro">
                                         <Button className="bg-[#18223b] text-white hover:bg-[#18223b]/90">
                                             Connexion Pro
                                         </Button>

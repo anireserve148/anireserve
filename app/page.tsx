@@ -12,10 +12,10 @@ import Link from "next/link"
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ city?: string; category?: string; q?: string; sort?: string }>
+  searchParams: Promise<{ city?: string; category?: string; q?: string; sort?: string; today?: string }>
 }) {
   const session = await auth()
-  const { city, category, q, sort } = await searchParams
+  const { city, category, q, sort, today } = await searchParams
 
   // Fetch stats
   const stats = {
@@ -173,7 +173,7 @@ export default async function Home({
                     Trouver un Pro
                   </Link>
                   <Link
-                    href="/register?type=pro"
+                    href="/register/pro"
                     className="px-8 py-4 bg-white border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary/5 transition-all"
                   >
                     Devenir Pro
