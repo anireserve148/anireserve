@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { ClientProfileEdit } from '@/components/client-profile-edit';
 import { ReviewForm } from '@/components/reviews/review-form';
 import { AddToCalendarButton } from '@/components/add-to-calendar-button';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { NotificationButton } from '@/components/notification-button';
 
 export default async function DashboardPage() {
     const session = await auth();
@@ -75,9 +77,14 @@ export default async function DashboardPage() {
                             </p>
                         </div>
 
-                        {/* Profile Avatar */}
-                        <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/30">
-                            <span className="text-white text-xl font-bold">{firstName[0]}</span>
+                        {/* Actions */}
+                        <div className="flex items-center gap-2">
+                            <NotificationButton />
+                            <ThemeToggle />
+                            {/* Profile Avatar */}
+                            <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/30">
+                                <span className="text-white text-xl font-bold">{firstName[0]}</span>
+                            </div>
                         </div>
                     </div>
 
