@@ -41,7 +41,8 @@ async function getPros(params: SearchParams) {
         where.OR = [
             { bio: { contains: params.q, mode: 'insensitive' } },
             { user: { name: { contains: params.q, mode: 'insensitive' } } },
-            { serviceCategories: { some: { name: { contains: params.q, mode: 'insensitive' } } } }
+            { serviceCategories: { some: { name: { contains: params.q, mode: 'insensitive' } } } },
+            { services: { some: { name: { contains: params.q, mode: 'insensitive' }, isActive: true } } }
         ]
     }
 

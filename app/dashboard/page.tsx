@@ -24,10 +24,8 @@ export default async function DashboardPage() {
         );
     }
 
-    // Force redirect for PRO users (Double safety with middleware)
-    if (session.user.role === 'PRO') {
-        redirect('/dashboard/pro');
-    }
+    // PRO users can also access client dashboard to book other Pros
+    // They can switch to /dashboard/pro for their professional activities
 
     /* Fetch user with reservations */
     const user = await prisma.user.findUnique({
