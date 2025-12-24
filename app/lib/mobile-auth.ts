@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verify } from 'jsonwebtoken';
-import { prisma } from './prisma';
+import { prisma } from '@/lib/prisma';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
