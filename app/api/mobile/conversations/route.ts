@@ -117,27 +117,15 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { otherUserId } = body;
 
-        // Check if conversation already exists
-        const existing = await prisma.conversation.findFirst({
-            where: {
-                OR: [
-                    { clientId: decoded.userId, proId: otherUserId },
-                    { clientId: otherUserId, proId: decoded.userId },
-                ],
-            },
-        });
-
-        if (existing) {
-            return NextResponse.json({ id: existing.id }, { headers: corsHeaders });
-        }
-
         // Determine who is client and who is pro
         const currentUser = await prisma.user.findUnique({
             where: { id: decoded.userId },
+            include: { proProfile: true },
         });
 
         const otherUser = await prisma.user.findUnique({
             where: { id: otherUserId },
+            include: { proProfile: true },
         });
 
         if (!currentUser || !otherUser) {
@@ -147,12 +135,43 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const isCurrentUserClient = currentUser.role === 'CLIENT';
+        // Determine client and pro
+        // If current user is Pro and other user is Client: current=pro, other=client
+        // If current user is Client and other user is Pro: current=client, other=pro
+        let clientId: string;
+        let proProfileId: string;
+
+        if (currentUser.role === 'PRO' && currentUser.proProfile) {
+            // Current user is the Pro, other user is the Client
+            clientId = otherUserId;
+            proProfileId = currentUser.proProfile.id;
+        } else if (otherUser.role === 'PRO' && otherUser.proProfile) {
+            // Other user is the Pro, current user is the Client
+            clientId = decoded.userId;
+            proProfileId = otherUser.proProfile.id;
+        } else {
+            return NextResponse.json(
+                { error: 'Une des deux parties doit être un professionnel' },
+                { status: 400, headers: corsHeaders }
+            );
+        }
+
+        // Check if conversation already exists
+        const existing = await prisma.conversation.findFirst({
+            where: {
+                clientId: clientId,
+                proId: proProfileId,
+            },
+        });
+
+        if (existing) {
+            return NextResponse.json({ id: existing.id }, { headers: corsHeaders });
+        }
 
         const conversation = await prisma.conversation.create({
             data: {
-                clientId: isCurrentUserClient ? decoded.userId : otherUserId,
-                proId: isCurrentUserClient ? otherUserId : decoded.userId,
+                clientId: clientId,
+                proId: proProfileId,
             },
         });
 

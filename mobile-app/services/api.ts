@@ -272,6 +272,14 @@ class ApiService {
     async getProStats(): Promise<ApiResponse<{ monthlyRevenue: number; totalBookings: number; pendingBookings: number; currency: string }>> {
         return this.request('/api/mobile/stats');
     }
+
+    async getProClients(): Promise<ApiResponse<any[]>> {
+        return this.request('/api/mobile/clients');
+    }
+
+    async startConversationWithClient(clientUserId: string): Promise<ApiResponse<{ id: string }>> {
+        return this.createConversation(clientUserId);
+    }
 }
 
 export const api = new ApiService();
