@@ -134,10 +134,31 @@ export default function RegisterProScreen() {
         }
     };
 
+    // Validate Israeli phone number
+    const validateIsraeliPhone = (phoneNum: string): boolean => {
+        const cleaned = phoneNum.replace(/[\s\-\.]/g, '');
+        const mobileRegex = /^(\+972|0)5[0-9]{8}$/;
+        const landlineRegex = /^(\+972|0)[2-9][0-9]{7,8}$/;
+        return mobileRegex.test(cleaned) || landlineRegex.test(cleaned);
+    };
+
     const handleRegister = async () => {
         // Validation
         if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim() || !password) {
             Alert.alert('Erreur', 'Veuillez remplir tous les champs obligatoires');
+            return;
+        }
+
+        // Email validation
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(email.trim())) {
+            Alert.alert('Erreur', 'Format d\'email invalide');
+            return;
+        }
+
+        // Phone validation
+        if (!validateIsraeliPhone(phone)) {
+            Alert.alert('Erreur', 'Format de téléphone invalide. Utilisez le format israélien: 05X-XXX-XXXX ou +972-5X-XXX-XXXX');
             return;
         }
 
@@ -146,8 +167,8 @@ export default function RegisterProScreen() {
             return;
         }
 
-        if (password.length < 6) {
-            Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 6 caractères');
+        if (password.length < 8) {
+            Alert.alert('Erreur', 'Le mot de passe doit contenir au moins 8 caractères');
             return;
         }
 
@@ -282,7 +303,7 @@ export default function RegisterProScreen() {
                                     style={styles.passwordInput}
                                     value={password}
                                     onChangeText={setPassword}
-                                    placeholder="Min. 6 caractères"
+                                    placeholder="Min. 8 caractères"
                                     placeholderTextColor={Colors.gray.medium}
                                     secureTextEntry={!showPassword}
                                 />

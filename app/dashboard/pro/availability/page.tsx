@@ -121,7 +121,7 @@ export default async function AvailabilityPage() {
             <AvailabilityEditor
                 initialAvailability={availability.map(a => ({
                     id: a.id,
-                    dayOfWeek: a.dayOfWeek,
+                    dayOfWeek: a.dayOfWeek ?? 0,
                     isAvailable: a.isAvailable,
                     startTime: a.startTime,
                     endTime: a.endTime
