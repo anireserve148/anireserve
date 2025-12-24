@@ -356,7 +356,7 @@ export default async function AdminDashboardPage() {
 
                                             <div className="flex items-center gap-4 self-end md:self-center">
                                                 <div className="text-right mr-4 hidden md:block">
-                                                    <div className="font-bold text-navy">{pro.hourlyRate}€ /h</div>
+                                                    <div className="font-bold text-navy">{pro.hourlyRate} ₪/h</div>
                                                     <div className="text-xs text-gray-400">Tarif horaire</div>
                                                 </div>
 

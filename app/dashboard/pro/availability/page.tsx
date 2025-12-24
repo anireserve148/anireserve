@@ -3,9 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Clock, Check, X, AlertCircle, Calendar } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { BlockedPeriodsManager } from '@/components/pro/blocked-periods-manager'
+import { AvailabilityEditor } from '@/components/pro/availability-editor'
 
 const dayLabels = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
 
@@ -15,9 +14,12 @@ async function getAvailability(userId: string) {
             where: { userId },
             include: { availability: true }
         })
-        return proProfile?.availability || []
+        return {
+            proProfileId: proProfile?.id || '',
+            availability: proProfile?.availability || []
+        }
     } catch {
-        return []
+        return { proProfileId: '', availability: [] }
     }
 }
 
@@ -47,7 +49,7 @@ export default async function AvailabilityPage() {
         )
     }
 
-    const availability = await getAvailability(session.user.id)
+    const { availability } = await getAvailability(session.user.id)
 
     // Calculate total hours per week
     const totalHours = availability.reduce((acc, avail) => {
@@ -115,77 +117,20 @@ export default async function AvailabilityPage() {
                 </Card>
             </div>
 
-            {/* Weekly Schedule */}
-            <Card className="border-border/50">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5" />
-                        Horaires hebdomadaires
-                    </CardTitle>
-                    <CardDescription>
-                        Vos disponibilités pour les réservations
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-3">
-                        {dayLabels.map((dayLabel, dayIndex) => {
-                            const avail = availability.find(a => a.dayOfWeek === dayIndex)
-                            const isAvailable = avail?.isAvailable
-
-                            return (
-                                <div
-                                    key={dayIndex}
-                                    className={`
-                                        flex items-center justify-between p-4 rounded-lg border
-                                        ${isAvailable
-                                            ? 'border-turquoise/30 bg-turquoise/5'
-                                            : 'border-border/50 bg-muted/30'
-                                        }
-                                    `}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`
-                                            w-3 h-3 rounded-full
-                                            ${isAvailable ? 'bg-turquoise' : 'bg-muted-foreground/30'}
-                                        `} />
-                                        <span className="font-medium">{dayLabel}</span>
-                                    </div>
-
-                                    {isAvailable && avail ? (
-                                        <Badge variant="secondary" className="bg-turquoise/10 text-turquoise">
-                                            <Clock className="w-3 h-3 mr-1" />
-                                            {avail.startTime} - {avail.endTime}
-                                        </Badge>
-                                    ) : (
-                                        <Badge variant="outline" className="text-muted-foreground">
-                                            Fermé
-                                        </Badge>
-                                    )}
-                                </div>
-                            )
-                        })}
-                    </div>
-                </CardContent>
-            </Card>
+            {/* Availability Editor */}
+            <AvailabilityEditor
+                initialAvailability={availability.map(a => ({
+                    id: a.id,
+                    dayOfWeek: a.dayOfWeek,
+                    isAvailable: a.isAvailable,
+                    startTime: a.startTime,
+                    endTime: a.endTime
+                }))}
+                proProfileId={proProfile.id}
+            />
 
             {/* Blocked Periods */}
             <BlockedPeriodsManager />
-
-            {/* Info */}
-            <Card className="border-gold/30 bg-gold/5">
-                <CardContent className="pt-6">
-                    <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-gold shrink-0 mt-0.5" />
-                        <div>
-                            <p className="font-medium text-sm">Comment modifier mes horaires ?</p>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Pour modifier vos disponibilités, rendez-vous dans les Paramètres de votre profil
-                                ou contactez le support.
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     )
 }
