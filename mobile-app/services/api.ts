@@ -308,6 +308,11 @@ class ApiService {
             body: JSON.stringify({ reservationId, status }),
         });
     }
+
+    // Notifications
+    async getNotificationCount(): Promise<ApiResponse<{ total: number; unreadMessages: number; pendingBookings: number }>> {
+        return this.request('/api/mobile/notifications');
+    }
 }
 
 export const api = new ApiService();

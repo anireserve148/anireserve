@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
 import { ProColors, Spacing, FontSizes, Colors } from '../../constants';
+import { NotificationBell } from '../../components/NotificationBell';
 
 const { width } = Dimensions.get('window');
 
@@ -123,10 +124,7 @@ export default function ProDashboardScreen() {
                         })}
                     </Text>
                 </View>
-                <TouchableOpacity style={styles.notifButton}>
-                    <Ionicons name="notifications-outline" size={24} color={ProColors.text} />
-                    <View style={styles.notifBadge} />
-                </TouchableOpacity>
+                <NotificationBell color={ProColors.text} size={28} />
             </View>
 
             {/* Stats Grid */}
