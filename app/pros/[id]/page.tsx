@@ -89,8 +89,34 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
         ? pro.reviews.reduce((acc, r) => acc + r.rating, 0) / pro.reviews.length
         : 0
 
+    // JSON-LD structured data for SEO
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": pro.user.name,
+        "description": pro.bio || `Professionnel à ${pro.city.name}`,
+        "image": pro.user.image || undefined,
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": pro.city.name,
+            "addressRegion": pro.city.region,
+            "addressCountry": "IL"
+        },
+        "aggregateRating": pro.reviews.length > 0 ? {
+            "@type": "AggregateRating",
+            "ratingValue": averageRating.toFixed(1),
+            "reviewCount": pro.reviews.length
+        } : undefined,
+        "priceRange": `${pro.hourlyRate}₪`,
+        "url": `${process.env.NEXT_PUBLIC_BASE_URL || 'https://anireserve.com'}/pros/${pro.id}`
+    }
+
     return (
         <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
             <ModernNavbar user={session?.user} />
             <div className="container mx-auto py-10 px-4 min-h-screen">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

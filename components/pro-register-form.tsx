@@ -33,7 +33,8 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
         confirmPassword: "",
         cityIds: [] as string[],
         categoryIds: [] as string[],
-        idPhotoUrl: ""
+        idPhotoUrl: "",
+        website: "" // Honeypot field - should remain empty
     })
 
     const [idPhotoPreview, setIdPhotoPreview] = useState<string | null>(null)
@@ -88,10 +89,52 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
         }
     }
 
+    // Validate Israeli phone number format
+    const validateIsraeliPhone = (phone: string): boolean => {
+        // Remove spaces, dashes and dots
+        const cleaned = phone.replace(/[\s\-\.]/g, '')
+        // Israeli mobile: 05X-XXX-XXXX or +972-5X-XXX-XXXX
+        const mobileRegex = /^(\+972|0)5[0-9]{8}$/
+        // Israeli landline: 0X-XXX-XXXX or +972-X-XXX-XXXX
+        const landlineRegex = /^(\+972|0)[2-9][0-9]{7,8}$/
+        return mobileRegex.test(cleaned) || landlineRegex.test(cleaned)
+    }
+
+    // Validate email format
+    const validateEmail = (email: string): boolean => {
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+        return emailRegex.test(email)
+    }
+
     const handleSubmit = async () => {
+        // Honeypot check - if filled, it's a bot
+        if (formData.website) {
+            console.log('Bot detected')
+            toast.success("Candidature enregistrée !") // Fake success to not alert the bot
+            return
+        }
+
         // Validation - checking all fields at once
         if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.password) {
             toast.error("Veuillez remplir vos informations personnelles")
+            return
+        }
+
+        // Email validation
+        if (!validateEmail(formData.email)) {
+            toast.error("Format d'email invalide")
+            return
+        }
+
+        // Phone validation
+        if (!validateIsraeliPhone(formData.phone)) {
+            toast.error("Format de téléphone invalide. Utilisez le format israélien: 05X-XXX-XXXX ou +972-5X-XXX-XXXX")
+            return
+        }
+
+        // Password strength
+        if (formData.password.length < 8) {
+            toast.error("Le mot de passe doit contenir au moins 8 caractères")
             return
         }
 
