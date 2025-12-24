@@ -45,7 +45,7 @@ export function ServiceForm({ categories }: {
         try {
             const result = await addProService({
                 name: formData.name.trim(),
-                categoryId: formData.categoryId || undefined,
+                categoryId: formData.categoryId && formData.categoryId !== 'none' ? formData.categoryId : undefined,
                 description: formData.description || undefined,
                 customPrice: parseFloat(formData.customPrice),
                 duration: parseInt(formData.duration)
@@ -90,7 +90,7 @@ export function ServiceForm({ categories }: {
                         <SelectValue placeholder="Sélectionnez une catégorie" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">Aucune catégorie</SelectItem>
+                        <SelectItem value="none">Aucune catégorie</SelectItem>
                         {categories.map((cat) => (
                             <SelectItem key={cat.id} value={cat.id}>
                                 {cat.name}
