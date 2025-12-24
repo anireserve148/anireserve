@@ -292,5 +292,6 @@ export default async function ProDashboard() {
                     </Link>
                 </div>
             </div>
-            );
+        </div>
+    );
 }
