@@ -280,6 +280,34 @@ class ApiService {
     async startConversationWithClient(clientUserId: string): Promise<ApiResponse<{ id: string }>> {
         return this.createConversation(clientUserId);
     }
+
+    // Pro Reservations Management
+    async getProReservations(): Promise<ApiResponse<any[]>> {
+        return this.request('/api/mobile/pro-reservations');
+    }
+
+    async createManualReservation(data: {
+        clientName: string;
+        clientEmail: string;
+        clientPhone?: string;
+        startDate: string;
+        endDate: string;
+        serviceId?: string;
+        totalPrice?: number;
+        notes?: string;
+    }): Promise<ApiResponse<any>> {
+        return this.request('/api/mobile/pro-reservations', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async updateReservationStatus(reservationId: string, status: string): Promise<ApiResponse<any>> {
+        return this.request('/api/mobile/pro-reservations', {
+            method: 'PATCH',
+            body: JSON.stringify({ reservationId, status }),
+        });
+    }
 }
 
 export const api = new ApiService();

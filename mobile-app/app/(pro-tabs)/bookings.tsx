@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -6,30 +6,32 @@ import {
     ScrollView,
     TouchableOpacity,
     FlatList,
+    ActivityIndicator,
+    Alert,
+    RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes } from '../../constants';
+import { api } from '../../services/api';
 
 interface Booking {
     id: string;
-    clientName: string;
-    clientImage?: string;
-    date: string;
-    time: string;
-    duration: number;
+    client: {
+        id: string;
+        name: string;
+        email: string;
+        image: string | null;
+    };
+    startDate: string;
+    endDate: string;
     status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
-    price: number;
-    notes?: string;
+    totalPrice: number;
+    service?: {
+        name: string;
+        duration: number;
+    };
 }
-
-const MOCK_BOOKINGS: Booking[] = [
-    { id: '1', clientName: 'David Cohen', date: '2025-12-24', time: '10:00', duration: 2, status: 'PENDING', price: 240 },
-    { id: '2', clientName: 'Marie Levy', date: '2025-12-24', time: '14:00', duration: 1, status: 'PENDING', price: 120 },
-    { id: '3', clientName: 'Sarah Ben', date: '2025-12-23', time: '09:00', duration: 2, status: 'CONFIRMED', price: 240 },
-    { id: '4', clientName: 'Michel Azoulay', date: '2025-12-22', time: '15:00', duration: 3, status: 'COMPLETED', price: 360 },
-    { id: '5', clientName: 'Rachel Cohen', date: '2025-12-21', time: '11:00', duration: 1, status: 'CANCELLED', price: 120 },
-];
 
 const STATUS_COLORS = {
     PENDING: Colors.warning,
@@ -48,22 +50,90 @@ const STATUS_LABELS = {
 export default function ProBookingsScreen() {
     const router = useRouter();
     const [filter, setFilter] = useState<string>('all');
-    const [bookings] = useState<Booking[]>(MOCK_BOOKINGS);
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const loadBookings = async () => {
+        const result = await api.getProReservations();
+        if (result.success && result.data) {
+            setBookings(result.data);
+        }
+        setIsLoading(false);
+    };
+
+    useEffect(() => {
+        loadBookings();
+    }, []);
+
+    // Reload when screen is focused (after adding a new reservation)
+    useFocusEffect(
+        useCallback(() => {
+            loadBookings();
+        }, [])
+    );
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        await loadBookings();
+        setIsRefreshing(false);
+    };
 
     const filteredBookings = filter === 'all'
         ? bookings
         : bookings.filter(b => b.status === filter);
 
-    const handleAccept = (id: string) => {
-        console.log('Accept:', id);
+    const handleAccept = async (id: string) => {
+        const result = await api.updateReservationStatus(id, 'CONFIRMED');
+        if (result.success) {
+            Alert.alert('Succès', 'Réservation confirmée');
+            loadBookings();
+        } else {
+            Alert.alert('Erreur', 'Impossible de confirmer la réservation');
+        }
     };
 
-    const handleReject = (id: string) => {
-        console.log('Reject:', id);
+    const handleReject = async (id: string) => {
+        Alert.alert(
+            'Annuler la réservation',
+            'Êtes-vous sûr de vouloir annuler cette réservation ?',
+            [
+                { text: 'Non', style: 'cancel' },
+                {
+                    text: 'Oui, annuler',
+                    style: 'destructive',
+                    onPress: async () => {
+                        const result = await api.updateReservationStatus(id, 'CANCELLED');
+                        if (result.success) {
+                            Alert.alert('Réservation annulée');
+                            loadBookings();
+                        } else {
+                            Alert.alert('Erreur', 'Impossible d\'annuler la réservation');
+                        }
+                    },
+                },
+            ]
+        );
     };
 
-    const handleComplete = (id: string) => {
-        console.log('Complete:', id);
+    const handleComplete = async (id: string) => {
+        const result = await api.updateReservationStatus(id, 'COMPLETED');
+        if (result.success) {
+            Alert.alert('Succès', 'Réservation terminée');
+            loadBookings();
+        } else {
+            Alert.alert('Erreur', 'Impossible de terminer la réservation');
+        }
+    };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+    };
+
+    const formatTime = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     };
 
     const renderBooking = ({ item }: { item: Booking }) => (
@@ -73,16 +143,25 @@ export default function ProBookingsScreen() {
         ]}>
             <View style={styles.bookingHeader}>
                 <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{item.clientName[0]}</Text>
+                    <Text style={styles.avatarText}>
+                        {item.client?.name?.[0] || 'C'}
+                    </Text>
                 </View>
                 <View style={styles.bookingInfo}>
-                    <Text style={styles.clientName}>{item.clientName}</Text>
+                    <Text style={styles.clientName}>
+                        {item.client?.name || 'Client'}
+                    </Text>
                     <View style={styles.dateLine}>
                         <Ionicons name="calendar-outline" size={14} color={Colors.gray.medium} />
-                        <Text style={styles.dateText}>{item.date}</Text>
+                        <Text style={styles.dateText}>{formatDate(item.startDate)}</Text>
                         <Ionicons name="time-outline" size={14} color={Colors.gray.medium} />
-                        <Text style={styles.dateText}>{item.time} ({item.duration}h)</Text>
+                        <Text style={styles.dateText}>
+                            {formatTime(item.startDate)} - {formatTime(item.endDate)}
+                        </Text>
                     </View>
+                    {item.service && (
+                        <Text style={styles.serviceName}>{item.service.name}</Text>
+                    )}
                 </View>
                 <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] + '20' }]}>
                     <Text style={[styles.statusText, { color: STATUS_COLORS[item.status] }]}>
@@ -92,7 +171,7 @@ export default function ProBookingsScreen() {
             </View>
 
             <View style={styles.bookingFooter}>
-                <Text style={styles.price}>{item.price}₪</Text>
+                <Text style={styles.price}>{item.totalPrice}₪</Text>
 
                 {item.status === 'PENDING' && (
                     <View style={styles.actions}>
@@ -124,6 +203,14 @@ export default function ProBookingsScreen() {
             </View>
         </View>
     );
+
+    if (isLoading) {
+        return (
+            <View style={styles.centerContainer}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -169,13 +256,34 @@ export default function ProBookingsScreen() {
                 renderItem={renderBooking}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContent}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={handleRefresh}
+                        tintColor={Colors.primary}
+                    />
+                }
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
                         <Ionicons name="calendar-outline" size={64} color={Colors.gray.light} />
                         <Text style={styles.emptyText}>Aucune réservation</Text>
+                        <TouchableOpacity
+                            style={styles.emptyBtn}
+                            onPress={() => router.push('/add-reservation')}
+                        >
+                            <Text style={styles.emptyBtnText}>Créer une réservation</Text>
+                        </TouchableOpacity>
                     </View>
                 }
             />
+
+            {/* FAB - Add Reservation */}
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={() => router.push('/add-reservation')}
+            >
+                <Ionicons name="add" size={32} color={Colors.white} />
+            </TouchableOpacity>
         </View>
     );
 }
@@ -184,6 +292,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.gray.lightest,
+    },
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     filterContainer: {
         backgroundColor: Colors.white,
@@ -213,6 +326,7 @@ const styles = StyleSheet.create({
     },
     listContent: {
         padding: Spacing.md,
+        paddingBottom: 100,
     },
     bookingCard: {
         backgroundColor: Colors.white,
@@ -262,6 +376,11 @@ const styles = StyleSheet.create({
     dateText: {
         fontSize: FontSizes.sm,
         color: Colors.gray.medium,
+    },
+    serviceName: {
+        fontSize: FontSizes.xs,
+        color: Colors.accent,
+        marginTop: Spacing.xs,
     },
     statusBadge: {
         paddingHorizontal: Spacing.sm,
@@ -320,6 +439,17 @@ const styles = StyleSheet.create({
         color: Colors.gray.medium,
         marginTop: Spacing.md,
     },
+    emptyBtn: {
+        marginTop: Spacing.lg,
+        backgroundColor: Colors.primary,
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.md,
+        borderRadius: 12,
+    },
+    emptyBtnText: {
+        color: Colors.white,
+        fontWeight: '600',
+    },
     headerBar: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -336,5 +466,21 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.accent,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    fab: {
+        position: 'absolute',
+        bottom: 90,
+        right: 20,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: Colors.success,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
     },
 });
