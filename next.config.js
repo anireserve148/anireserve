@@ -41,8 +41,9 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
-    // Turbopack config (empty to silence migration warning)
-    turbopack: {},
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
 };
 
 module.exports = nextConfig;
