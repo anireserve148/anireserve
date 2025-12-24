@@ -5,7 +5,7 @@ class ApiService {
     private token: string | null = null;
     public baseUrl: string = API_URL;
 
-    setToken(token: string) {
+    setToken(token: string | null) {
         this.token = token;
     }
 

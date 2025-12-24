@@ -82,6 +82,7 @@ export default function RootLayout() {
                 name="(pro-tabs)"
                 options={{
                     headerShown: false,
+                    title: '',
                 }}
             />
             <Stack.Screen

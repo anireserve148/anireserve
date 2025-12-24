@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes } from '../../constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { api } from '../../services/api';
 
 export default function ProSettingsScreen() {
     const router = useRouter();
@@ -20,9 +21,23 @@ export default function ProSettingsScreen() {
     const [notifications, setNotifications] = useState(true);
     const [instantBooking, setInstantBooking] = useState(false);
 
-    const handleLogout = async () => {
-        await AsyncStorage.multiRemove(['token', 'user']);
-        router.replace('/');
+    const handleLogout = () => {
+        Alert.alert(
+            'Déconnexion',
+            'Êtes-vous sûr de vouloir vous déconnecter ?',
+            [
+                { text: 'Annuler', style: 'cancel' },
+                {
+                    text: 'Déconnexion',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await AsyncStorage.multiRemove(['token', 'user']);
+                        api.setToken(null);
+                        router.replace('/');
+                    },
+                },
+            ]
+        );
     };
 
     const handleSave = () => {
