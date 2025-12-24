@@ -110,10 +110,10 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
             return
         }
 
-        if (!formData.idPhotoUrl) {
-            toast.error("La photo d'identité est requise")
-            return
-        }
+        // if (!formData.idPhotoUrl) {
+        //     toast.error("La photo d'identité est requise")
+        //     return
+        // }
 
         setIsSubmitting(true)
         try {

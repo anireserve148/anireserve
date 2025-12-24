@@ -11,8 +11,7 @@ import {
     Home,
     Users,
     Clock,
-    Image,
-    Trophy
+    Image
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -69,20 +68,6 @@ export function ProSidebar() {
                     )
                 })}
             </nav>
-
-            {/* Leaderboard Teaser */}
-            <div className="p-4 border-t border-[#2A2A4A]">
-                <div className="bg-gradient-to-r from-[#2A1A4A] to-[#1A1A2E] rounded-xl p-4 border border-[#7B68EE]/30">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Trophy className="w-5 h-5 text-[#FFD700]" />
-                        <span className="text-white font-semibold text-sm">Top Pros</span>
-                    </div>
-                    <p className="text-[#A0A0B8] text-xs">Vous êtes #12 ce mois-ci !</p>
-                    <div className="mt-2 bg-[#2EB190]/20 rounded-full h-2">
-                        <div className="bg-[#2EB190] h-2 rounded-full w-3/5"></div>
-                    </div>
-                </div>
-            </div>
 
             {/* User Info */}
             <div className="p-4 border-t border-[#2A2A4A]">

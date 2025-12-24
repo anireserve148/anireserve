@@ -41,16 +41,8 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
-    eslint: {
-        ignoreDuringBuilds: true,
-    },
-    webpack: (config) => {
-        config.watchOptions = {
-            ...config.watchOptions,
-            ignored: ['**/node_modules', '**/mobile-app/**'],
-        };
-        return config;
-    },
+    // Turbopack config (empty to silence migration warning)
+    turbopack: {},
 };
 
 module.exports = nextConfig;

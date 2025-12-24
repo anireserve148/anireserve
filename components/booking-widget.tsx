@@ -3,13 +3,12 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { addHours, format, setHours, setMinutes, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isToday, isBefore, startOfDay, isSameDay } from "date-fns"
+import { Calendar } from "@/components/ui/calendar"
+import { addHours, format, setHours, setMinutes, isBefore, startOfDay, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { createReservation } from "@/app/lib/booking-actions"
-import { Loader2, Clock, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Star, MessageSquare } from "lucide-react"
+import { Loader2, Clock, Calendar as CalendarIcon, Star, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
-
-const DAYS_FR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
 interface Service {
     id: string
@@ -28,26 +27,21 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
     services?: Service[],
     reviews?: any[]
 }) {
-    const [currentMonth, setCurrentMonth] = useState(new Date())
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
     const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
     const [isBooking, setIsBooking] = useState(false)
 
-    // Generate calendar days
-    const monthStart = startOfMonth(currentMonth)
-    const monthEnd = endOfMonth(currentMonth)
-    const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
-
-    // Add padding days for proper French calendar alignment (Monday = 0)
-    const startDayOfWeek = monthStart.getDay()
-    const frenchDayIndex = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1
-    const paddingDays = Array(frenchDayIndex).fill(null)
-
     // Check if a day has availability
-    const hasAvailability = (date: Date) => {
+    const isDayAvailable = (date: Date) => {
         const dayOfWeek = date.getDay()
+        // 0 is Sunday in JS, check if availability matches
         return availability.some(a => a.dayOfWeek === dayOfWeek)
+    }
+
+    // Disable past days and days without availability
+    const isDateDisabled = (date: Date) => {
+        return isBefore(date, startOfDay(new Date())) || !isDayAvailable(date)
     }
 
     // Calculate available slots for the selected date
@@ -93,6 +87,7 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
             if (result.success) {
                 toast.success('Demande de réservation envoyée !')
                 setSelectedSlot(null)
+                setSelectedDate(undefined)
             } else {
                 toast.error(result.error || 'Erreur lors de la réservation')
             }
@@ -103,8 +98,6 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
             setIsBooking(false)
         }
     }
-
-    const isPastDay = (date: Date) => isBefore(date, startOfDay(new Date()))
 
     return (
         <div className="space-y-6">
@@ -147,9 +140,6 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                                                     {service.category && (
                                                         <p className="text-xs text-gray-500">{service.category.name}</p>
                                                     )}
-                                                    {service.description && (
-                                                        <p className="text-xs text-gray-600 mt-1">{service.description}</p>
-                                                    )}
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-bold text-primary">{price} ₪</p>
@@ -162,90 +152,25 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                             </div>
                         </div>
                     )}
-                    {/* Custom Calendar */}
-                    <div className="bg-gray-50 rounded-xl p-4 border">
-                        {/* Month Navigation */}
-                        <div className="flex items-center justify-between mb-4">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            <h3 className="font-bold text-navy capitalize">
-                                {format(currentMonth, 'MMMM yyyy', { locale: fr })}
-                            </h3>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        </div>
 
-                        {/* Days Header */}
-                        <div className="grid grid-cols-7 gap-1 mb-2">
-                            {DAYS_FR.map(day => (
-                                <div key={day} className="text-center text-xs font-semibold text-gray-600 py-1">
-                                    {day}
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Calendar Grid */}
-                        <div className="grid grid-cols-7 gap-1">
-                            {paddingDays.map((_, i) => (
-                                <div key={`pad-${i}`} className="aspect-square" />
-                            ))}
-                            {calendarDays.map((day, i) => {
-                                const isPast = isPastDay(day)
-                                const hasSlots = hasAvailability(day)
-                                const isSelected = selectedDate && isSameDay(day, selectedDate)
-                                const isCurrentDay = isToday(day)
-
-                                return (
-                                    <button
-                                        key={i}
-                                        disabled={isPast || !hasSlots}
-                                        onClick={() => setSelectedDate(day)}
-                                        className={`
-                                            aspect-square rounded-lg text-sm font-medium transition-all
-                                            ${isPast || !hasSlots
-                                                ? 'text-gray-300 cursor-not-allowed bg-gray-100'
-                                                : 'hover:bg-primary/10 hover:scale-105 cursor-pointer'
-                                            }
-                                            ${isSelected
-                                                ? 'bg-primary text-white shadow-lg scale-105'
-                                                : hasSlots
-                                                    ? 'bg-white border border-green-200'
-                                                    : ''
-                                            }
-                                            ${isCurrentDay && !isSelected ? 'ring-2 ring-primary/50' : ''}
-                                        `}
-                                    >
-                                        {format(day, 'd')}
-                                    </button>
-                                )
-                            })}
-                        </div>
-
-                        <div className="mt-4 flex items-center gap-4 text-xs text-gray-600">
-                            <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 rounded bg-white border border-green-200"></div>
-                                <span>Disponible</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-4 h-4 rounded bg-gray-100"></div>
-                                <span>Indisponible</span>
-                            </div>
-                        </div>
+                    {/* Standard Calendar Component */}
+                    <div className="flex justify-center bg-gray-50 rounded-xl p-2 border">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            disabled={isDateDisabled}
+                            locale={fr}
+                            className="rounded-md border-0"
+                            classNames={{
+                                head_cell: "text-muted-foreground font-normal text-[0.8rem] capitalize",
+                            }}
+                        />
                     </div>
 
                     {/* Time Slots */}
                     {selectedDate && (
-                        <div className="space-y-4">
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
                             <div className="flex items-center gap-2 pb-2 border-b">
                                 <Clock className="h-5 w-5 text-primary" />
                                 <h3 className="font-bold text-navy capitalize">
@@ -271,15 +196,15 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                                 </div>
                             ) : (
                                 <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed">
-                                    <p className="text-sm text-gray-500">Aucune disponibilité</p>
+                                    <p className="text-sm text-gray-500">Aucune disponibilité ce jour-là</p>
                                 </div>
                             )}
                         </div>
                     )}
 
                     {/* Booking Summary */}
-                    {selectedSlot && (
-                        <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 p-6 rounded-xl border-2 border-primary/30 shadow-md">
+                    {selectedSlot && selectedDate && (
+                        <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 p-6 rounded-xl border-2 border-primary/30 shadow-md animate-in zoom-in-95">
                             <div className="flex justify-between items-center">
                                 <div>
                                     <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Durée</p>
@@ -288,13 +213,13 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                                 <div className="text-right">
                                     <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Total</p>
                                     <p className="text-3xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                        {hourlyRate}₪
+                                        {selectedService?.customPrice || hourlyRate}₪
                                     </p>
                                 </div>
                             </div>
                             <div className="mt-4 pt-4 border-t border-primary/20">
                                 <p className="text-sm font-medium text-center">
-                                    📅 {format(selectedDate!, "EEEE d MMMM yyyy", { locale: fr })} à {selectedSlot}
+                                    📅 {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })} à {selectedSlot}
                                 </p>
                             </div>
                         </div>

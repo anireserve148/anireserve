@@ -1,4 +1,5 @@
 import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,11 @@ export default async function DashboardPage() {
                 <a href="/login" className="text-[#3DBAA2] hover:underline mt-2">Aller à la page de connexion</a>
             </div>
         );
+    }
+
+    // Force redirect for PRO users (Double safety with middleware)
+    if (session.user.role === 'PRO') {
+        redirect('/dashboard/pro');
     }
 
     /* Fetch user with reservations */
@@ -220,8 +226,8 @@ export default async function DashboardPage() {
                                                 </div>
                                             </div>
                                             <Badge className={`px-3 py-1 rounded-full text-xs font-semibold ${res.status === 'CONFIRMED' || res.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
-                                                    res.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                                                        'bg-red-100 text-red-700'
+                                                res.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                                                    'bg-red-100 text-red-700'
                                                 }`}>
                                                 {res.status === 'CONFIRMED' ? 'Confirmé' :
                                                     res.status === 'COMPLETED' ? 'Terminé' :

@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, DollarSign, Users, TrendingUp, Star, Clock, ChevronRight } from 'lucide-react';
 import { getDashboardMetrics, getUpcomingSchedule, getPendingRequests } from '@/app/lib/dashboard-actions';
-import { ProLeaderboard } from '@/components/pro/pro-leaderboard';
 import Link from 'next/link';
 
 export default async function ProDashboard() {
@@ -42,17 +41,13 @@ export default async function ProDashboard() {
 
     // Extract metrics data
     const metrics = metricsResult.success ? metricsResult.data : { revenueWeek: 0, occupancyRate: 0, noShowRate: 0, pendingRequests: 0 };
-    const { revenueWeek, occupancyRate, noShowRate, pendingRequests } = metrics;
+    const { revenueWeek, pendingRequests } = metrics;
     const schedule = scheduleResult.success ? scheduleResult.data : [];
     const requests = requestsResult.success ? requestsResult.data : [];
 
     if (!proProfile) {
         return <div className="text-white">Profile not found. Please contact support.</div>;
     }
-
-    const totalEarnings = proProfile.reservations
-        .filter(r => r.status === 'COMPLETED' || r.status === 'CONFIRMED')
-        .reduce((acc, curr) => acc + curr.totalPrice, 0);
 
     return (
         <div className="space-y-8">
@@ -88,9 +83,6 @@ export default async function ProDashboard() {
                             <div className="w-12 h-12 rounded-xl bg-[#2EB190]/20 flex items-center justify-center">
                                 <DollarSign className="w-6 h-6 text-[#2EB190]" />
                             </div>
-                            <span className="text-[#2EB190] text-sm font-medium bg-[#2EB190]/20 px-2 py-1 rounded-full">
-                                +12%
-                            </span>
                         </div>
                         <p className="text-2xl font-bold text-white">{revenueWeek.toLocaleString('fr-FR')} ₪</p>
                         <p className="text-[#6C6C8A] text-sm mt-1">Revenus cette semaine</p>
@@ -104,9 +96,6 @@ export default async function ProDashboard() {
                             <div className="w-12 h-12 rounded-xl bg-[#7B68EE]/20 flex items-center justify-center">
                                 <Calendar className="w-6 h-6 text-[#7B68EE]" />
                             </div>
-                            <span className="text-[#7B68EE] text-sm font-medium bg-[#7B68EE]/20 px-2 py-1 rounded-full">
-                                +5
-                            </span>
                         </div>
                         <p className="text-2xl font-bold text-white">{schedule.length}</p>
                         <p className="text-[#6C6C8A] text-sm mt-1">RDV cette semaine</p>
@@ -140,95 +129,91 @@ export default async function ProDashboard() {
                             </div>
                             <span className="text-[#FFD700] text-sm font-medium">⭐</span>
                         </div>
-                        <p className="text-2xl font-bold text-white">{proProfile.averageRating?.toFixed(1) || '5.0'}</p>
+                        <p className="text-2xl font-bold text-white">
+                            {proProfile.reviews.length > 0
+                                ? (proProfile.reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / proProfile.reviews.length).toFixed(1)
+                                : '5.0'}
+                        </p>
                         <p className="text-[#6C6C8A] text-sm mt-1">Note moyenne</p>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-                {/* Left Column - Upcoming */}
-                <div className="xl:col-span-8 space-y-6">
-                    {/* Pending Requests */}
-                    {requests.length > 0 && (
-                        <Card className="bg-[#1A1A2E] border-[#2A2A4A]">
-                            <CardHeader className="flex flex-row items-center justify-between border-b border-[#2A2A4A] pb-4">
-                                <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-                                    🔔 Demandes en attente
-                                    <span className="bg-[#E74C3C] text-white text-xs px-2 py-0.5 rounded-full">
-                                        {requests.length}
-                                    </span>
-                                </CardTitle>
-                                <Link href="/dashboard/pro/requests" className="text-[#2EB190] text-sm hover:underline flex items-center gap-1">
-                                    Voir tout <ChevronRight className="w-4 h-4" />
-                                </Link>
-                            </CardHeader>
-                            <CardContent className="p-4 space-y-3">
-                                {requests.slice(0, 3).map((req: any) => (
-                                    <div key={req.id} className="flex items-center justify-between p-4 bg-[#16162D] rounded-xl border border-[#F39C12]/30">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-[#F39C12]/20 flex items-center justify-center">
-                                                <span className="text-[#F39C12] font-bold">{req.client?.name?.[0] || 'C'}</span>
-                                            </div>
-                                            <div>
-                                                <p className="text-white font-medium">{req.client?.name || 'Client'}</p>
-                                                <p className="text-[#6C6C8A] text-sm">
-                                                    {new Date(req.date).toLocaleDateString('fr-FR')} à {req.time}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-[#2EB190] font-bold">{req.totalPrice}₪</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {/* Schedule */}
+            {/* Main Content - Full Width (no leaderboard) */}
+            <div className="space-y-6">
+                {/* Pending Requests */}
+                {requests.length > 0 && (
                     <Card className="bg-[#1A1A2E] border-[#2A2A4A]">
                         <CardHeader className="flex flex-row items-center justify-between border-b border-[#2A2A4A] pb-4">
-                            <CardTitle className="text-lg font-semibold text-white">📅 Prochains RDV</CardTitle>
-                            <Link href="/dashboard/pro/agenda" className="text-[#2EB190] text-sm hover:underline flex items-center gap-1">
-                                Agenda complet <ChevronRight className="w-4 h-4" />
+                            <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
+                                🔔 Demandes en attente
+                                <span className="bg-[#E74C3C] text-white text-xs px-2 py-0.5 rounded-full">
+                                    {requests.length}
+                                </span>
+                            </CardTitle>
+                            <Link href="/dashboard/pro/requests" className="text-[#2EB190] text-sm hover:underline flex items-center gap-1">
+                                Voir tout <ChevronRight className="w-4 h-4" />
                             </Link>
                         </CardHeader>
                         <CardContent className="p-4 space-y-3">
-                            {schedule.length === 0 ? (
-                                <div className="text-center py-8 text-[#6C6C8A]">
-                                    Aucun RDV prévu
-                                </div>
-                            ) : (
-                                schedule.slice(0, 5).map((item: any) => (
-                                    <div key={item.id} className="flex items-center justify-between p-4 bg-[#16162D] rounded-xl hover:bg-[#252545] transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className="bg-[#2EB190] text-white px-3 py-1 rounded-lg text-sm font-bold">
-                                                {item.time}
-                                            </div>
-                                            <div>
-                                                <p className="text-white font-medium">{item.client?.name || 'Client'}</p>
-                                                <p className="text-[#6C6C8A] text-sm">{item.service?.name || 'Service'}</p>
-                                            </div>
+                            {requests.slice(0, 3).map((req: any) => (
+                                <div key={req.id} className="flex items-center justify-between p-4 bg-[#16162D] rounded-xl border border-[#F39C12]/30">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-[#F39C12]/20 flex items-center justify-center">
+                                            <span className="text-[#F39C12] font-bold">{req.client?.name?.[0] || 'C'}</span>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-[#2EB190] font-bold">{item.totalPrice}₪</p>
-                                            <span className="text-xs text-[#27AE60] bg-[#27AE60]/20 px-2 py-0.5 rounded-full">
-                                                Confirmé
-                                            </span>
+                                        <div>
+                                            <p className="text-white font-medium">{req.client?.name || 'Client'}</p>
+                                            <p className="text-[#6C6C8A] text-sm">
+                                                {new Date(req.date).toLocaleDateString('fr-FR')} à {req.time}
+                                            </p>
                                         </div>
                                     </div>
-                                ))
-                            )}
+                                    <div className="text-right">
+                                        <p className="text-[#2EB190] font-bold">{req.totalPrice} ₪</p>
+                                    </div>
+                                </div>
+                            ))}
                         </CardContent>
                     </Card>
-                </div>
+                )}
 
-                {/* Right Column - Leaderboard */}
-                <div className="xl:col-span-4">
-                    <ProLeaderboard />
-                </div>
+                {/* Schedule */}
+                <Card className="bg-[#1A1A2E] border-[#2A2A4A]">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-[#2A2A4A] pb-4">
+                        <CardTitle className="text-lg font-semibold text-white">📅 Prochains RDV</CardTitle>
+                        <Link href="/dashboard/pro/agenda" className="text-[#2EB190] text-sm hover:underline flex items-center gap-1">
+                            Agenda complet <ChevronRight className="w-4 h-4" />
+                        </Link>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-3">
+                        {schedule.length === 0 ? (
+                            <div className="text-center py-8 text-[#6C6C8A]">
+                                Aucun RDV prévu
+                            </div>
+                        ) : (
+                            schedule.slice(0, 5).map((item: any) => (
+                                <div key={item.id} className="flex items-center justify-between p-4 bg-[#16162D] rounded-xl hover:bg-[#252545] transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-[#2EB190] text-white px-3 py-1 rounded-lg text-sm font-bold">
+                                            {item.time}
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-medium">{item.client?.name || 'Client'}</p>
+                                            <p className="text-[#6C6C8A] text-sm">{item.service?.name || 'Service'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[#2EB190] font-bold">{item.totalPrice} ₪</p>
+                                        <span className="text-xs text-[#27AE60] bg-[#27AE60]/20 px-2 py-0.5 rounded-full">
+                                            Confirmé
+                                        </span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Quick Actions */}

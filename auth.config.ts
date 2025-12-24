@@ -10,39 +10,17 @@ export const authConfig = {
             const { nextUrl } = request;
             const isLoggedIn = !!auth?.user;
             const isOnDashboard = nextUrl.pathname.startsWith('/dashboard');
-            const isProDashboard = nextUrl.pathname.startsWith('/dashboard/pro');
-            const isAdminDashboard = nextUrl.pathname.startsWith('/dashboard/admin');
 
+            // Simple auth check: if on dashboard, must be logged in
             if (isOnDashboard) {
-
-                if (isLoggedIn) {
-                    const role = (auth.user as any).role;
-
-                    // Admin Protection
-                    // if (isAdminDashboard && role !== 'ADMIN') {
-                    //     return Response.redirect(new URL('/dashboard', nextUrl));
-                    // }
-
-                    // Pro Protection
-                    if (isProDashboard && role !== 'PRO') {
-                        return Response.redirect(new URL('/dashboard', nextUrl));
-                    }
-
-                    // Role Redirects (if visiting generic dashboard root dashboard)
-                    if (nextUrl.pathname === '/dashboard') {
-                        if (role === 'PRO') return Response.redirect(new URL('/dashboard/pro', nextUrl));
-                        if (role === 'ADMIN') return Response.redirect(new URL('/dashboard/admin', nextUrl));
-                        // Client goes to generic dashboard
-                    }
-
-                    return true;
+                if (!isLoggedIn) {
+                    return false; // Redirect to login
                 }
-                return false; // Redirect unauthenticated users to login page
-            } else if (isLoggedIn) {
-                // Redirect logged-in users away from auth pages if needed
-                // For now, let them browse
+                // Role-based redirects are handled in page components, not here
+                // This avoids redirect loops since middleware can't reliably access role
                 return true;
             }
+
             return true;
         },
     },
