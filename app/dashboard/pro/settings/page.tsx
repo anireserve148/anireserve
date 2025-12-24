@@ -1,9 +1,12 @@
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { User, Mail, Phone, MapPin, Clock, FileText, AlertCircle } from 'lucide-react'
+import { User, Mail, Phone, MapPin, Clock, FileText, AlertCircle, Share2, Calendar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 async function getProProfile(userId: string) {
     try {
@@ -48,9 +51,13 @@ export default async function SettingsPage() {
     }
 
     return (
-        <div className="space-y-8 max-w-4xl">
+        <div className="space-y-6 max-w-4xl">
+            <Link href="/dashboard/pro" className="flex items-center gap-2 text-[#A0A0B8] hover:text-white transition-colors mb-4 group">
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                Retour au tableau de bord
+            </Link>
             <div>
-                <h1 className="text-2xl font-bold">Paramètres</h1>
+                <h1 className="text-2xl font-bold text-white font-poppins">Paramètres</h1>
                 <p className="text-muted-foreground">Gérez votre profil et vos préférences</p>
             </div>
 
@@ -164,6 +171,41 @@ export default async function SettingsPage() {
                             </p>
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+
+            {/* Connectivity */}
+            <Card className="border-border/50">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Share2 className="w-5 h-5" />
+                        Connectivité
+                    </CardTitle>
+                    <CardDescription>Synchronisez vos outils externes</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl border">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center border shadow-sm">
+                                <Calendar className="w-6 h-6 text-[#4285F4]" />
+                            </div>
+                            <div>
+                                <p className="font-semibold text-sm">Google Calendar</p>
+                                <p className="text-xs text-muted-foreground">Synchronisez vos rendez-vous automatiquement</p>
+                            </div>
+                        </div>
+                        <Badge variant={(proProfile as any).googleCalendarSyncEnabled ? "default" : "secondary"}>
+                            {(proProfile as any).googleCalendarSyncEnabled ? "Connecté" : "Non connecté"}
+                        </Badge>
+                    </div>
+                    {!(proProfile as any).googleCalendarSyncEnabled && (
+                        <div className="p-4 border-2 border-dashed rounded-xl text-center">
+                            <p className="text-sm text-muted-foreground mb-3">La synchronisation bidirectionnelle arrive bientôt !</p>
+                            <Button variant="outline" size="sm" disabled>
+                                Se connecter avec Google
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>

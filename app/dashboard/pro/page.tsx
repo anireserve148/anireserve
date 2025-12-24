@@ -31,6 +31,10 @@ export default async function ProDashboard() {
                 reviews: {
                     orderBy: { createdAt: 'desc' },
                     take: 3
+                },
+                services: {
+                    where: { isActive: true },
+                    take: 4
                 }
             }
         }),
@@ -178,6 +182,35 @@ export default async function ProDashboard() {
                     </Card>
                 )}
 
+                {/* Active Services */}
+                <Card className="bg-[#1A1A2E] border-[#2A2A4A]">
+                    <CardHeader className="flex flex-row items-center justify-between border-b border-[#2A2A4A] pb-4">
+                        <CardTitle className="text-lg font-semibold text-white">✨ Mes Services Actifs</CardTitle>
+                        <Link href="/dashboard/pro/services" className="text-[#2EB190] text-sm hover:underline flex items-center gap-1">
+                            Gérer les services <ChevronRight className="w-4 h-4" />
+                        </Link>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {proProfile.services.length === 0 ? (
+                                <div className="col-span-full text-center py-4 text-[#6C6C8A]">
+                                    Aucun service créé. <Link href="/dashboard/pro/services" className="text-[#2EB190] underline">En ajouter un</Link>
+                                </div>
+                            ) : (
+                                proProfile.services.filter((s: any) => s.isActive).slice(0, 4).map((service: any) => (
+                                    <div key={service.id} className="flex items-center justify-between p-3 bg-[#16162D] rounded-lg border border-white/5">
+                                        <div>
+                                            <p className="text-white font-medium text-sm">{service.name}</p>
+                                            <p className="text-[#6C6C8A] text-xs">{service.duration} min</p>
+                                        </div>
+                                        <p className="text-[#2EB190] font-bold text-sm">{service.customPrice} ₪</p>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Schedule */}
                 <Card className="bg-[#1A1A2E] border-[#2A2A4A]">
                     <CardHeader className="flex flex-row items-center justify-between border-b border-[#2A2A4A] pb-4">
@@ -214,51 +247,50 @@ export default async function ProDashboard() {
                         )}
                     </CardContent>
                 </Card>
-            </div>
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Link href="/dashboard/pro/agenda" className="block">
-                    <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#2EB190] transition-colors cursor-pointer group">
-                        <CardContent className="p-6 text-center">
-                            <div className="w-14 h-14 rounded-xl bg-[#2EB190]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                <Calendar className="w-7 h-7 text-[#2EB190]" />
-                            </div>
-                            <p className="text-white font-medium">Agenda</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Link href="/dashboard/pro/services" className="block">
-                    <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#7B68EE] transition-colors cursor-pointer group">
-                        <CardContent className="p-6 text-center">
-                            <div className="w-14 h-14 rounded-xl bg-[#7B68EE]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                <DollarSign className="w-7 h-7 text-[#7B68EE]" />
-                            </div>
-                            <p className="text-white font-medium">Services</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Link href="/dashboard/pro/clients" className="block">
-                    <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#3498DB] transition-colors cursor-pointer group">
-                        <CardContent className="p-6 text-center">
-                            <div className="w-14 h-14 rounded-xl bg-[#3498DB]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                <Users className="w-7 h-7 text-[#3498DB]" />
-                            </div>
-                            <p className="text-white font-medium">Clients</p>
-                        </CardContent>
-                    </Card>
-                </Link>
-                <Link href="/dashboard/pro/stats" className="block">
-                    <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#FFD700] transition-colors cursor-pointer group">
-                        <CardContent className="p-6 text-center">
-                            <div className="w-14 h-14 rounded-xl bg-[#FFD700]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
-                                <TrendingUp className="w-7 h-7 text-[#FFD700]" />
-                            </div>
-                            <p className="text-white font-medium">Statistiques</p>
-                        </CardContent>
-                    </Card>
-                </Link>
+                {/* Quick Actions */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Link href="/dashboard/pro/agenda" className="block">
+                        <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#2EB190] transition-colors cursor-pointer group">
+                            <CardContent className="p-6 text-center">
+                                <div className="w-14 h-14 rounded-xl bg-[#2EB190]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                    <Calendar className="w-7 h-7 text-[#2EB190]" />
+                                </div>
+                                <p className="text-white font-medium">Agenda</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    <Link href="/dashboard/pro/services" className="block">
+                        <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#7B68EE] transition-colors cursor-pointer group">
+                            <CardContent className="p-6 text-center">
+                                <div className="w-14 h-14 rounded-xl bg-[#7B68EE]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                    <DollarSign className="w-7 h-7 text-[#7B68EE]" />
+                                </div>
+                                <p className="text-white font-medium">Services</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    <Link href="/dashboard/pro/clients" className="block">
+                        <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#3498DB] transition-colors cursor-pointer group">
+                            <CardContent className="p-6 text-center">
+                                <div className="w-14 h-14 rounded-xl bg-[#3498DB]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                    <Users className="w-7 h-7 text-[#3498DB]" />
+                                </div>
+                                <p className="text-white font-medium">Clients</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    <Link href="/dashboard/pro/stats" className="block">
+                        <Card className="bg-[#1A1A2E] border-[#2A2A4A] hover:border-[#FFD700] transition-colors cursor-pointer group">
+                            <CardContent className="p-6 text-center">
+                                <div className="w-14 h-14 rounded-xl bg-[#FFD700]/20 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                                    <TrendingUp className="w-7 h-7 text-[#FFD700]" />
+                                </div>
+                                <p className="text-white font-medium">Statistiques</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                </div>
             </div>
-        </div>
-    );
+            );
 }

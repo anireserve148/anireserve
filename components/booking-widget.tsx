@@ -7,8 +7,9 @@ import { Calendar } from "@/components/ui/calendar"
 import { addHours, format, setHours, setMinutes, isBefore, startOfDay, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { createReservation } from "@/app/lib/booking-actions"
-import { Loader2, Clock, Calendar as CalendarIcon, Star, MessageSquare } from "lucide-react"
+import { Loader2, Clock, Calendar as CalendarIcon, Star, MessageSquare, Info, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 interface Service {
     id: string
@@ -101,81 +102,96 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
 
     return (
         <div className="space-y-6">
-            <Card className="sticky top-24 border-2 border-primary/10 shadow-xl">
-                <CardHeader className="bg-gradient-to-r from-primary/90 to-secondary/90 text-white">
-                    <CardTitle className="flex items-center gap-2">
+            <Card className="border-0 shadow-2xl overflow-hidden rounded-2xl ring-1 ring-primary/5">
+                <CardHeader className="bg-gradient-to-br from-navy via-navy-light to-primary p-6 text-white relative">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                    <CardTitle className="flex items-center gap-2 text-xl font-bold relative z-10">
                         <CalendarIcon className="h-5 w-5" />
-                        Réserver
+                        Réserver un créneau
                     </CardTitle>
-                    <p className="text-sm text-white/90 mt-1">
-                        {selectedService
-                            ? `${selectedService.customPrice || hourlyRate} ₪`
-                            : `À partir de ${hourlyRate} ₪`
-                        }
+                    <p className="text-sm text-white/80 mt-1 relative z-10 font-medium">
+                        Réponse garantie sous 24h
                     </p>
                 </CardHeader>
-                <CardContent className="p-6 space-y-6">
+                <CardContent className="p-6 space-y-8 bg-white">
                     {/* Service Selection */}
                     {services && services.length > 0 && (
-                        <div className="space-y-3">
-                            <label className="text-sm font-semibold text-navy">Service</label>
-                            <div className="grid gap-2">
-                                {services.map((service) => {
-                                    const price = service.customPrice
-                                    const duration = service.duration
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                                <Info className="w-3 h-3" />
+                                Choisissez votre prestation
+                            </h3>
+                            <div className="grid gap-3">
+                                {services.slice(0, 3).map((service) => {
                                     const isSelected = selectedService?.id === service.id
-
                                     return (
                                         <button
                                             key={service.id}
                                             onClick={() => setSelectedService(service)}
-                                            className={`p-3 rounded-lg border-2 text-left transition-all ${isSelected
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-gray-200 hover:border-primary/50'
-                                                }`}
+                                            className={cn(
+                                                "p-4 rounded-xl border-2 text-left transition-all group relative overflow-hidden",
+                                                isSelected
+                                                    ? 'border-primary bg-primary/5 shadow-md ring-1 ring-primary/20'
+                                                    : 'border-gray-100 hover:border-primary/30 hover:bg-gray-50'
+                                            )}
                                         >
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="font-semibold text-navy">{service.name}</p>
-                                                    {service.category && (
-                                                        <p className="text-xs text-gray-500">{service.category.name}</p>
-                                                    )}
+                                            <div className="flex items-center justify-between relative z-10">
+                                                <div className="flex-1">
+                                                    <p className={cn("font-bold text-sm", isSelected ? "text-primary" : "text-navy")}>{service.name}</p>
+                                                    <p className="text-xs text-muted-foreground mt-0.5">{service.duration} min • {service.category?.name}</p>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="font-bold text-primary">{price} ₪</p>
-                                                    <p className="text-xs text-gray-500">{duration} min</p>
+                                                <div className="text-right ml-4">
+                                                    <p className="font-extrabold text-base">{service.customPrice} ₪</p>
                                                 </div>
                                             </div>
                                         </button>
                                     )
                                 })}
+                                {services.length > 3 && (
+                                    <button className="text-xs text-primary font-bold text-center py-2 hover:underline">
+                                        Voir les {services.length - 3} autres services
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}
 
-                    {/* Standard Calendar Component */}
-                    <div className="flex justify-center bg-gray-50 rounded-xl p-2 border">
-                        <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            disabled={isDateDisabled}
-                            locale={fr}
-                            className="rounded-md border-0"
-                            classNames={{
-                                head_cell: "text-muted-foreground font-normal text-[0.8rem] capitalize",
-                            }}
-                        />
+                    {/* Premium Calendar Component */}
+                    <div className="space-y-4">
+                        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                            <CalendarIcon className="w-3 h-3" />
+                            Date du rendez-vous
+                        </h3>
+                        <div className="flex justify-center bg-gray-50/50 rounded-2xl p-4 border border-gray-100 shadow-inner">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={setSelectedDate}
+                                disabled={isDateDisabled}
+                                locale={fr}
+                                className="rounded-md border-0 w-full"
+                                classNames={{
+                                    head_cell: "text-muted-foreground font-bold text-[0.7rem] uppercase h-9 w-9",
+                                    cell: "h-11 w-11 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                    day: "h-10 w-10 p-0 font-bold hover:bg-primary/10 rounded-full transition-all",
+                                    day_selected: "bg-primary text-white hover:bg-primary hover:text-white focus:bg-primary focus:text-white rounded-full shadow-lg shadow-primary/20 scale-110 z-10",
+                                    day_today: "bg-secondary/20 text-secondary-foreground font-black",
+                                }}
+                            />
+                        </div>
                     </div>
 
                     {/* Time Slots */}
                     {selectedDate && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
-                            <div className="flex items-center gap-2 pb-2 border-b">
-                                <Clock className="h-5 w-5 text-primary" />
-                                <h3 className="font-bold text-navy capitalize">
-                                    {format(selectedDate, "EEEE d MMMM", { locale: fr })}
+                            <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                                    <Clock className="w-3 h-3" />
+                                    Créneaux disponibles
                                 </h3>
+                                <span className="text-xs font-bold text-primary capitalize">
+                                    {format(selectedDate, "EEEE d MMMM", { locale: fr })}
+                                </span>
                             </div>
                             {slots.length > 0 ? (
                                 <div className="grid grid-cols-3 gap-2">
@@ -185,123 +201,82 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                                             variant={selectedSlot === slot ? "default" : "outline"}
                                             size="sm"
                                             onClick={() => setSelectedSlot(slot)}
-                                            className={`font-semibold ${selectedSlot === slot
-                                                ? 'bg-primary shadow-md'
-                                                : 'hover:border-primary'
-                                                }`}
+                                            className={cn(
+                                                "font-bold text-xs h-10 rounded-lg transition-all",
+                                                selectedSlot === slot
+                                                    ? 'bg-primary border-primary shadow-lg shadow-primary/20 scale-105'
+                                                    : 'border-gray-100 hover:border-primary/50'
+                                            )}
                                         >
                                             {slot}
                                         </Button>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed">
-                                    <p className="text-sm text-gray-500">Aucune disponibilité ce jour-là</p>
+                                <div className="text-center py-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                                    <p className="text-xs font-bold text-muted-foreground">Aucune disponibilité ce jour</p>
                                 </div>
                             )}
                         </div>
                     )}
 
-                    {/* Booking Summary */}
+                    {/* Booking Summary Card */}
                     {selectedSlot && selectedDate && (
-                        <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 p-6 rounded-xl border-2 border-primary/30 shadow-md animate-in zoom-in-95">
-                            <div className="flex justify-between items-center">
+                        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-2xl border border-gray-200 shadow-sm animate-in zoom-in-95 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 blur-xl group-hover:bg-primary/10 transition-colors"></div>
+                            <div className="flex justify-between items-end relative z-10">
                                 <div>
-                                    <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Durée</p>
-                                    <p className="text-lg font-bold">1 heure</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">Total</p>
-                                    <p className="text-3xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                                        {selectedService?.customPrice || hourlyRate}₪
+                                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-black mb-1">Résumé</p>
+                                    <p className="text-sm font-bold text-navy">
+                                        {selectedService?.name || "Prestation standard"}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                        {format(selectedDate, "dd/MM/yyyy")} • {selectedSlot}
                                     </p>
                                 </div>
-                            </div>
-                            <div className="mt-4 pt-4 border-t border-primary/20">
-                                <p className="text-sm font-medium text-center">
-                                    📅 {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })} à {selectedSlot}
-                                </p>
+                                <div className="text-right">
+                                    <p className="text-2xl font-black text-primary">
+                                        {selectedService?.customPrice || hourlyRate}₪
+                                    </p>
+                                    <p className="text-[10px] text-muted-foreground font-bold uppercase">Total TTC</p>
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Book Button */}
+                    {/* Action Button */}
                     <Button
                         onClick={handleBook}
                         disabled={!selectedDate || !selectedSlot || isBooking}
-                        className="w-full h-12 bg-gradient-to-r from-primary to-secondary text-white font-bold shadow-lg hover:shadow-xl transition-all"
+                        className="w-full h-14 bg-gradient-to-r from-navy to-primary text-white font-black text-base rounded-2xl shadow-xl shadow-navy/10 hover:shadow-2xl hover:shadow-navy/20 active:scale-95 transition-all border-none"
                     >
                         {isBooking ? (
                             <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Réservation...
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                Confirmation...
                             </>
                         ) : (
-                            'Demander une réservation'
+                            <span className="flex items-center gap-2">
+                                Réserver maintenant
+                                <ChevronRight className="w-5 h-5" />
+                            </span>
                         )}
                     </Button>
                 </CardContent>
             </Card>
 
-            {/* Reviews Section */}
-            <Card className="shadow-xl border-0">
-                <CardHeader className="bg-gradient-to-r from-secondary to-primary text-white">
-                    <CardTitle className="flex items-center gap-2 text-white">
-                        <Star className="h-5 w-5 fill-current" />
-                        Avis Clients
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                    {reviews && reviews.length > 0 ? (
-                        <div className="space-y-4">
-                            {reviews.map((review, idx) => (
-                                <div key={idx} className="bg-gradient-to-br from-white to-muted/30 p-5 rounded-xl border border-primary/10 shadow-sm hover:shadow-md transition-shadow">
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex-shrink-0">
-                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
-                                                {review.clientName?.[0] || 'A'}
-                                            </div>
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <h4 className="font-bold text-lg">{review.clientName || 'Client'}</h4>
-                                                <div className="flex gap-1">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <Star
-                                                            key={i}
-                                                            className={`h-4 w-4 ${i < (review.rating || 5)
-                                                                ? 'fill-yellow-400 text-yellow-400'
-                                                                : 'text-gray-300'
-                                                                }`}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                                                <MessageSquare className="h-3 w-3" />
-                                                <span>{review.date || 'Récemment'}</span>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground leading-relaxed">
-                                                {review.comment || 'Excellent service, très professionnel !'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-12 bg-gradient-to-br from-muted/20 to-muted/40 rounded-xl">
-                            <Star className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-                            <p className="text-sm text-muted-foreground font-medium">
-                                Aucun avis pour le moment
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-2">
-                                Soyez le premier à laisser un avis !
-                            </p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+            {/* Help / Trust Card */}
+            <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Star className="w-5 h-5 text-primary fill-primary" />
+                </div>
+                <div>
+                    <h4 className="font-bold text-sm text-navy">Rai d'avis Clients</h4>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        Ce professionnel a une note moyenne de <span className="font-bold text-navy">{reviews?.length ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : "5.0"}</span> basée sur {reviews?.length || 0} avis vérifiés.
+                    </p>
+                </div>
+            </div>
         </div>
     )
 }

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { api } from '../../services/api';
 import { ProColors, Spacing, FontSizes, Colors } from '../../constants';
 
 const { width } = Dimensions.get('window');
@@ -52,20 +53,48 @@ export default function ProDashboardScreen() {
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
     const [stats, setStats] = useState<Stat[]>([
-        { label: 'Revenus du mois', value: '4,850₪', icon: 'wallet', color: ProColors.accent, trend: '+12%' },
-        { label: 'RDV cette semaine', value: 18, icon: 'calendar', color: ProColors.purple, trend: '+5' },
-        { label: 'Nouveaux clients', value: 6, icon: 'people', color: ProColors.info, trend: '+2' },
+        { label: 'Revenus du mois', value: '0₪', icon: 'wallet', color: ProColors.accent, trend: '...' },
+        { label: 'Total RDV', value: 0, icon: 'calendar', color: ProColors.purple, trend: '...' },
+        { label: 'En attente', value: 0, icon: 'people', color: ProColors.info, trend: '...' },
         { label: 'Note moyenne', value: '4.9', icon: 'star', color: '#FFD700', trend: '⭐' },
     ]);
-    const [recentBookings, setRecentBookings] = useState<Booking[]>([
-        { id: '1', clientName: 'David Cohen', date: '2025-12-21', time: '10:00', service: 'Consultation', price: 150, status: 'CONFIRMED' },
-        { id: '2', clientName: 'Marie Levy', date: '2025-12-21', time: '14:00', service: 'Premium', price: 250, status: 'PENDING' },
-        { id: '3', clientName: 'Sarah Ben', date: '2025-12-22', time: '09:00', service: 'Standard', price: 120, status: 'CONFIRMED' },
-    ]);
+    const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        const result = await api.getProStats();
+        if (result.success && result.data) {
+            const d = result.data;
+            setStats([
+                { label: 'Revenus du mois', value: `${d.monthlyRevenue}${d.currency}`, icon: 'wallet', color: ProColors.accent, trend: 'En cours' },
+                { label: 'Total RDV', value: d.totalBookings, icon: 'calendar', color: ProColors.purple, trend: 'Total' },
+                { label: 'En attente', value: d.pendingBookings, icon: 'people', color: ProColors.info, trend: 'À traiter' },
+                { label: 'Note moyenne', value: '4.9', icon: 'star', color: '#FFD700', trend: '⭐' },
+            ]);
+        }
+
+        // Also fetch recent reservations for bookings list
+        const resResult = await api.getMyReservations();
+        if (resResult.success && resResult.data) {
+            const mapped = resResult.data.slice(0, 3).map((r: any) => ({
+                id: r.id,
+                clientName: r.client?.name || 'Client',
+                date: new Date(r.startDate).toLocaleDateString(),
+                time: new Date(r.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                service: r.serviceName || 'Service',
+                price: r.totalPrice,
+                status: r.status
+            }));
+            setRecentBookings(mapped);
+        }
+    };
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await new Promise(r => setTimeout(r, 1000));
+        await loadData();
         setRefreshing(false);
     };
 

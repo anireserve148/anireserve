@@ -19,7 +19,7 @@ import { Colors, Spacing, FontSizes } from '../../constants';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export default function ProDetailScreen() {
+export default function ProProfileScreen() {
     const router = useRouter();
     const { id } = useLocalSearchParams();
     const [pro, setPro] = useState<ProProfile | null>(null);
@@ -33,6 +33,8 @@ export default function ProDetailScreen() {
             checkFavorite();
         }
     }, [id]);
+
+    const [activeTab, setActiveTab] = useState<'services' | 'portfolio' | 'reviews'>('services');
 
     const loadPro = async () => {
         setIsLoading(true);
@@ -69,26 +71,23 @@ export default function ProDetailScreen() {
         }
     };
 
-    const handleBook = () => {
+    const handleBook = (service?: { id: string; name: string; price: number; duration: number }) => {
         router.push({
             pathname: '/quick-book',
             params: {
                 id: id as string,
                 name: pro?.user?.name || 'Pro',
                 rate: String(pro?.hourlyRate || 100),
+                serviceId: service?.id || '',
+                serviceName: service?.name || '',
+                servicePrice: service ? String(service.price) : '',
+                serviceDuration: service ? String(service.duration) : '',
             },
         });
     };
 
     const handleQuickBook = () => {
-        router.push({
-            pathname: '/quick-book',
-            params: {
-                id: id as string,
-                name: pro?.user?.name || 'Pro',
-                rate: String(pro?.hourlyRate || 100),
-            },
-        });
+        handleBook();
     };
 
     const handleContact = async () => {
@@ -96,7 +95,6 @@ export default function ProDetailScreen() {
             Alert.alert('Erreur', 'Professionnel non trouvé');
             return;
         }
-        // Create or get existing conversation
         const result = await api.createConversation(pro.user.id);
         if (result.success && result.data?.id) {
             router.push(`/chat/${result.data.id}`);
@@ -122,166 +120,213 @@ export default function ProDetailScreen() {
         : 0;
 
     return (
-        <ScrollView style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color={Colors.white} />
+        <View style={styles.container}>
+            {/* Nav Header */}
+            <View style={styles.navHeader}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.navIcon}>
+                    <Ionicons name="chevron-back" size={28} color={Colors.secondary} />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.favoriteButton} onPress={toggleFavorite}>
+                <Text style={styles.navTitle}>{pro.user.name}</Text>
+                <TouchableOpacity onPress={toggleFavorite} style={styles.navIcon}>
                     <Ionicons
                         name={isFavorite ? "heart" : "heart-outline"}
-                        size={24}
-                        color={isFavorite ? Colors.error : Colors.white}
+                        size={26}
+                        color={isFavorite ? Colors.error : Colors.secondary}
                     />
                 </TouchableOpacity>
-                <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{pro.user.name?.[0] || 'P'}</Text>
-                </View>
-                <Text style={styles.proName}>{pro.user.name}</Text>
-                <View style={styles.location}>
-                    <Ionicons name="location" size={16} color={Colors.white} />
-                    <Text style={styles.locationText}>{pro.city.name}</Text>
-                </View>
-                {avgRating > 0 && (
-                    <View style={styles.rating}>
-                        <Ionicons name="star" size={20} color={Colors.accent} />
-                        <Text style={styles.ratingText}>
-                            {avgRating.toFixed(1)} ({pro.reviews.length} avis)
-                        </Text>
-                    </View>
-                )}
             </View>
 
-            {/* Info Section */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>À propos</Text>
-                <Text style={styles.bio}>{pro.bio || 'Aucune description disponible'}</Text>
-
-                <View style={styles.infoRow}>
-                    <Ionicons name="cash-outline" size={20} color={Colors.primary} />
-                    <Text style={styles.infoText}>{pro.hourlyRate}₪/heure</Text>
-                </View>
-
-                {pro.user.phoneNumber && (
-                    <View style={styles.infoRow}>
-                        <Ionicons name="call-outline" size={20} color={Colors.primary} />
-                        <Text style={styles.infoText}>{pro.user.phoneNumber}</Text>
-                    </View>
-                )}
-            </View>
-
-            {/* Categories */}
-            {pro.serviceCategories.length > 0 && (
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Catégories</Text>
-                    <View style={styles.categories}>
-                        {pro.serviceCategories.map((cat) => (
-                            <View key={cat.id} style={styles.categoryBadge}>
-                                <Text style={styles.categoryText}>{cat.name}</Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Instagram Style Header */}
+                <View style={styles.instaHeader}>
+                    <View style={styles.instaTopRow}>
+                        <View style={styles.instaAvatarContainer}>
+                            <View style={styles.instaAvatar}>
+                                <Text style={styles.instaAvatarText}>{pro.user.name?.[0] || 'P'}</Text>
                             </View>
-                        ))}
-                    </View>
-                </View>
-            )}
-
-            {/* Portfolio Gallery */}
-            {pro.gallery && pro.gallery.length > 0 && (
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>📸 Portfolio ({pro.gallery.length})</Text>
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={styles.galleryContainer}
-                    >
-                        {pro.gallery.map((item) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                onPress={() => setSelectedImage(item.imageUrl)}
-                                style={styles.galleryItem}
-                            >
-                                <Image
-                                    source={{ uri: item.imageUrl }}
-                                    style={styles.galleryImage}
-                                    resizeMode="cover"
-                                />
-                                {item.caption && (
-                                    <Text style={styles.galleryCaption} numberOfLines={1}>
-                                        {item.caption}
-                                    </Text>
-                                )}
+                            <TouchableOpacity style={styles.instaAddStory}>
+                                <Ionicons name="add-circle" size={22} color={Colors.primary} />
                             </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-            )}
+                        </View>
 
-            {/* Image Modal */}
-            <Modal
-                visible={!!selectedImage}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setSelectedImage(null)}
-            >
-                <TouchableOpacity
-                    style={styles.modalOverlay}
-                    activeOpacity={1}
-                    onPress={() => setSelectedImage(null)}
-                >
-                    <TouchableOpacity
-                        style={styles.closeButton}
-                        onPress={() => setSelectedImage(null)}
-                    >
-                        <Ionicons name="close" size={30} color={Colors.white} />
-                    </TouchableOpacity>
-                    {selectedImage && (
-                        <Image
-                            source={{ uri: selectedImage }}
-                            style={styles.modalImage}
-                            resizeMode="contain"
-                        />
-                    )}
-                </TouchableOpacity>
-            </Modal>
-
-            {/* Reviews */}
-            {pro.reviews.length > 0 && (
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Avis ({pro.reviews.length})</Text>
-                    {pro.reviews.slice(0, 3).map((review) => (
-                        <View key={review.id} style={styles.reviewCard}>
-                            <View style={styles.reviewHeader}>
-                                <Text style={styles.reviewAuthor}>{review.client.name}</Text>
-                                <View style={styles.reviewRating}>
-                                    <Ionicons name="star" size={16} color={Colors.accent} />
-                                    <Text style={styles.reviewRatingText}>{review.rating}</Text>
-                                </View>
+                        <View style={styles.instaStatsContainer}>
+                            <View style={styles.instaStatItem}>
+                                <Text style={styles.instaStatValue}>{pro.services?.length || 0}</Text>
+                                <Text style={styles.instaStatLabel}>Services</Text>
                             </View>
-                            {review.comment && (
-                                <Text style={styles.reviewComment}>{review.comment}</Text>
-                            )}
-                            <Text style={styles.reviewDate}>
-                                {new Date(review.createdAt).toLocaleDateString('fr-FR')}
+                            <View style={styles.instaStatItem}>
+                                <Text style={styles.instaStatValue}>{avgRating > 0 ? avgRating.toFixed(1) : '5.0'}</Text>
+                                <Text style={styles.instaStatLabel}>Rating</Text>
+                            </View>
+                            <View style={styles.instaStatItem}>
+                                <Text style={styles.instaStatValue}>{pro.gallery?.length || 0}</Text>
+                                <Text style={styles.instaStatLabel}>Photos</Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    <View style={styles.instaBioContainer}>
+                        <Text style={styles.instaName}>{pro.user.name}</Text>
+                        <View style={styles.instaCategoryContainer}>
+                            <Text style={styles.instaCategory}>
+                                {pro.serviceCategories.map(c => c.name).join(' • ')}
                             </Text>
                         </View>
-                    ))}
+                        <Text style={styles.instaBio}>{pro.bio || 'Professionnel passionné à votre service.'}</Text>
+                        {pro.city && (
+                            <View style={styles.instaLocation}>
+                                <Ionicons name="location-outline" size={14} color={Colors.primary} />
+                                <Text style={styles.instaLocationText}>{pro.city.name}</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    <View style={styles.instaActionRow}>
+                        <TouchableOpacity style={styles.instaPrimaryBtn} onPress={handleQuickBook}>
+                            <Text style={styles.instaPrimaryBtnText}>Réserver</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.instaSecondaryBtn} onPress={handleContact}>
+                            <Text style={styles.instaSecondaryBtnText}>Message</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            )}
 
-            {/* Action Buttons */}
-            <View style={styles.actionButtons}>
-                <TouchableOpacity style={styles.contactButton} onPress={handleContact}>
-                    <Ionicons name="chatbubble" size={24} color={Colors.primary} />
-                    <Text style={styles.contactButtonText}>Contacter</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.bookButton} onPress={handleBook}>
-                    <Ionicons name="calendar" size={24} color={Colors.white} />
-                    <Text style={styles.bookButtonText}>Réserver</Text>
-                </TouchableOpacity>
-            </View>
+                {/* Tabs */}
+                <View style={styles.tabsContainer}>
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === 'services' && styles.activeTab]}
+                        onPress={() => setActiveTab('services')}
+                    >
+                        <Ionicons
+                            name={activeTab === 'services' ? "list" : "list-outline"}
+                            size={24}
+                            color={activeTab === 'services' ? Colors.secondary : Colors.gray.medium}
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === 'portfolio' && styles.activeTab]}
+                        onPress={() => setActiveTab('portfolio')}
+                    >
+                        <Ionicons
+                            name={activeTab === 'portfolio' ? "grid" : "grid-outline"}
+                            size={22}
+                            color={activeTab === 'portfolio' ? Colors.secondary : Colors.gray.medium}
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.tab, activeTab === 'reviews' && styles.activeTab]}
+                        onPress={() => setActiveTab('reviews')}
+                    >
+                        <Ionicons
+                            name={activeTab === 'reviews' ? "star" : "star-outline"}
+                            size={24}
+                            color={activeTab === 'reviews' ? Colors.secondary : Colors.gray.medium}
+                        />
+                    </TouchableOpacity>
+                </View>
 
-            <View style={{ height: 40 }} />
-        </ScrollView>
+                {/* Tab Content */}
+                <View style={styles.tabContent}>
+                    {activeTab === 'services' && (
+                        <View style={styles.servicesList}>
+                            {pro.services && pro.services.map((service) => (
+                                <TouchableOpacity
+                                    key={service.id}
+                                    style={styles.serviceCard}
+                                    onPress={() => handleBook(service)}
+                                >
+                                    <View style={styles.serviceMain}>
+                                        <Text style={styles.serviceTitle}>{service.name}</Text>
+                                        <Text style={styles.serviceDesc} numberOfLines={1}>{service.description || 'Prestation de qualité'}</Text>
+                                        <View style={styles.serviceMeta}>
+                                            <Ionicons name="time-outline" size={12} color={Colors.gray.medium} />
+                                            <Text style={styles.serviceMetaText}>{service.duration || 60} min</Text>
+                                        </View>
+                                    </View>
+                                    <View style={styles.serviceSide}>
+                                        <Text style={styles.servicePrice}>{service.price}₪</Text>
+                                        <View style={styles.addBtn}>
+                                            <Ionicons name="add" size={20} color={Colors.white} />
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+
+                    {activeTab === 'portfolio' && (
+                        <View style={styles.portfolioGrid}>
+                            {pro.gallery && pro.gallery.length > 0 ? (
+                                pro.gallery.map((item) => (
+                                    <TouchableOpacity
+                                        key={item.id}
+                                        onPress={() => setSelectedImage(item.imageUrl)}
+                                        style={styles.gridItem}
+                                    >
+                                        <Image
+                                            source={{ uri: item.imageUrl }}
+                                            style={styles.gridImage}
+                                        />
+                                    </TouchableOpacity>
+                                ))
+                            ) : (
+                                <View style={styles.emptyState}>
+                                    <Ionicons name="images-outline" size={48} color={Colors.gray.light} />
+                                    <Text style={styles.emptyText}>Aucune photo publiée</Text>
+                                </View>
+                            )}
+                        </View>
+                    )}
+
+                    {activeTab === 'reviews' && (
+                        <View style={styles.reviewsView}>
+                            {pro.reviews.length > 0 ? (
+                                pro.reviews.map((review) => (
+                                    <View key={review.id} style={styles.commentCard}>
+                                        <View style={styles.commentHeader}>
+                                            <Text style={styles.commentUser}>{review.client.name}</Text>
+                                            <View style={styles.commentStars}>
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Ionicons
+                                                        key={i}
+                                                        name="star"
+                                                        size={12}
+                                                        color={i < review.rating ? Colors.accent : Colors.gray.light}
+                                                    />
+                                                ))}
+                                            </View>
+                                        </View>
+                                        <Text style={styles.commentText}>{review.comment || 'Sans commentaire'}</Text>
+                                        <Text style={styles.commentDate}>
+                                            {new Date(review.createdAt).toLocaleDateString('fr-FR')}
+                                        </Text>
+                                    </View>
+                                ))
+                            ) : (
+                                <View style={styles.emptyState}>
+                                    <Ionicons name="star-outline" size={48} color={Colors.gray.light} />
+                                    <Text style={styles.emptyText}>Aucun avis client</Text>
+                                </View>
+                            )}
+                        </View>
+                    )}
+                </View>
+
+                <View style={{ height: 100 }} />
+            </ScrollView>
+
+            {/* Image Viewer Modal */}
+            <Modal visible={!!selectedImage} transparent animationType="fade">
+                <View style={styles.modalFull}>
+                    <TouchableOpacity style={styles.modalClose} onPress={() => setSelectedImage(null)}>
+                        <Ionicons name="close" size={32} color={Colors.white} />
+                    </TouchableOpacity>
+                    {selectedImage && (
+                        <Image source={{ uri: selectedImage }} style={styles.modalImg} resizeMode="contain" />
+                    )}
+                </View>
+            </Modal>
+        </View>
     );
 }
 
@@ -295,245 +340,286 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    header: {
-        backgroundColor: Colors.primary,
-        padding: Spacing.xl,
+    navHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         paddingTop: 60,
-        alignItems: 'center',
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
-    },
-    backButton: {
-        position: 'absolute',
-        top: 50,
-        left: Spacing.md,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(0,0,0,0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    favoriteButton: {
-        position: 'absolute',
-        top: 50,
-        right: Spacing.md,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(0,0,0,0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    avatar: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        paddingBottom: 15,
+        paddingHorizontal: 20,
         backgroundColor: Colors.white,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#DBDBDB',
+    },
+    navIcon: {
+        width: 40,
+        height: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: Spacing.md,
     },
-    avatarText: {
-        fontSize: 42,
-        fontWeight: 'bold',
-        color: Colors.primary,
-    },
-    proName: {
-        fontSize: FontSizes.xl,
-        fontWeight: 'bold',
-        color: Colors.white,
-        marginBottom: Spacing.sm,
-    },
-    location: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: Spacing.sm,
-    },
-    locationText: {
-        fontSize: FontSizes.md,
-        color: Colors.white,
-        marginLeft: Spacing.xs,
-    },
-    rating: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.sm,
-        borderRadius: 20,
-    },
-    ratingText: {
-        fontSize: FontSizes.md,
-        color: Colors.white,
-        marginLeft: Spacing.sm,
-        fontWeight: 'bold',
-    },
-    section: {
-        padding: Spacing.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.gray.light,
-    },
-    sectionTitle: {
-        fontSize: FontSizes.lg,
+    navTitle: {
+        fontSize: 18,
         fontWeight: 'bold',
         color: Colors.secondary,
-        marginBottom: Spacing.md,
     },
-    bio: {
-        fontSize: FontSizes.md,
-        color: Colors.gray.dark,
-        lineHeight: 24,
-        marginBottom: Spacing.md,
+    instaHeader: {
+        padding: 20,
     },
-    infoRow: {
+    instaTopRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: Spacing.sm,
+        marginBottom: 20,
     },
-    infoText: {
-        fontSize: FontSizes.md,
-        color: Colors.gray.dark,
-        marginLeft: Spacing.sm,
+    instaAvatarContainer: {
+        position: 'relative',
     },
-    categories: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: Spacing.sm,
+    instaAvatar: {
+        width: 90,
+        height: 90,
+        borderRadius: 45,
+        borderWidth: 3,
+        borderColor: '#E1306C', // Insta-gradient-like color
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F0F0F0',
     },
-    categoryBadge: {
-        backgroundColor: Colors.primary + '20',
-        paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.sm,
-        borderRadius: 20,
-    },
-    categoryText: {
-        fontSize: FontSizes.md,
+    instaAvatarText: {
+        fontSize: 32,
+        fontWeight: 'bold',
         color: Colors.primary,
+    },
+    instaAddStory: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        backgroundColor: Colors.white,
+        borderRadius: 12,
+    },
+    instaStatsContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginLeft: 15,
+    },
+    instaStatItem: {
+        alignItems: 'center',
+    },
+    instaStatValue: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: Colors.secondary,
+    },
+    instaStatLabel: {
+        fontSize: 12,
+        color: Colors.gray.medium,
+        marginTop: 2,
+    },
+    instaBioContainer: {
+        marginBottom: 20,
+    },
+    instaName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: Colors.secondary,
+        marginBottom: 2,
+    },
+    instaCategoryContainer: {
+        marginBottom: 4,
+    },
+    instaCategory: {
+        fontSize: 14,
+        color: Colors.gray.medium,
+    },
+    instaBio: {
+        fontSize: 14,
+        color: Colors.secondary,
+        lineHeight: 20,
+        marginBottom: 6,
+    },
+    instaLocation: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    instaLocationText: {
+        fontSize: 12,
+        color: Colors.primary,
+        marginLeft: 4,
         fontWeight: '600',
     },
-    reviewCard: {
-        backgroundColor: Colors.gray.light,
-        padding: Spacing.md,
-        borderRadius: 12,
-        marginBottom: Spacing.md,
+    instaActionRow: {
+        flexDirection: 'row',
+        gap: 10,
     },
-    reviewHeader: {
+    instaPrimaryBtn: {
+        flex: 1,
+        backgroundColor: Colors.primary,
+        paddingVertical: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    instaPrimaryBtnText: {
+        color: Colors.white,
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    instaSecondaryBtn: {
+        flex: 1,
+        backgroundColor: '#EFEFEF',
+        paddingVertical: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    instaSecondaryBtnText: {
+        color: Colors.secondary,
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    tabsContainer: {
+        flexDirection: 'row',
+        borderTopWidth: 0.5,
+        borderTopColor: '#DBDBDB',
+    },
+    tab: {
+        flex: 1,
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    activeTab: {
+        borderBottomWidth: 2,
+        borderBottomColor: Colors.secondary,
+    },
+    tabContent: {
+        flex: 1,
+    },
+    servicesList: {
+        padding: 15,
+    },
+    serviceCard: {
+        flexDirection: 'row',
+        backgroundColor: Colors.white,
+        padding: 15,
+        borderRadius: 12,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: '#F0F0F0',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    serviceMain: {
+        flex: 1,
+    },
+    serviceTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: Colors.secondary,
+    },
+    serviceDesc: {
+        fontSize: 12,
+        color: Colors.gray.medium,
+        marginVertical: 4,
+    },
+    serviceMeta: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    serviceMetaText: {
+        fontSize: 11,
+        color: Colors.gray.medium,
+    },
+    serviceSide: {
+        alignItems: 'flex-end',
+        justifyContent: 'space-between',
+        marginLeft: 10,
+    },
+    servicePrice: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: Colors.primary,
+    },
+    addBtn: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: Colors.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    portfolioGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    gridItem: {
+        width: screenWidth / 3,
+        height: screenWidth / 3,
+        padding: 1,
+    },
+    gridImage: {
+        flex: 1,
+        backgroundColor: '#F0F0F0',
+    },
+    reviewsView: {
+        padding: 20,
+    },
+    commentCard: {
+        marginBottom: 20,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#F0F0F0',
+        paddingBottom: 15,
+    },
+    commentHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: Spacing.sm,
+        marginBottom: 6,
     },
-    reviewAuthor: {
-        fontSize: FontSizes.md,
+    commentUser: {
         fontWeight: 'bold',
+        fontSize: 14,
         color: Colors.secondary,
     },
-    reviewRating: {
+    commentStars: {
         flexDirection: 'row',
-        alignItems: 'center',
+        gap: 2,
     },
-    reviewRatingText: {
-        fontSize: FontSizes.md,
-        color: Colors.accent,
-        marginLeft: Spacing.xs,
-        fontWeight: 'bold',
-    },
-    reviewComment: {
-        fontSize: FontSizes.sm,
-        color: Colors.gray.dark,
+    commentText: {
+        fontSize: 14,
+        color: Colors.secondary,
         lineHeight: 20,
-        marginBottom: Spacing.sm,
     },
-    reviewDate: {
-        fontSize: FontSizes.xs,
+    commentDate: {
+        fontSize: 11,
         color: Colors.gray.medium,
+        marginTop: 6,
     },
-    actionButtons: {
-        flexDirection: 'row',
-        marginHorizontal: Spacing.lg,
-        marginTop: Spacing.lg,
-        gap: Spacing.md,
-    },
-    contactButton: {
-        flex: 1,
-        flexDirection: 'row',
-        backgroundColor: Colors.white,
-        borderWidth: 2,
-        borderColor: Colors.primary,
-        padding: Spacing.lg,
-        borderRadius: 15,
+    emptyState: {
+        padding: 50,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    contactButtonText: {
-        fontSize: FontSizes.md,
-        fontWeight: 'bold',
-        color: Colors.primary,
-        marginLeft: Spacing.sm,
+    emptyText: {
+        marginTop: 10,
+        color: Colors.gray.medium,
+        fontSize: 14,
     },
-    bookButton: {
+    modalFull: {
         flex: 1,
-        flexDirection: 'row',
-        backgroundColor: Colors.primary,
-        padding: Spacing.lg,
-        borderRadius: 15,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    bookButtonText: {
-        fontSize: FontSizes.md,
-        fontWeight: 'bold',
-        color: Colors.white,
-        marginLeft: Spacing.sm,
-    },
-    // Portfolio Gallery Styles
-    galleryContainer: {
-        paddingVertical: Spacing.sm,
-        gap: Spacing.md,
-    },
-    galleryItem: {
-        marginRight: Spacing.md,
-    },
-    galleryImage: {
-        width: 150,
-        height: 150,
-        borderRadius: 12,
-        backgroundColor: Colors.gray.light,
-    },
-    galleryCaption: {
-        fontSize: FontSizes.sm,
-        color: Colors.gray.dark,
-        marginTop: Spacing.xs,
-        maxWidth: 150,
-    },
-    // Modal Styles
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+        backgroundColor: 'rgba(0,0,0,0.95)',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    closeButton: {
+    modalClose: {
         position: 'absolute',
         top: 50,
         right: 20,
         zIndex: 10,
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
-    modalImage: {
-        width: screenWidth - 40,
-        height: screenWidth - 40,
-        borderRadius: 12,
+    modalImg: {
+        width: screenWidth,
+        height: screenWidth,
     },
 });

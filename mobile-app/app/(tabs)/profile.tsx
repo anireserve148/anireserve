@@ -104,79 +104,108 @@ export default function ProfileScreen() {
     }
 
     return (
-        <ScrollView style={styles.container}>
-            {/* User Header */}
-            <View style={styles.header}>
-                <View style={styles.avatarContainer}>
-                    {user.image ? (
-                        <Image source={{ uri: user.image }} style={styles.avatarImage} />
-                    ) : (
-                        <View style={styles.avatar}>
-                            <Text style={styles.avatarText}>{user.name?.[0] || 'U'}</Text>
+        <ScrollView style={styles.container} bounces={false}>
+            {/* Styled Header */}
+            <View style={styles.headerBackground}>
+                <View style={styles.headerContent}>
+                    <View style={styles.avatarWrapper}>
+                        <View style={styles.avatarBorder}>
+                            {user.image ? (
+                                <Image source={{ uri: user.image }} style={styles.avatarImage} />
+                            ) : (
+                                <View style={styles.avatarPlaceholder}>
+                                    <Text style={styles.avatarLetter}>{user.name?.[0] || 'U'}</Text>
+                                </View>
+                            )}
                         </View>
-                    )}
-                    <TouchableOpacity
-                        style={styles.cameraButton}
-                        onPress={handleChangePhoto}
-                        disabled={isUploading}
-                    >
-                        {isUploading ? (
-                            <ActivityIndicator size="small" color={Colors.white} />
-                        ) : (
-                            <Ionicons name="camera" size={20} color={Colors.white} />
-                        )}
+                        <TouchableOpacity
+                            style={styles.editPhotoButton}
+                            onPress={handleChangePhoto}
+                            disabled={isUploading}
+                        >
+                            {isUploading ? (
+                                <ActivityIndicator size="small" color={Colors.white} />
+                            ) : (
+                                <Ionicons name="camera" size={18} color={Colors.white} />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={styles.userName}>{user.name}</Text>
+                    <Text style={styles.userEmail}>{user.email}</Text>
+
+                    <View style={styles.badgeRow}>
+                        <View style={styles.roleBadge}>
+                            <Text style={styles.roleText}>Client Premium</Text>
+                        </View>
+                    </View>
+                </View>
+            </View>
+
+            {/* Content Section */}
+            <View style={styles.contentSection}>
+                <Text style={styles.sectionTitle}>Compte</Text>
+                <View style={styles.menuGroup}>
+                    <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/edit-profile')}>
+                        <View style={[styles.iconBox, { backgroundColor: '#EEF2FF' }]}>
+                            <Ionicons name="person" size={20} color="#4F46E5" />
+                        </View>
+                        <Text style={styles.menuLabel}>Modifier mon profil</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.menuItem}>
+                        <View style={[styles.iconBox, { backgroundColor: '#F0FDF4' }]}>
+                            <Ionicons name="notifications" size={20} color="#16A34A" />
+                        </View>
+                        <Text style={styles.menuLabel}>Notifications</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.menuItem}>
+                        <View style={[styles.iconBox, { backgroundColor: '#FFF7ED' }]}>
+                            <Ionicons name="shield-checkmark" size={20} color="#EA580C" />
+                        </View>
+                        <Text style={styles.menuLabel}>Sécurité & Confidentialité</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
                     </TouchableOpacity>
                 </View>
-                <Text style={styles.name}>{user.name}</Text>
-                <Text style={styles.email}>{user.email}</Text>
-                {user.role && (
-                    <View style={styles.roleBadge}>
-                        <Text style={styles.roleText}>{user.role}</Text>
+
+                <Text style={styles.sectionTitle}>Support & Infos</Text>
+                <View style={styles.menuGroup}>
+                    <TouchableOpacity style={styles.menuItem}>
+                        <View style={[styles.iconBox, { backgroundColor: '#F5F3FF' }]}>
+                            <Ionicons name="help-circle" size={20} color="#7C3AED" />
+                        </View>
+                        <Text style={styles.menuLabel}>Centre d'aide</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.menuItem}>
+                        <View style={[styles.iconBox, { backgroundColor: '#FDF2F8' }]}>
+                            <Ionicons name="star" size={20} color="#DB2777" />
+                        </View>
+                        <Text style={styles.menuLabel}>Noter l'application</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.menuItem}>
+                        <View style={[styles.iconBox, { backgroundColor: '#F8FAFC' }]}>
+                            <Ionicons name="information-circle" size={20} color="#475569" />
+                        </View>
+                        <Text style={styles.menuLabel}>À propos</Text>
+                        <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+                    </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+                    <View style={styles.logoutIconBox}>
+                        <Ionicons name="log-out-outline" size={20} color="#EF4444" />
                     </View>
-                )}
+                    <Text style={styles.logoutBtnText}>Se déconnecter</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.footerText}>AniReserve v1.2.0 • Made with ❤️</Text>
             </View>
-
-            {/* Menu Items */}
-            <View style={styles.menu}>
-                <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/edit-profile')}>
-                    <Ionicons name="person-outline" size={24} color={Colors.primary} />
-                    <Text style={styles.menuText}>Modifier le profil</Text>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem}>
-                    <Ionicons name="notifications-outline" size={24} color={Colors.primary} />
-                    <Text style={styles.menuText}>Notifications</Text>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem}>
-                    <Ionicons name="lock-closed-outline" size={24} color={Colors.primary} />
-                    <Text style={styles.menuText}>Confidentialité</Text>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem}>
-                    <Ionicons name="help-circle-outline" size={24} color={Colors.primary} />
-                    <Text style={styles.menuText}>Aide & Support</Text>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem}>
-                    <Ionicons name="information-circle-outline" size={24} color={Colors.primary} />
-                    <Text style={styles.menuText}>À propos</Text>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
-                </TouchableOpacity>
-            </View>
-
-            {/* Logout Button */}
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                <Ionicons name="log-out-outline" size={24} color={Colors.error} />
-                <Text style={styles.logoutText}>Déconnexion</Text>
-            </TouchableOpacity>
-
-            {/* App Version */}
-            <Text style={styles.version}>Version 1.0.0</Text>
         </ScrollView>
     );
 }
@@ -184,133 +213,198 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.gray.light,
+        backgroundColor: Colors.white,
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: Spacing.lg,
+        padding: 20,
     },
-    header: {
-        backgroundColor: Colors.white,
+    headerBackground: {
+        paddingTop: 80,
+        paddingBottom: 40,
+        backgroundColor: '#F9FAFB',
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
         alignItems: 'center',
-        padding: Spacing.xl,
-        marginBottom: Spacing.md,
     },
-    avatarContainer: {
+    headerContent: {
+        alignItems: 'center',
+    },
+    avatarWrapper: {
         position: 'relative',
-        marginBottom: Spacing.md,
+        marginBottom: 20,
     },
-    avatar: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: Colors.primary,
+    avatarBorder: {
+        width: 110,
+        height: 110,
+        borderRadius: 55,
+        borderWidth: 4,
+        borderColor: Colors.white,
+        backgroundColor: Colors.white,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 15,
+        elevation: 8,
+        overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
     },
     avatarImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: '100%',
+        height: '100%',
     },
-    cameraButton: {
+    avatarPlaceholder: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: Colors.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    avatarLetter: {
+        color: Colors.white,
+        fontSize: 44,
+        fontWeight: 'bold',
+    },
+    editPhotoButton: {
         position: 'absolute',
-        bottom: 0,
-        right: 0,
-        width: 36,
-        height: 36,
-        borderRadius: 18,
+        bottom: 5,
+        right: 5,
+        width: 34,
+        height: 34,
+        borderRadius: 17,
         backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 3,
         borderColor: Colors.white,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 4,
     },
-    avatarText: {
-        color: Colors.white,
-        fontSize: 42,
-        fontWeight: 'bold',
-    },
-    name: {
-        fontSize: FontSizes.xl,
+    userName: {
+        fontSize: 22,
         fontWeight: 'bold',
         color: Colors.secondary,
-        marginBottom: Spacing.xs,
+        marginBottom: 4,
     },
-    email: {
-        fontSize: FontSizes.md,
+    userEmail: {
+        fontSize: 14,
         color: Colors.gray.medium,
-        marginBottom: Spacing.sm,
+        marginBottom: 15,
+    },
+    badgeRow: {
+        flexDirection: 'row',
+        gap: 8,
     },
     roleBadge: {
-        backgroundColor: Colors.primary + '20',
-        paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.xs,
-        borderRadius: 8,
+        backgroundColor: Colors.primary + '15',
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+        borderRadius: 20,
     },
     roleText: {
-        fontSize: FontSizes.sm,
+        fontSize: 12,
         color: Colors.primary,
-        fontWeight: 'bold',
+        fontWeight: '800',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
-    menu: {
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        marginHorizontal: Spacing.md,
-        marginBottom: Spacing.md,
+    contentSection: {
+        paddingHorizontal: 20,
+        paddingTop: 30,
+        paddingBottom: 50,
+    },
+    sectionTitle: {
+        fontSize: 13,
+        fontWeight: 'bold',
+        color: Colors.gray.medium,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+        marginBottom: 15,
+        marginLeft: 5,
+    },
+    menuGroup: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 20,
+        marginBottom: 30,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 2,
+        borderWidth: 1,
+        borderColor: '#F3F4F6',
         overflow: 'hidden',
     },
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: Spacing.md,
+        padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: Colors.gray.light,
+        borderBottomColor: '#F3F4F6',
     },
-    menuText: {
+    iconBox: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+    },
+    menuLabel: {
         flex: 1,
-        fontSize: FontSizes.md,
+        fontSize: 16,
+        fontWeight: '600',
         color: Colors.secondary,
-        marginLeft: Spacing.md,
     },
-    logoutButton: {
+    logoutBtn: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        padding: Spacing.md,
-        marginHorizontal: Spacing.md,
-        marginBottom: Spacing.md,
+        backgroundColor: '#FFF1F1',
+        borderRadius: 18,
+        padding: 16,
+        marginTop: 10,
+        gap: 12,
     },
-    logoutText: {
-        fontSize: FontSizes.md,
-        color: Colors.error,
+    logoutIconBox: {
+        width: 32,
+        height: 32,
+        borderRadius: 10,
+        backgroundColor: '#FFE4E4',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    logoutBtnText: {
+        fontSize: 16,
+        color: '#EF4444',
         fontWeight: 'bold',
-        marginLeft: Spacing.sm,
     },
-    version: {
+    footerText: {
         textAlign: 'center',
-        fontSize: FontSizes.sm,
-        color: Colors.gray.medium,
-        padding: Spacing.lg,
+        fontSize: 12,
+        color: Colors.gray.light,
+        marginTop: 40,
     },
     errorText: {
-        fontSize: FontSizes.md,
+        fontSize: 16,
         color: Colors.error,
-        marginBottom: Spacing.md,
+        marginBottom: 20,
     },
     button: {
         backgroundColor: Colors.primary,
-        paddingHorizontal: Spacing.lg,
-        paddingVertical: Spacing.md,
+        paddingHorizontal: 25,
+        paddingVertical: 12,
         borderRadius: 12,
     },
     buttonText: {
         color: Colors.white,
-        fontSize: FontSizes.md,
+        fontSize: 16,
         fontWeight: 'bold',
     },
 });

@@ -5,13 +5,19 @@ import Link from 'next/link'
 import {
     Calendar,
     ClipboardList,
-    BarChart3,
-    Settings,
-    MessageSquare,
-    Home,
     Users,
     Clock,
-    Image
+    ShoppingBag,
+    Image,
+    Ticket,
+    Star,
+    MessageCircle,
+    MessageSquare,
+    BarChart3,
+    Settings,
+    Home,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -21,10 +27,14 @@ const links = [
     { label: 'Demandes', icon: ClipboardList, href: '/dashboard/pro/requests' },
     { label: 'Clients', icon: Users, href: '/dashboard/pro/clients' },
     { label: 'Disponibilités', icon: Clock, href: '/dashboard/pro/availability' },
-    { label: 'Services', icon: Settings, href: '/dashboard/pro/services' },
+    { label: 'Services', icon: ShoppingBag, href: '/dashboard/pro/services' },
+    { label: 'Portfolio', icon: Image, href: '/dashboard/pro/portfolio' },
+    { label: 'Promotions', icon: Ticket, href: '/dashboard/pro/promos' },
+    { label: 'Avis Clients', icon: Star, href: '/dashboard/pro/reviews' },
     { label: 'Messages', icon: MessageSquare, href: '/dashboard/messages' },
     { label: 'Statistiques', icon: BarChart3, href: '/dashboard/pro/stats' },
     { label: 'Paramètres', icon: Settings, href: '/dashboard/pro/settings' },
+    { label: 'Passer en vue client', icon: Home, href: '/dashboard' },
 ]
 
 export function ProSidebar() {

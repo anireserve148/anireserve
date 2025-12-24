@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, ArrowRight, Heart } from 'lucide-react';
+import { MapPin, ArrowRight, Heart, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { FavoriteButton } from '@/components/favorites/favorite-button';
 
@@ -36,7 +36,11 @@ export default async function FavoritesPage() {
 
     return (
         <div className="min-h-screen bg-gray-50/50 pb-20 pt-24">
-            <main className="container mx-auto px-4 max-w-6xl space-y-10">
+            <main className="container mx-auto px-4 max-w-6xl space-y-6">
+                <Link href="/dashboard" className="flex items-center gap-2 text-gray-500 hover:text-navy transition-colors mb-4 group">
+                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                    Retour au tableau de bord
+                </Link>
                 <div className="flex items-center gap-3">
                     <h1 className="text-4xl font-bold tracking-tight text-navy font-poppins">Mes Favoris ❤️</h1>
                     <Badge variant="secondary" className="text-lg px-3 py-1">{favorites.length}</Badge>

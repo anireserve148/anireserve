@@ -181,6 +181,7 @@ class ApiService {
 
     async createReservation(data: {
         proId: string;
+        serviceId?: string;
         startDate: string;
         endDate: string;
         totalPrice: number;
@@ -237,6 +238,39 @@ class ApiService {
             method: 'POST',
             body: JSON.stringify({ content }),
         });
+    }
+
+    // Pro Management
+    async getProAvailability(): Promise<ApiResponse<any[]>> {
+        return this.request('/api/mobile/availability');
+    }
+
+    async updateProAvailability(slots: any[]): Promise<ApiResponse<{ success: boolean }>> {
+        return this.request('/api/mobile/availability', {
+            method: 'POST',
+            body: JSON.stringify({ slots }),
+        });
+    }
+
+    async getProServicesList(): Promise<ApiResponse<any[]>> {
+        return this.request('/api/mobile/services');
+    }
+
+    async createProService(data: { name: string; description: string; price: number; duration: number }): Promise<ApiResponse<any>> {
+        return this.request('/api/mobile/services', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async deleteProService(id: string): Promise<ApiResponse<{ success: boolean }>> {
+        return this.request(`/api/mobile/services?id=${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    async getProStats(): Promise<ApiResponse<{ monthlyRevenue: number; totalBookings: number; pendingBookings: number; currency: string }>> {
+        return this.request('/api/mobile/stats');
     }
 }
 

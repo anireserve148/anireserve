@@ -60,6 +60,12 @@ model ProProfile {
   availability Availability[]
   gallery      ProProfileGallery[]
   blockedPeriods BlockedPeriod[]
+  promoCodes   PromoCode[]
+  
+  // Google Calendar Integration
+  googleCalendarEmail       String?
+  googleCalendarToken       String?
+  googleCalendarSyncEnabled Boolean @default(false)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -145,8 +151,12 @@ model Reservation {
   endDate     DateTime
   status      String   @default("PENDING") // PENDING, CONFIRMED, REJECTED, CANCELLED, COMPLETED
   totalPrice  Float
-  notes       String?
-  
+  // Details
+  serviceId   String?
+  service     ProService? @relation(fields: [serviceId], references: [id])
+  serviceName String?     // Fallback for custom/deleted services
+  time        String?     // "10:00" format
+
   // Automated email tracking
   reminderSent    Boolean @default(false)
   reviewRequested Boolean @default(false)
@@ -158,6 +168,7 @@ model Reservation {
 
   @@index([clientId])
   @@index([proId])
+  @@index([serviceId])
   @@index([status])
   @@index([startDate])
 }
@@ -209,6 +220,7 @@ model ProService {
   description   String?        // Description personnalisée du service
   duration      Int            // Durée en minutes
   isActive      Boolean        @default(true)
+  reservations  Reservation[]
   createdAt     DateTime       @default(now())
   
   @@index([proProfileId])
@@ -271,4 +283,26 @@ model ProApplication {
   
   @@index([status])
   @@index([email])
+}
+
+model PromoCode {
+  id            String      @id @default(cuid())
+  code          String      // e.g., "BIENVENUE10"
+  description   String?
+  discountType  String      @default("PERCENTAGE") // PERCENTAGE, FIXED
+  discountValue Float
+  startDate     DateTime?
+  endDate       DateTime?
+  usageLimit    Int?
+  usageCount    Int         @default(0)
+  isActive      Boolean     @default(true)
+  
+  proProfileId  String
+  proProfile    ProProfile  @relation(fields: [proProfileId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([proProfileId, code])
+  @@index([proProfileId])
 }

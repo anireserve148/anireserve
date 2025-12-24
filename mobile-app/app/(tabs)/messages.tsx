@@ -5,6 +5,7 @@ import {
     FlatList,
     StyleSheet,
     TouchableOpacity,
+    TextInput,
     ActivityIndicator,
     Image,
 } from 'react-native';
@@ -34,6 +35,7 @@ export default function MessagesScreen() {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         loadConversations();
@@ -58,20 +60,29 @@ export default function MessagesScreen() {
         const date = new Date(dateString);
         const now = new Date();
         const diff = now.getTime() - date.getTime();
-        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const diffInMinutes = Math.floor(diff / (1000 * 60));
+        const diffInHours = Math.floor(diff / (1000 * 60 * 60));
 
-        if (hours < 1) return 'À l\'instant';
-        if (hours < 24) return `Il y a ${hours}h`;
-        if (hours < 48) return 'Hier';
+        if (diffInMinutes < 1) return 'Maintenant';
+        if (diffInMinutes < 60) return `${diffInMinutes} min`;
+        if (diffInHours < 24) return `${diffInHours}h`;
+        if (diffInHours < 48) return 'Hier';
         return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
     };
+
+    const filteredConversations = conversations.filter(c =>
+        c.otherUser.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const renderConversation = ({ item }: { item: Conversation }) => (
         <TouchableOpacity
             style={styles.conversationItem}
-            onPress={() => router.push(`/chat/${item.id}`)}
+            onPress={() => router.push({
+                pathname: `/chat/${item.id}`,
+                params: { name: item.otherUser.name }
+            })}
         >
-            <View style={styles.avatarContainer}>
+            <View style={styles.avatarWrapper}>
                 {item.otherUser.image ? (
                     <Image source={{ uri: item.otherUser.image }} style={styles.avatar} />
                 ) : (
@@ -79,32 +90,35 @@ export default function MessagesScreen() {
                         <Text style={styles.avatarText}>{item.otherUser.name[0]}</Text>
                     </View>
                 )}
-                <View style={styles.onlineIndicator} />
+                <View style={styles.statusIndicator} />
             </View>
 
             <View style={styles.conversationContent}>
                 <View style={styles.conversationHeader}>
-                    <Text style={styles.userName}>{item.otherUser.name}</Text>
+                    <Text style={styles.userName} numberOfLines={1}>{item.otherUser.name}</Text>
                     {item.lastMessage && (
-                        <Text style={styles.timestamp}>
+                        <Text style={[styles.timestamp, !item.lastMessage.isRead && styles.unreadTimestamp]}>
                             {formatTime(item.lastMessage.createdAt)}
                         </Text>
                     )}
                 </View>
-                {item.lastMessage && (
-                    <Text
-                        style={[
-                            styles.lastMessage,
-                            !item.lastMessage.isRead && styles.unreadMessage,
-                        ]}
-                        numberOfLines={1}
-                    >
-                        {item.lastMessage.content}
-                    </Text>
-                )}
+                <View style={styles.lastMessageRow}>
+                    {item.lastMessage && (
+                        <Text
+                            style={[
+                                styles.lastMessage,
+                                !item.lastMessage.isRead && styles.unreadMessageText,
+                            ]}
+                            numberOfLines={1}
+                        >
+                            {item.lastMessage.content}
+                        </Text>
+                    )}
+                    {item.lastMessage && !item.lastMessage.isRead && (
+                        <View style={styles.unreadDot} />
+                    )}
+                </View>
             </View>
-
-            {item.lastMessage && !item.lastMessage.isRead && <View style={styles.unreadBadge} />}
         </TouchableOpacity>
     );
 
@@ -118,26 +132,50 @@ export default function MessagesScreen() {
 
     return (
         <View style={styles.container}>
-            {/* Header */}
+            {/* Custom Header */}
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Messages</Text>
-                <TouchableOpacity style={styles.newMessageButton}>
+                <View>
+                    <Text style={styles.headerTitle}>Messages</Text>
+                    <Text style={styles.headerSubtitle}>{conversations.length} conversations</Text>
+                </View>
+                <TouchableOpacity style={styles.headerAction}>
                     <Ionicons name="create-outline" size={24} color={Colors.primary} />
                 </TouchableOpacity>
             </View>
 
+            {/* Search Bar */}
+            <View style={styles.searchContainer}>
+                <View style={styles.searchBar}>
+                    <Ionicons name="search-outline" size={20} color={Colors.gray.medium} />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="Rechercher une conversation..."
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        placeholderTextColor={Colors.gray.medium}
+                    />
+                </View>
+            </View>
+
             {/* Conversations List */}
             <FlatList
-                data={conversations}
+                data={filteredConversations}
                 renderItem={renderConversation}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="chatbubbles-outline" size={80} color={Colors.gray.medium} />
-                        <Text style={styles.emptyTitle}>Aucun message</Text>
-                        <Text style={styles.emptyText}>
-                            Commencez une conversation avec un professionnel
+                        <View style={styles.emptyIconCircle}>
+                            <Ionicons name="chatbubbles-outline" size={40} color={Colors.gray.light} />
+                        </View>
+                        <Text style={styles.emptyTitle}>
+                            {searchQuery ? 'Aucun résultat' : 'Pas encore de messages'}
+                        </Text>
+                        <Text style={styles.emptySubtitle}>
+                            {searchQuery
+                                ? "Nous n'avons trouvé aucune conversation correspondant à votre recherche."
+                                : "Vos conversations avec les professionnels apparaîtront ici."}
                         </Text>
                     </View>
                 }
@@ -160,114 +198,170 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: Spacing.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.gray.light,
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 15,
     },
     headerTitle: {
-        fontSize: FontSizes.xxl,
-        fontWeight: 'bold',
+        fontSize: 28,
+        fontWeight: '900',
         color: Colors.secondary,
+        letterSpacing: -0.5,
     },
-    newMessageButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+    headerSubtitle: {
+        fontSize: 13,
+        color: Colors.gray.medium,
+        fontWeight: '600',
+        marginTop: 2,
+    },
+    headerAction: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#F3F4F6',
         justifyContent: 'center',
         alignItems: 'center',
     },
+    searchContainer: {
+        paddingHorizontal: 20,
+        paddingBottom: 15,
+    },
+    searchBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F9FAFB',
+        paddingHorizontal: 15,
+        height: 44,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#F3F4F6',
+    },
+    searchInput: {
+        flex: 1,
+        marginLeft: 10,
+        fontSize: 15,
+        color: Colors.secondary,
+        fontWeight: '500',
+    },
     listContent: {
-        flexGrow: 1,
+        paddingBottom: 20,
     },
     conversationItem: {
         flexDirection: 'row',
-        padding: Spacing.md,
+        paddingHorizontal: 20,
+        paddingVertical: 14,
         alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.gray.light,
     },
-    avatarContainer: {
+    avatarWrapper: {
         position: 'relative',
-        marginRight: Spacing.md,
     },
     avatar: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
+        width: 60,
+        height: 60,
+        borderRadius: 20,
+        backgroundColor: '#F3F4F6',
     },
     avatarPlaceholder: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
+        width: 60,
+        height: 60,
+        borderRadius: 20,
         backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
     },
     avatarText: {
-        fontSize: FontSizes.xl,
+        fontSize: 24,
         fontWeight: 'bold',
         color: Colors.white,
     },
-    onlineIndicator: {
+    statusIndicator: {
         position: 'absolute',
-        bottom: 2,
-        right: 2,
-        width: 14,
-        height: 14,
-        borderRadius: 7,
-        backgroundColor: Colors.success,
-        borderWidth: 2,
+        bottom: -2,
+        right: -2,
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        backgroundColor: '#10B981',
+        borderWidth: 3,
         borderColor: Colors.white,
     },
     conversationContent: {
         flex: 1,
+        marginLeft: 15,
+        height: 60,
+        justifyContent: 'center',
     },
     conversationHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: Spacing.xs,
+        alignItems: 'center',
+        marginBottom: 4,
     },
     userName: {
-        fontSize: FontSizes.md,
-        fontWeight: 'bold',
+        fontSize: 16,
+        fontWeight: '800',
         color: Colors.secondary,
+        flex: 1,
+        marginRight: 10,
     },
     timestamp: {
-        fontSize: FontSizes.xs,
+        fontSize: 12,
         color: Colors.gray.medium,
+        fontWeight: '500',
+    },
+    unreadTimestamp: {
+        color: Colors.primary,
+        fontWeight: 'bold',
+    },
+    lastMessageRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
     },
     lastMessage: {
-        fontSize: FontSizes.sm,
+        fontSize: 14,
         color: Colors.gray.medium,
+        flex: 1,
+        fontWeight: '500',
     },
-    unreadMessage: {
+    unreadMessageText: {
         color: Colors.secondary,
-        fontWeight: '600',
+        fontWeight: '700',
     },
-    unreadBadge: {
+    unreadDot: {
         width: 10,
         height: 10,
         borderRadius: 5,
         backgroundColor: Colors.primary,
-        marginLeft: Spacing.sm,
+        marginLeft: 8,
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: Spacing.xxl,
-        marginTop: 100,
+        paddingHorizontal: 40,
+        marginTop: 80,
+    },
+    emptyIconCircle: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#F9FAFB',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
     },
     emptyTitle: {
-        fontSize: FontSizes.xl,
+        fontSize: 18,
         fontWeight: 'bold',
         color: Colors.secondary,
-        marginTop: Spacing.lg,
-        marginBottom: Spacing.sm,
+        textAlign: 'center',
     },
-    emptyText: {
-        fontSize: FontSizes.md,
+    emptySubtitle: {
+        fontSize: 14,
         color: Colors.gray.medium,
         textAlign: 'center',
+        marginTop: 8,
+        lineHeight: 20,
     },
 });

@@ -44,18 +44,19 @@ const DURATIONS = [
 ];
 
 export default function QuickBookScreen() {
-    const { id, name, rate } = useLocalSearchParams();
+    const { id, name, rate, serviceId, serviceName, servicePrice, serviceDuration } = useLocalSearchParams();
     const router = useRouter();
 
     const [step, setStep] = useState(1); // 1: Date, 2: Heure, 3: Confirmation
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
-    const [selectedDuration, setSelectedDuration] = useState(1);
+    const [selectedDuration, setSelectedDuration] = useState(serviceDuration ? Number(serviceDuration) / 60 : 1);
     const [isLoading, setIsLoading] = useState(false);
 
     const days = getNextDays();
     const hourlyRate = Number(rate) || 100;
-    const totalPrice = hourlyRate * selectedDuration;
+    const finalPrice = serviceId ? Number(servicePrice) : (hourlyRate * selectedDuration);
+    const finalDuration = serviceId ? Number(serviceDuration) / 60 : selectedDuration;
 
     const handleConfirm = async () => {
         if (!selectedDate || !selectedTime) {
@@ -72,20 +73,23 @@ export default function QuickBookScreen() {
             startDateTime.setHours(hours, minutes, 0, 0);
 
             const endDateTime = new Date(startDateTime);
-            endDateTime.setHours(endDateTime.getHours() + selectedDuration);
+            const durationInHours = serviceId ? (Number(serviceDuration) / 60) : selectedDuration;
+            endDateTime.setMinutes(endDateTime.getMinutes() + (durationInHours * 60));
 
             console.log('Creating reservation:', {
                 proId: id,
+                serviceId: serviceId || undefined,
                 startDate: startDateTime.toISOString(),
                 endDate: endDateTime.toISOString(),
-                totalPrice,
+                totalPrice: finalPrice,
             });
 
             const result = await api.createReservation({
                 proId: id as string,
+                serviceId: serviceId as string || undefined,
                 startDate: startDateTime.toISOString(),
                 endDate: endDateTime.toISOString(),
-                totalPrice,
+                totalPrice: finalPrice,
             });
 
             console.log('API Result:', JSON.stringify(result));
@@ -98,10 +102,11 @@ export default function QuickBookScreen() {
                     pathname: '/booking-success',
                     params: {
                         proName: name as string,
+                        serviceName: (serviceName as string) || 'Prestation',
                         date: selectedDate,
                         time: selectedTime,
-                        duration: String(selectedDuration),
-                        price: String(totalPrice),
+                        duration: String(serviceId ? serviceDuration : (selectedDuration * 60)),
+                        price: String(finalPrice),
                     },
                 });
             } else {
@@ -173,26 +178,30 @@ export default function QuickBookScreen() {
 
     const renderStep3 = () => (
         <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>3. Confirmez</Text>
+            <Text style={styles.stepTitle}>3. Confirmez {serviceName ? `pour ${serviceName}` : ''}</Text>
 
-            {/* Durée */}
-            <Text style={styles.sectionLabel}>Durée</Text>
-            <View style={styles.durationRow}>
-                {DURATIONS.map((d) => (
-                    <TouchableOpacity
-                        key={d.value}
-                        style={[
-                            styles.durationCard,
-                            selectedDuration === d.value && styles.durationCardSelected
-                        ]}
-                        onPress={() => setSelectedDuration(d.value)}
-                    >
-                        <Text style={[styles.durationText, selectedDuration === d.value && styles.textSelected]}>
-                            {d.label}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
+            {/* Durée - Only show if not a specific service */}
+            {!serviceId && (
+                <>
+                    <Text style={styles.sectionLabel}>Durée</Text>
+                    <View style={styles.durationRow}>
+                        {DURATIONS.map((d) => (
+                            <TouchableOpacity
+                                key={d.value}
+                                style={[
+                                    styles.durationCard,
+                                    selectedDuration === d.value && styles.durationCardSelected
+                                ]}
+                                onPress={() => setSelectedDuration(d.value)}
+                            >
+                                <Text style={[styles.durationText, selectedDuration === d.value && styles.textSelected]}>
+                                    {d.label}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </>
+            )}
 
             {/* Récapitulatif */}
             <View style={styles.summaryCard}>
@@ -202,8 +211,16 @@ export default function QuickBookScreen() {
                 </View>
                 <View style={styles.summaryRow}>
                     <Ionicons name="time-outline" size={20} color={Colors.gray.dark} />
-                    <Text style={styles.summaryText}>{selectedTime} - {selectedDuration}h</Text>
+                    <Text style={styles.summaryText}>
+                        {selectedTime} - {serviceId ? `${serviceDuration} min` : `${selectedDuration}h`}
+                    </Text>
                 </View>
+                {serviceName && (
+                    <View style={styles.summaryRow}>
+                        <Ionicons name="cut-outline" size={20} color={Colors.gray.dark} />
+                        <Text style={styles.summaryText}>{serviceName}</Text>
+                    </View>
+                )}
                 <View style={styles.summaryRow}>
                     <Ionicons name="person-outline" size={20} color={Colors.gray.dark} />
                     <Text style={styles.summaryText}>{name}</Text>
@@ -211,7 +228,7 @@ export default function QuickBookScreen() {
                 <View style={styles.divider} />
                 <View style={styles.priceRow}>
                     <Text style={styles.priceLabel}>Total</Text>
-                    <Text style={styles.priceValue}>{totalPrice}₪</Text>
+                    <Text style={styles.priceValue}>{finalPrice}₪</Text>
                 </View>
             </View>
 

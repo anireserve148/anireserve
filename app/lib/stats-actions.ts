@@ -148,3 +148,50 @@ export async function getBusiestHours() {
         return { success: false, error: "Erreur serveur" }
     }
 }
+
+// Export all reservations as CSV-friendly data
+export async function exportReservationsCSV() {
+    const session = await auth()
+    if (!session?.user?.id || session.user.role !== 'PRO') {
+        return { success: false, error: "Non autorisé" }
+    }
+
+    const proProfile = await prisma.proProfile.findUnique({
+        where: { userId: session.user.id }
+    })
+
+    if (!proProfile) {
+        return { success: false, error: "Profil non trouvé" }
+    }
+
+    try {
+        const reservations = await prisma.reservation.findMany({
+            where: { proId: proProfile.id },
+            include: {
+                client: { select: { name: true, email: true } },
+                service: { select: { name: true } }
+            },
+            orderBy: { startDate: 'desc' }
+        })
+
+        // Prepare CSV lines
+        const headers = ["ID", "Client", "Email", "Service", "Date", "Heure", "Prix (₪)", "Statut"]
+        const rows = reservations.map(r => [
+            r.id,
+            r.client?.name || "Inconnu",
+            r.client?.email || "",
+            r.service?.name || r.serviceName || "Service",
+            new Date(r.startDate).toLocaleDateString('fr-FR'),
+            r.time || "",
+            r.totalPrice.toString(),
+            r.status
+        ])
+
+        const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n")
+
+        return { success: true, data: csvContent }
+    } catch (error) {
+        console.error("Error exporting CSV:", error)
+        return { success: false, error: "Erreur serveur" }
+    }
+}

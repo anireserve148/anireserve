@@ -6,9 +6,13 @@ import {
     ScrollView,
     TouchableOpacity,
     Switch,
+    Platform,
+    Image,
+    Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { api } from '../services/api';
 import { Colors, Spacing, FontSizes } from '../constants';
 
 interface DaySchedule {
@@ -38,6 +42,38 @@ const BREAK_HOURS = ['11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:0
 export default function ProScheduleScreen() {
     const router = useRouter();
     const [schedule, setSchedule] = useState<DaySchedule[]>(DAYS);
+    const [isLoading, setIsLoading] = useState(true);
+
+    React.useEffect(() => {
+        loadAvailability();
+    }, []);
+
+    const loadAvailability = async () => {
+        setIsLoading(true);
+        const result = await api.getProAvailability();
+        if (result.success && result.data) {
+            const apiSlots = result.data;
+            // Map API slots back to DAYS structure
+            const newSchedule = DAYS.map(d => {
+                const dayIndex = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].indexOf(d.day);
+                const slot = apiSlots.find((s: any) => s.dayOfWeek === dayIndex);
+                if (slot) {
+                    return {
+                        ...d,
+                        isOpen: slot.isAvailable,
+                        start: slot.startTime,
+                        end: slot.endTime,
+                        hasBreak: false // Breaks are not stored separately in current schema
+                    };
+                }
+                return d;
+            });
+            setSchedule(newSchedule);
+        } else {
+            Alert.alert('Erreur', 'Impossible de charger vos horaires');
+        }
+        setIsLoading(false);
+    };
 
     const toggleDay = (day: string) => {
         setSchedule(prev => prev.map(d =>
@@ -57,11 +93,21 @@ export default function ProScheduleScreen() {
         ));
     };
 
-    const handleSave = () => {
-        if (typeof window !== 'undefined') {
-            window.alert('✅ Horaires sauvegardés !');
+    const handleSave = async () => {
+        const slots = schedule.map(d => ({
+            dayOfWeek: ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].indexOf(d.day),
+            isAvailable: d.isOpen,
+            startTime: d.start || '09:00',
+            endTime: d.end || '18:00'
+        }));
+
+        const result = await api.updateProAvailability(slots);
+        if (result.success) {
+            Alert.alert('Succès', 'Horaires sauvegardés ! ✅');
+            router.back();
+        } else {
+            Alert.alert('Erreur', 'Impossible de sauvegarder les horaires');
         }
-        router.back();
     };
 
     return (

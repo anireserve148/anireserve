@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
             where.OR = [
                 { user: { name: { contains: q, mode: 'insensitive' } } },
                 { bio: { contains: q, mode: 'insensitive' } },
+                { services: { some: { name: { contains: q, mode: 'insensitive' } } } },
             ];
         }
 
@@ -59,6 +60,7 @@ export async function GET(request: NextRequest) {
                 },
                 city: true,
                 serviceCategories: true,
+                services: true, // Include all services
                 gallery: {
                     orderBy: { order: 'asc' },
                     take: 3, // First 3 images for feed preview

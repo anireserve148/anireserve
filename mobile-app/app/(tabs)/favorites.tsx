@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -8,15 +8,15 @@ import {
     ActivityIndicator,
     Alert,
     Image,
+    Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, FontSizes, Shadows } from '../../constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Colors } from '../../constants';
 import { api } from '../../services/api';
 import { ProProfile } from '../../types';
 
-const FAVORITES_KEY = 'user_favorites';
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function FavoritesScreen() {
     const router = useRouter();
@@ -29,89 +29,82 @@ export default function FavoritesScreen() {
 
     const loadFavorites = async () => {
         setIsLoading(true);
-        try {
-            // Get saved favorite IDs from local storage
-            const savedIds = await AsyncStorage.getItem(FAVORITES_KEY);
-            if (savedIds) {
-                const ids = JSON.parse(savedIds) as string[];
-
-                // Fetch full pro details for each favorite
-                const prosResult = await api.getPros();
-                if (prosResult.success && prosResult.data) {
-                    const favoritePros = prosResult.data.filter(pro => ids.includes(pro.id));
-                    setFavorites(favoritePros);
-                }
-            }
-        } catch (error) {
-            console.error('Error loading favorites:', error);
-        } finally {
-            setIsLoading(false);
+        const result = await api.getFavorites();
+        if (result.success && result.data) {
+            setFavorites(result.data);
         }
+        setIsLoading(false);
     };
 
-    const removeFavorite = async (proId: string) => {
-        try {
-            const savedIds = await AsyncStorage.getItem(FAVORITES_KEY);
-            if (savedIds) {
-                const ids = JSON.parse(savedIds) as string[];
-                const newIds = ids.filter(id => id !== proId);
-                await AsyncStorage.setItem(FAVORITES_KEY, JSON.stringify(newIds));
-                setFavorites(prev => prev.filter(p => p.id !== proId));
-            }
-        } catch (error) {
-            Alert.alert('Erreur', 'Impossible de supprimer le favori');
+    const handleToggleFavorite = async (proId: string) => {
+        const result = await api.removeFavorite(proId);
+        if (result.success) {
+            setFavorites((prev: ProProfile[]) => prev.filter((p: ProProfile) => p.id !== proId));
+        } else {
+            Alert.alert('Erreur', 'Impossible de retirer des favoris');
         }
     };
 
     const renderPro = ({ item }: { item: ProProfile }) => {
-        const proName = item.user?.name || 'Pro';
-        const proImage = item.user?.image;
-        const proCategory = item.serviceCategories?.[0]?.name || 'Service';
-        const proCity = item.city?.name;
-        const proRating = item.reviews?.length > 0
-            ? (item.reviews.reduce((acc, r) => acc + r.rating, 0) / item.reviews.length)
-            : 5.0;
+        const avgRating = item.reviews.length > 0
+            ? item.reviews.reduce((sum, r) => sum + r.rating, 0) / item.reviews.length
+            : 0;
+        const coverImage = item.gallery?.[0]?.imageUrl;
 
         return (
-            <TouchableOpacity
-                style={styles.proCard}
-                onPress={() => router.push(`/pro/${item.id}`)}
-                activeOpacity={0.7}
-            >
-                <View style={styles.proImageContainer}>
-                    {proImage ? (
-                        <Image source={{ uri: proImage }} style={styles.proImage} />
+            <View style={styles.card}>
+                <TouchableOpacity
+                    onPress={() => router.push(`/pro/${item.id}`)}
+                    activeOpacity={0.95}
+                >
+                    {coverImage ? (
+                        <Image source={{ uri: coverImage }} style={styles.cardImage} resizeMode="cover" />
                     ) : (
-                        <View style={styles.proImagePlaceholder}>
-                            <Text style={styles.proInitial}>{proName[0]}</Text>
+                        <View style={[styles.cardImage, styles.placeholderImage]}>
+                            <Ionicons name="person" size={60} color={Colors.gray.medium} />
                         </View>
                     )}
-                </View>
-
-                <View style={styles.proInfo}>
-                    <Text style={styles.proName}>{proName}</Text>
-                    <Text style={styles.proCategory}>{proCategory}</Text>
-                    <View style={styles.proMeta}>
-                        <View style={styles.ratingContainer}>
+                    {avgRating > 0 && (
+                        <View style={styles.ratingBadge}>
                             <Ionicons name="star" size={14} color="#FFD700" />
-                            <Text style={styles.rating}>{proRating.toFixed(1)}</Text>
+                            <Text style={styles.ratingText}>{avgRating.toFixed(1)}</Text>
                         </View>
-                        {proCity && (
-                            <View style={styles.locationContainer}>
-                                <Ionicons name="location-outline" size={14} color={Colors.gray.medium} />
-                                <Text style={styles.location}>{proCity}</Text>
-                            </View>
-                        )}
-                    </View>
-                </View>
+                    )}
+                </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => removeFavorite(item.id)}
+                    style={styles.infoSection}
+                    onPress={() => router.push(`/pro/${item.id}`)}
                 >
-                    <Ionicons name="heart" size={24} color={Colors.error} />
+                    <View style={styles.nameRow}>
+                        <View>
+                            <Text style={styles.proName}>{item.user.name}</Text>
+                            <View style={styles.locationBadge}>
+                                <Ionicons name="location" size={12} color={Colors.gray.medium} />
+                                <Text style={styles.cityText}>{item.city.name}</Text>
+                            </View>
+                        </View>
+                        <Text style={styles.priceTag}>{item.hourlyRate}₪/h</Text>
+                    </View>
                 </TouchableOpacity>
-            </TouchableOpacity>
+
+                <View style={styles.cardFooter}>
+                    <TouchableOpacity
+                        style={styles.footerAction}
+                        onPress={() => handleToggleFavorite(item.id)}
+                    >
+                        <Ionicons name="heart" size={24} color="#FF3B5C" />
+                        <Text style={[styles.footerActionText, { color: '#FF3B5C' }]}>Favoris</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.footerAction, styles.bookAction]}
+                        onPress={() => router.push(`/pro/${item.id}`)}
+                    >
+                        <Text style={styles.bookActionText}>Réserver</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
         );
     };
 
@@ -158,123 +151,143 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.background,
+        backgroundColor: '#FAFAFA',
     },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: Colors.background,
     },
     loadingText: {
-        marginTop: Spacing.md,
-        fontSize: FontSizes.md,
+        marginTop: 12,
+        fontSize: 14,
         color: Colors.gray.medium,
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: Colors.background,
-        paddingHorizontal: Spacing.xl,
+        paddingHorizontal: 32,
     },
     emptyTitle: {
-        fontSize: FontSizes.xl,
+        fontSize: 20,
         fontWeight: '700',
         color: Colors.secondary,
-        marginTop: Spacing.lg,
+        marginTop: 16,
     },
     emptyText: {
-        fontSize: FontSizes.md,
+        fontSize: 15,
         color: Colors.gray.medium,
         textAlign: 'center',
-        marginTop: Spacing.sm,
+        marginTop: 8,
         lineHeight: 22,
     },
     exploreButton: {
         backgroundColor: Colors.primary,
-        paddingHorizontal: Spacing.xl,
-        paddingVertical: Spacing.md,
+        paddingHorizontal: 24,
+        paddingVertical: 12,
         borderRadius: 12,
-        marginTop: Spacing.xl,
+        marginTop: 24,
     },
     exploreButtonText: {
         color: Colors.white,
-        fontSize: FontSizes.md,
+        fontSize: 16,
         fontWeight: '600',
     },
     list: {
-        padding: Spacing.md,
+        paddingVertical: 16,
     },
-    proCard: {
-        flexDirection: 'row',
-        backgroundColor: Colors.card,
-        borderRadius: 16,
-        padding: Spacing.md,
-        marginBottom: Spacing.md,
-        alignItems: 'center',
-        ...Shadows.medium,
+    card: {
+        backgroundColor: '#fff',
+        marginBottom: 24,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#DBDBDB',
     },
-    proImageContainer: {
-        marginRight: Spacing.md,
+    cardImage: {
+        width: screenWidth,
+        height: screenWidth * 0.75,
+        backgroundColor: '#F0F0F0',
     },
-    proImage: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-    },
-    proImagePlaceholder: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        backgroundColor: Colors.primary + '20',
+    placeholderImage: {
         justifyContent: 'center',
         alignItems: 'center',
     },
-    proInitial: {
-        fontSize: FontSizes.xl,
-        fontWeight: '700',
-        color: Colors.primary,
+    ratingBadge: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        gap: 4,
     },
-    proInfo: {
-        flex: 1,
+    ratingText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    infoSection: {
+        paddingHorizontal: 16,
+        paddingTop: 12,
+        paddingBottom: 8,
+    },
+    nameRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        marginBottom: 8,
     },
     proName: {
-        fontSize: FontSizes.lg,
+        fontSize: 16,
         fontWeight: '700',
         color: Colors.secondary,
+        marginBottom: 2,
     },
-    proCategory: {
-        fontSize: FontSizes.sm,
-        color: Colors.primary,
-        marginTop: 2,
-    },
-    proMeta: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: Spacing.xs,
-        gap: Spacing.md,
-    },
-    ratingContainer: {
+    locationBadge: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
     },
-    rating: {
-        fontSize: FontSizes.sm,
-        fontWeight: '600',
-        color: Colors.secondary,
-    },
-    locationContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-    },
-    location: {
-        fontSize: FontSizes.sm,
+    cityText: {
+        fontSize: 12,
         color: Colors.gray.medium,
     },
-    removeButton: {
-        padding: Spacing.sm,
+    priceTag: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: Colors.primary,
+    },
+    cardFooter: {
+        flexDirection: 'row',
+        borderTopWidth: 0.5,
+        borderTopColor: '#DBDBDB',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    footerAction: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    footerActionText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: Colors.secondary,
+    },
+    bookAction: {
+        backgroundColor: Colors.primary,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 8,
+    },
+    bookActionText: {
+        color: Colors.white,
+        fontSize: 13,
+        fontWeight: '600',
     },
 });

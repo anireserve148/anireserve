@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { api } from '../services/api';
 import { Colors, Spacing, FontSizes } from '../constants';
 
 interface Service {
@@ -29,44 +30,95 @@ const MOCK_SERVICES: Service[] = [
 
 export default function ProServicesScreen() {
     const router = useRouter();
-    const [services, setServices] = useState<Service[]>(MOCK_SERVICES);
+    const [services, setServices] = useState<Service[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [showAddForm, setShowAddForm] = useState(false);
     const [newService, setNewService] = useState({ name: '', description: '', duration: '60', price: '' });
 
+    React.useEffect(() => {
+        loadServices();
+    }, []);
+
+    const loadServices = async () => {
+        setIsLoading(true);
+        const result = await api.getProServicesList();
+        if (result.success && result.data) {
+            // Map customPrice to price for component compatibility
+            const mapped = result.data.map((s: any) => ({
+                id: s.id,
+                name: s.name,
+                description: s.description || '',
+                duration: s.duration,
+                price: s.customPrice,
+                isActive: s.isActive
+            }));
+            setServices(mapped);
+        } else {
+            Alert.alert('Erreur', 'Impossible de charger les services');
+        }
+        setIsLoading(false);
+    };
+
     const toggleService = (id: string) => {
+        // Feature for backend later, for now just local toggle
         setServices(prev => prev.map(s =>
             s.id === id ? { ...s, isActive: !s.isActive } : s
         ));
     };
 
-    const deleteService = (id: string) => {
-        if (typeof window !== 'undefined') {
-            if (window.confirm('Supprimer ce service ?')) {
-                setServices(prev => prev.filter(s => s.id !== id));
-            }
-        }
+    const deleteService = async (id: string) => {
+        Alert.alert(
+            'Supprimer ce service ?',
+            'Cette action est irréversible.',
+            [
+                { text: 'Annuler', style: 'cancel' },
+                {
+                    text: 'Supprimer',
+                    style: 'destructive',
+                    onPress: async () => {
+                        const result = await api.deleteProService(id);
+                        if (result.success) {
+                            setServices(prev => prev.filter(s => s.id !== id));
+                        } else {
+                            Alert.alert('Erreur', 'Impossible de supprimer le service');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
-    const addService = () => {
+    const addService = async () => {
         if (!newService.name || !newService.price) {
-            if (typeof window !== 'undefined') {
-                window.alert('Veuillez remplir le nom et le prix');
-            }
+            Alert.alert('Erreur', 'Veuillez remplir le nom et le prix');
             return;
         }
 
-        const service: Service = {
-            id: Date.now().toString(),
+        const result = await api.createProService({
             name: newService.name,
             description: newService.description,
-            duration: parseInt(newService.duration) || 60,
-            price: parseInt(newService.price) || 0,
-            isActive: true,
-        };
+            price: parseFloat(newService.price),
+            duration: parseInt(newService.duration) || 60
+        });
 
-        setServices(prev => [...prev, service]);
-        setNewService({ name: '', description: '', duration: '60', price: '' });
-        setShowAddForm(false);
+        if (result.success && result.data) {
+            const s = result.data;
+            const service: Service = {
+                id: s.id,
+                name: s.name,
+                description: s.description || '',
+                duration: s.duration,
+                price: s.customPrice,
+                isActive: s.isActive,
+            };
+
+            setServices(prev => [...prev, service]);
+            setNewService({ name: '', description: '', duration: '60', price: '' });
+            setShowAddForm(false);
+            Alert.alert('Succès', 'Service ajouté !');
+        } else {
+            Alert.alert('Erreur', 'Impossible d\'ajouter le service');
+        }
     };
 
     return (

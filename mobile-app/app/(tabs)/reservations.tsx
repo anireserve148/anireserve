@@ -17,10 +17,10 @@ import { Reservation } from '../../types';
 import { Colors, Spacing, FontSizes } from '../../constants';
 
 const STATUS_CONFIG = {
-    PENDING: { label: 'En attente', color: Colors.warning, icon: 'time' as const },
-    CONFIRMED: { label: 'Confirmé', color: Colors.success, icon: 'checkmark-circle' as const },
-    COMPLETED: { label: 'Terminé', color: Colors.gray.medium, icon: 'checkbox' as const },
-    CANCELLED: { label: 'Annulé', color: Colors.error, icon: 'close-circle' as const },
+    PENDING: { label: 'En attente', color: '#F59E0B', icon: 'time-outline' as const },
+    CONFIRMED: { label: 'Confirmé', color: '#10B981', icon: 'checkmark-circle-outline' as const },
+    COMPLETED: { label: 'Terminé', color: '#6B7280', icon: 'checkbox-outline' as const },
+    CANCELLED: { label: 'Annulé', color: '#EF4444', icon: 'close-circle-outline' as const },
 };
 
 export default function ReservationsScreen() {
@@ -61,7 +61,7 @@ export default function ReservationsScreen() {
                         const result = await api.cancelReservation(reservationId);
                         if (result.success) {
                             Alert.alert('Succès', 'Réservation annulée');
-                            loadReservations(); // Refresh list
+                            loadReservations();
                         } else {
                             Alert.alert('Erreur', result.error || 'Impossible d\'annuler');
                         }
@@ -76,20 +76,7 @@ export default function ReservationsScreen() {
             Alert.alert('Erreur', 'Professionnel non trouvé');
             return;
         }
-        Alert.alert('Contacter', `Contacter ${proName}`, [
-            {
-                text: 'Message',
-                onPress: async () => {
-                    const result = await api.createConversation(proUserId);
-                    if (result.success && result.data?.id) {
-                        router.push(`/chat/${result.data.id}`);
-                    } else {
-                        Alert.alert('Erreur', 'Impossible de démarrer la conversation');
-                    }
-                },
-            },
-            { text: 'Annuler', style: 'cancel' },
-        ]);
+        router.push(`/chat/${proUserId}?name=${encodeURIComponent(proName)}`);
     };
 
     const handleAddToCalendar = async (reservation: any) => {
@@ -105,75 +92,88 @@ export default function ReservationsScreen() {
         const date = new Date(dateString);
         return date.toLocaleDateString('fr-FR', {
             day: 'numeric',
-            month: 'short',
-            year: 'numeric',
+            month: 'long',
+        });
+    };
+
+    const formatTime = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit',
         });
     };
 
     const renderReservation = ({ item }: { item: Reservation }) => {
-        const config = STATUS_CONFIG[item.status];
+        const config = STATUS_CONFIG[item.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.PENDING;
 
         return (
             <View style={styles.card}>
                 <View style={styles.cardHeader}>
-                    <Text style={styles.proName}>{item.pro.user.name}</Text>
-                    <View style={[styles.statusBadge, { backgroundColor: config.color + '20' }]}>
-                        <Ionicons name={config.icon} size={14} color={config.color} />
+                    <View style={styles.proInfo}>
+                        <View style={styles.proAvatar}>
+                            <Text style={styles.proAvatarText}>{item.pro.user.name?.[0]}</Text>
+                        </View>
+                        <View>
+                            <Text style={styles.proName}>{item.pro.user.name}</Text>
+                            <Text style={styles.serviceName}>{(item as any).serviceName || 'Service personnalisé'}</Text>
+                        </View>
+                    </View>
+                    <View style={[styles.statusBadge, { backgroundColor: config.color + '15' }]}>
                         <Text style={[styles.statusText, { color: config.color }]}>
                             {config.label}
                         </Text>
                     </View>
                 </View>
 
+                <View style={styles.cardDivider} />
+
                 <View style={styles.cardContent}>
-                    <View style={styles.infoRow}>
-                        <Ionicons name="location" size={16} color={Colors.gray.medium} />
-                        <Text style={styles.infoText}>{item.pro.city.name}</Text>
-                    </View>
-
-                    <View style={styles.infoRow}>
-                        <Ionicons name="calendar" size={16} color={Colors.gray.medium} />
-                        <Text style={styles.infoText}>
-                            {formatDate(item.startDate)} - {formatDate(item.endDate)}
-                        </Text>
-                    </View>
-
-                    {(item as any).totalPrice && (
-                        <View style={styles.infoRow}>
-                            <Ionicons name="cash" size={16} color={Colors.gray.medium} />
-                            <Text style={styles.infoText}>{(item as any).totalPrice}₪</Text>
+                    <View style={styles.dateTimeRow}>
+                        <View style={styles.infoBlock}>
+                            <Ionicons name="calendar-outline" size={16} color={Colors.gray.medium} />
+                            <Text style={styles.infoValue}>{formatDate(item.startDate)}</Text>
                         </View>
-                    )}
+                        <View style={styles.infoBlock}>
+                            <Ionicons name="time-outline" size={16} color={Colors.gray.medium} />
+                            <Text style={styles.infoValue}>{formatTime(item.startDate)}</Text>
+                        </View>
+                        <View style={styles.infoBlock}>
+                            <Ionicons name="cash-outline" size={16} color={Colors.gray.medium} />
+                            <Text style={styles.infoValue}>{(item as any).totalPrice}₪</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.locationRow}>
+                        <Ionicons name="location-outline" size={16} color={Colors.primary} />
+                        <Text style={styles.locationText}>{item.pro.city.name}, Israël</Text>
+                    </View>
                 </View>
 
-                {/* Actions */}
-                <View style={styles.actionsContainer}>
+                <View style={styles.actionsRow}>
+                    <TouchableOpacity
+                        style={[styles.actionBtn, styles.contactBtn]}
+                        onPress={() => handleContact((item.pro.user as any).id || '', item.pro.user.name)}
+                    >
+                        <Ionicons name="chatbubble-ellipses-outline" size={20} color={Colors.primary} />
+                        <Text style={styles.contactBtnText}>Message</Text>
+                    </TouchableOpacity>
+
                     {item.status === 'PENDING' && (
                         <TouchableOpacity
-                            style={[styles.actionButton, styles.cancelButton]}
+                            style={[styles.actionBtn, styles.cancelBtn]}
                             onPress={() => handleCancel(item.id)}
                         >
-                            <Ionicons name="close-circle-outline" size={18} color={Colors.error} />
-                            <Text style={[styles.actionButtonText, styles.cancelButtonText]}>
-                                Annuler
-                            </Text>
+                            <Text style={styles.cancelBtnText}>Annuler</Text>
                         </TouchableOpacity>
                     )}
-                    <TouchableOpacity
-                        style={[styles.actionButton, styles.contactButton]}
-                        onPress={() => handleContact((item.pro.user as any).id || null, item.pro.user.name || 'Pro')}
-                    >
-                        <Ionicons name="chatbubble-outline" size={18} color={Colors.primary} />
-                        <Text style={[styles.actionButtonText, styles.contactButtonText]}>
-                            Contacter
-                        </Text>
-                    </TouchableOpacity>
+
                     {(item.status === 'CONFIRMED' || item.status === 'PENDING') && (
                         <TouchableOpacity
-                            style={[styles.actionButton, styles.calendarButton]}
+                            style={styles.calendarBtn}
                             onPress={() => handleAddToCalendar(item)}
                         >
-                            <Ionicons name="calendar-outline" size={18} color={Colors.success} />
+                            <Ionicons name="calendar-outline" size={20} color={Colors.gray.medium} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -191,6 +191,11 @@ export default function ReservationsScreen() {
 
     return (
         <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Mes Réservations</Text>
+                <Text style={styles.headerSub}>Gérez vos rendez-vous à venir</Text>
+            </View>
+
             <FlatList
                 data={reservations}
                 renderItem={renderReservation}
@@ -205,11 +210,19 @@ export default function ReservationsScreen() {
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Ionicons name="calendar-outline" size={64} color={Colors.gray.medium} />
-                        <Text style={styles.emptyText}>Aucune réservation</Text>
+                        <View style={styles.emptyIconCircle}>
+                            <Ionicons name="calendar-outline" size={40} color={Colors.gray.light} />
+                        </View>
+                        <Text style={styles.emptyText}>Aucun rendez-vous</Text>
                         <Text style={styles.emptySubtext}>
-                            Parcourez les professionnels et réservez vos services
+                            Commencez par explorer nos professionnels passionnés.
                         </Text>
+                        <TouchableOpacity
+                            style={styles.exploreBtn}
+                            onPress={() => router.push('/')}
+                        >
+                            <Text style={styles.exploreBtnText}>Explorer</Text>
+                        </TouchableOpacity>
                     </View>
                 }
             />
@@ -220,7 +233,23 @@ export default function ReservationsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.gray.light,
+        backgroundColor: '#FAFAFA',
+    },
+    header: {
+        paddingHorizontal: 20,
+        paddingTop: 60,
+        paddingBottom: 20,
+        backgroundColor: Colors.white,
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: Colors.secondary,
+    },
+    headerSub: {
+        fontSize: 14,
+        color: Colors.gray.medium,
+        marginTop: 4,
     },
     centerContainer: {
         flex: 1,
@@ -228,104 +257,178 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     listContent: {
-        padding: Spacing.md,
+        padding: 20,
     },
     card: {
         backgroundColor: Colors.white,
-        borderRadius: 12,
-        padding: Spacing.md,
-        marginBottom: Spacing.md,
+        borderRadius: 20,
+        marginBottom: 20,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        elevation: 2,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#F0F0F0',
     },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        padding: 15,
+    },
+    proInfo: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: Spacing.md,
+        flex: 1,
+    },
+    proAvatar: {
+        width: 45,
+        height: 45,
+        borderRadius: 22.5,
+        backgroundColor: '#F0F0F0',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    proAvatarText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: Colors.primary,
     },
     proName: {
-        fontSize: FontSizes.lg,
+        fontSize: 16,
         fontWeight: 'bold',
         color: Colors.secondary,
-        flex: 1,
+    },
+    serviceName: {
+        fontSize: 12,
+        color: Colors.gray.medium,
+        marginTop: 2,
     },
     statusBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: Spacing.sm,
-        paddingVertical: Spacing.xs,
-        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 10,
     },
     statusText: {
-        fontSize: FontSizes.xs,
+        fontSize: 11,
         fontWeight: 'bold',
-        marginLeft: Spacing.xs,
+    },
+    cardDivider: {
+        height: 1,
+        backgroundColor: '#F5F5F5',
+        marginHorizontal: 15,
     },
     cardContent: {
-        gap: Spacing.sm,
+        padding: 15,
     },
-    infoRow: {
+    dateTimeRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 12,
+    },
+    infoBlock: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 6,
     },
-    infoText: {
-        fontSize: FontSizes.sm,
-        color: Colors.gray.dark,
-        marginLeft: Spacing.sm,
+    infoValue: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.secondary,
     },
-    actionsContainer: {
+    locationRow: {
         flexDirection: 'row',
-        gap: Spacing.sm,
-        marginTop: Spacing.md,
+        alignItems: 'center',
+        gap: 6,
     },
-    actionButton: {
+    locationText: {
+        fontSize: 13,
+        color: Colors.gray.medium,
+    },
+    actionsRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        backgroundColor: '#FCFCFC',
+        borderTopWidth: 1,
+        borderTopColor: '#F5F5F5',
+        gap: 10,
+    },
+    actionBtn: {
         flex: 1,
+        height: 40,
+        borderRadius: 10,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: Spacing.sm,
-        borderRadius: 8,
-        gap: Spacing.xs,
+        gap: 8,
     },
-    cancelButton: {
-        backgroundColor: Colors.error + '20',
+    contactBtn: {
+        backgroundColor: Colors.white,
+        borderWidth: 1,
+        borderColor: Colors.primary + '30',
     },
-    contactButton: {
-        backgroundColor: Colors.primary + '20',
-    },
-    actionButtonText: {
-        fontWeight: 'bold',
-        fontSize: FontSizes.sm,
-    },
-    cancelButtonText: {
-        color: Colors.error,
-    },
-    contactButtonText: {
+    contactBtnText: {
         color: Colors.primary,
+        fontWeight: 'bold',
+        fontSize: 14,
     },
-    calendarButton: {
-        backgroundColor: Colors.success + '20',
-        paddingHorizontal: Spacing.sm,
+    cancelBtn: {
+        backgroundColor: '#FFF1F1',
+    },
+    cancelBtnText: {
+        color: '#EF4444',
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    calendarBtn: {
+        width: 40,
+        height: 40,
+        borderRadius: 10,
+        backgroundColor: '#F5F5F5',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     emptyContainer: {
+        flex: 1,
         alignItems: 'center',
-        padding: Spacing.xxl,
-        marginTop: Spacing.xxl,
+        justifyContent: 'center',
+        paddingTop: 100,
+    },
+    emptyIconCircle: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#F9F9F9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
     },
     emptyText: {
-        fontSize: FontSizes.lg,
+        fontSize: 18,
         fontWeight: 'bold',
-        color: Colors.gray.dark,
-        marginTop: Spacing.md,
+        color: Colors.secondary,
     },
     emptySubtext: {
-        fontSize: FontSizes.sm,
+        fontSize: 14,
         color: Colors.gray.medium,
-        marginTop: Spacing.sm,
         textAlign: 'center',
+        marginTop: 8,
+        paddingHorizontal: 40,
+    },
+    exploreBtn: {
+        marginTop: 25,
+        backgroundColor: Colors.primary,
+        paddingHorizontal: 30,
+        paddingVertical: 12,
+        borderRadius: 12,
+    },
+    exploreBtnText: {
+        color: Colors.white,
+        fontWeight: 'bold',
+        fontSize: 16,
     },
 });

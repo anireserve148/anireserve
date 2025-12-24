@@ -123,22 +123,27 @@ export default function HomeScreen() {
         }
     };
 
-    const filteredPros = pros.filter((pro) =>
-        pro.user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        pro.city.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredPros = pros.filter((pro) => {
+        const query = searchQuery.toLowerCase();
+        return (
+            pro.user.name?.toLowerCase().includes(query) ||
+            pro.city.name.toLowerCase().includes(query) ||
+            pro.services?.some(s => s.name.toLowerCase().includes(query)) ||
+            pro.serviceCategories.some(c => c.name.toLowerCase().includes(query))
+        );
+    });
 
     // Category emoji mapping
     const getCategoryEmoji = (name: string) => {
         const emojiMap: Record<string, string> = {
             'Coiffure': '💇',
             'Massage': '💆',
-            'Beauté': '💅',
-            'Fitness': '💪',
-            'Cuisine': '👨‍🍳',
-            'Photo': '📸',
-            'Musique': '🎵',
-            'Cours': '📚',
+            'Manucure': '💅',
+            'Esthétique': '✨',
+            'Barbier': '🧔',
+            'Maquillage': '💄',
+            'Soin': '🧖',
+            'Bien-être': '🌸',
         };
         return emojiMap[name] || '✨';
     };
@@ -178,65 +183,61 @@ export default function HomeScreen() {
                     )}
                 </TouchableOpacity>
 
-                {/* Action Buttons Row */}
-                <View style={styles.actionsRow}>
-                    <View style={styles.leftActions}>
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => toggleLike(item.id)}
-                        >
-                            <Ionicons
-                                name={isLiked ? "heart" : "heart-outline"}
-                                size={26}
-                                color={isLiked ? "#FF3B5C" : Colors.secondary}
-                            />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => handleMessage(item.id, item.user.id)}
-                        >
-                            <Ionicons name="chatbubble-outline" size={24} color={Colors.secondary} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => router.push({
-                                pathname: '/quick-book',
-                                params: {
-                                    id: item.id,
-                                    name: item.user.name || 'Pro',
-                                    rate: String(item.hourlyRate || 100),
-                                },
-                            })}
-                        >
-                            <Ionicons name="calendar-outline" size={24} color={Colors.secondary} />
-                        </TouchableOpacity>
-                    </View>
-                    <Text style={styles.priceTag}>{item.hourlyRate}₪/h</Text>
-                </View>
-
                 {/* Info Section */}
                 <TouchableOpacity
                     style={styles.infoSection}
                     onPress={() => router.push(`/pro/${item.id}`)}
                 >
                     <View style={styles.nameRow}>
-                        <Text style={styles.proName}>{item.user.name}</Text>
-                        <View style={styles.locationBadge}>
-                            <Ionicons name="location" size={12} color={Colors.primary} />
-                            <Text style={styles.cityText}>{item.city.name}</Text>
+                        <View>
+                            <Text style={styles.proName}>{item.user.name}</Text>
+                            <View style={styles.locationBadge}>
+                                <Ionicons name="location" size={12} color={Colors.gray.medium} />
+                                <Text style={styles.cityText}>{item.city.name}</Text>
+                            </View>
                         </View>
+                        <Text style={styles.priceTag}>{item.hourlyRate}₪/h</Text>
                     </View>
 
-                    {item.serviceCategories.length > 0 && (
-                        <View style={styles.categoriesRow}>
-                            {item.serviceCategories.slice(0, 3).map((cat) => (
-                                <Text key={cat.id} style={styles.categoryPill}>
-                                    {getCategoryEmoji(cat.name)} {cat.name}
-                                </Text>
+                    {/* Services Preview */}
+                    {item.services && item.services.length > 0 && (
+                        <View style={styles.servicesPreview}>
+                            {item.services.slice(0, 2).map((service) => (
+                                <View key={service.id} style={styles.serviceRow}>
+                                    <Text style={styles.serviceName} numberOfLines={1}>{service.name}</Text>
+                                    <Text style={styles.servicePrice}>{service.price}₪</Text>
+                                </View>
                             ))}
+                            {item.services.length > 2 && (
+                                <Text style={styles.moreServices}>+{item.services.length - 2} autres services</Text>
+                            )}
                         </View>
                     )}
                 </TouchableOpacity>
+
+                {/* Footer Actions */}
+                <View style={styles.cardFooter}>
+                    <TouchableOpacity
+                        style={styles.footerAction}
+                        onPress={() => toggleLike(item.id)}
+                    >
+                        <Ionicons
+                            name={isLiked ? "heart" : "heart-outline"}
+                            size={24}
+                            color={isLiked ? "#FF3B5C" : Colors.secondary}
+                        />
+                        <Text style={[styles.footerActionText, isLiked && { color: '#FF3B5C' }]}>
+                            {isLiked ? 'Favoris' : 'Enregistrer'}
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.footerAction, styles.bookAction]}
+                        onPress={() => router.push(`/pro/${item.id}`)}
+                    >
+                        <Text style={styles.bookActionText}>Voir les disponibilités</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         );
     };
@@ -584,51 +585,98 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '600',
     },
-    // Actions
-    actionsRow: {
+    // Services Preview
+    servicesPreview: {
+        marginTop: 4,
+        paddingTop: 8,
+        borderTopWidth: 0.5,
+        borderTopColor: '#F0F0F0',
+    },
+    serviceRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 4,
-        paddingVertical: 8,
+        marginBottom: 4,
     },
-    leftActions: {
+    serviceName: {
+        fontSize: 13,
+        color: Colors.gray.dark,
+        flex: 1,
+        marginRight: 8,
+    },
+    servicePrice: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: Colors.secondary,
+    },
+    moreServices: {
+        fontSize: 11,
+        color: Colors.gray.medium,
+        fontStyle: 'italic',
+        marginTop: 2,
+    },
+    // Footer
+    cardFooter: {
         flexDirection: 'row',
-        gap: 4,
+        borderTopWidth: 0.5,
+        borderTopColor: '#DBDBDB',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
-    actionButton: {
-        padding: 8,
+    footerAction: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    footerActionText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: Colors.secondary,
+    },
+    bookAction: {
+        backgroundColor: Colors.primary,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 8,
+    },
+    bookActionText: {
+        color: Colors.white,
+        fontSize: 13,
+        fontWeight: '600',
     },
     priceTag: {
         fontSize: 16,
         fontWeight: '700',
         color: Colors.primary,
-        paddingRight: 8,
     },
     // Info Section
     infoSection: {
-        paddingHorizontal: 12,
-        paddingBottom: 12,
+        paddingHorizontal: 16,
+        paddingBottom: 16,
+        paddingTop: 12,
     },
     nameRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'space-between',
-        marginBottom: 6,
+        marginBottom: 8,
     },
     proName: {
-        fontSize: 15,
-        fontWeight: '600',
+        fontSize: 16,
+        fontWeight: '700',
         color: Colors.secondary,
+        marginBottom: 2,
     },
     locationBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 2,
+        gap: 4,
     },
     cityText: {
         fontSize: 12,
-        color: Colors.primary,
+        color: Colors.gray.medium,
     },
     categoriesRow: {
         flexDirection: 'row',

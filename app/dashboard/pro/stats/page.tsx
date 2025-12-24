@@ -1,10 +1,12 @@
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TrendingUp, TrendingDown, Calendar, Users, DollarSign, Star, AlertCircle } from 'lucide-react'
+import { TrendingUp, TrendingDown, Calendar, Users, DollarSign, Star, AlertCircle, ArrowLeft } from 'lucide-react'
 import { RevenueChart, ReservationsChart, ServicesChart, HourlyChart } from '@/components/pro/stats-charts'
 import { getMonthlyStats, getTopServices, getBusiestHours } from '@/app/lib/stats-actions'
+import { ExportCSVButton } from '@/components/pro/export-button'
 
 // Helper function to safely handle database errors
 async function getStats(proProfileId: string) {
@@ -166,9 +168,16 @@ export default async function StatsPage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-2xl font-bold text-white">Statistiques</h1>
-                <p className="text-[#A0A0B8]">Vue d'ensemble de votre activité (données personnelles uniquement)</p>
+            <Link href="/dashboard/pro" className="flex items-center gap-2 text-[#A0A0B8] hover:text-white transition-colors mb-4 group">
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                Retour au tableau de bord
+            </Link>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-white">Statistiques</h1>
+                    <p className="text-[#A0A0B8]">Vue d'overview de votre activité (données personnelles uniquement)</p>
+                </div>
+                <ExportCSVButton />
             </div>
 
             {/* Stats Cards */}
