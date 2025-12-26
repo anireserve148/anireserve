@@ -313,6 +313,19 @@ class ApiService {
     async getNotificationCount(): Promise<ApiResponse<{ total: number; unreadMessages: number; pendingBookings: number }>> {
         return this.request('/api/mobile/notifications');
     }
+
+    // Pro Profile
+    async getProProfile(): Promise<any> {
+        const result = await this.request<any>('/api/mobile/pro-profile');
+        return result.success ? result.data : null;
+    }
+
+    async updateProProfile(data: { name?: string; phoneNumber?: string; bio?: string; hourlyRate?: number }): Promise<ApiResponse<any>> {
+        return this.request('/api/mobile/pro-profile', {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        });
+    }
 }
 
 export const api = new ApiService();

@@ -56,7 +56,7 @@ export default function ProSettingsScreen() {
                     <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/edit-pro-profile')}>
                     <Ionicons name="person-outline" size={24} color={Colors.primary} />
                     <Text style={styles.menuText}>Modifier mon profil</Text>
                     <Ionicons name="chevron-forward" size={20} color={Colors.gray.medium} />
