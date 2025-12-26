@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card'
-import { Loader2, Eye, EyeOff, Briefcase, ArrowLeft, Shield } from 'lucide-react'
+import { Loader2, Eye, EyeOff, Briefcase, ArrowLeft, Shield, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ProLoginPage() {
@@ -36,8 +36,21 @@ export default function ProLoginPage() {
                 setErrorMessage("Email ou mot de passe incorrect. Si vous venez de vous inscrire, votre compte doit d'abord être validé par l'administrateur.")
                 setIsPending(false)
             } else {
-                router.push('/dashboard/pro')
-                router.refresh()
+                // Fetch the session to check the user's role
+                const session = await getSession()
+
+                if (session?.user?.role === 'PRO') {
+                    // User is a PRO - redirect to pro dashboard
+                    router.push('/dashboard/pro')
+                    router.refresh()
+                } else {
+                    // User is not a PRO - show error and redirect to client dashboard
+                    setErrorMessage("Ce compte n'est pas un compte professionnel. Redirection vers l'espace client...")
+                    setTimeout(() => {
+                        router.push('/dashboard')
+                        router.refresh()
+                    }, 2000)
+                }
             }
         } catch (error) {
             setErrorMessage("Une erreur est survenue.")
@@ -128,7 +141,10 @@ export default function ProLoginPage() {
                             </div>
 
                             {errorMessage && (
-                                <p className="text-sm text-red-400 font-medium text-center bg-red-500/10 p-3 rounded border border-red-500/30">{errorMessage}</p>
+                                <div className="text-sm text-red-400 font-medium text-center bg-red-500/10 p-3 rounded border border-red-500/30 flex items-start gap-2">
+                                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                                    <span>{errorMessage}</span>
+                                </div>
                             )}
 
                             <Button

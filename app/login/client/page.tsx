@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card'
-import { Loader2, Eye, EyeOff, User, ArrowLeft } from 'lucide-react'
+import { Loader2, Eye, EyeOff, User, ArrowLeft, Info } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ClientLoginPage() {
@@ -38,8 +38,21 @@ export default function ClientLoginPage() {
                 setErrorMessage("Email ou mot de passe incorrect.")
                 setIsPending(false)
             } else {
-                router.push('/dashboard')
-                router.refresh()
+                // Fetch the session to check the user's role
+                const session = await getSession()
+
+                if (session?.user?.role === 'PRO') {
+                    // User is a PRO - inform and redirect to pro dashboard
+                    setErrorMessage("Vous avez un compte professionnel. Redirection vers l'espace Pro...")
+                    setTimeout(() => {
+                        router.push('/dashboard/pro')
+                        router.refresh()
+                    }, 2000)
+                } else {
+                    // User is a CLIENT - redirect to client dashboard
+                    router.push('/dashboard')
+                    router.refresh()
+                }
             }
         } catch (error) {
             setErrorMessage("Une erreur est survenue.")
@@ -51,7 +64,7 @@ export default function ClientLoginPage() {
         setIsGooglePending(true)
         setErrorMessage(null)
         try {
-            await signIn('google', { callbackUrl: '/dashboard' })
+            await signIn('google', { callbackUrl: '/api/auth/redirect' })
         } catch (error) {
             setErrorMessage("Erreur de connexion Google.")
             setIsGooglePending(false)
@@ -62,7 +75,7 @@ export default function ClientLoginPage() {
         setIsApplePending(true)
         setErrorMessage(null)
         try {
-            await signIn('apple', { callbackUrl: '/dashboard' })
+            await signIn('apple', { callbackUrl: '/api/auth/redirect' })
         } catch (error) {
             setErrorMessage("Erreur de connexion Apple.")
             setIsApplePending(false)
@@ -184,7 +197,10 @@ export default function ClientLoginPage() {
                             </div>
 
                             {errorMessage && (
-                                <p className="text-sm text-red-500 font-medium text-center bg-red-50 p-2 rounded">{errorMessage}</p>
+                                <div className="text-sm font-medium text-center p-3 rounded flex items-start gap-2 bg-blue-50 text-blue-700 border border-blue-200">
+                                    <Info className="w-4 h-4 mt-0.5 shrink-0" />
+                                    <span>{errorMessage}</span>
+                                </div>
                             )}
 
                             <Button
