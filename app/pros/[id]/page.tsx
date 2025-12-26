@@ -119,7 +119,7 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
                                     <h1 className="text-2xl font-bold tracking-tight">{pro.user.name}</h1>
                                     <div className="flex gap-2">
                                         <a
-                                            href={`/dashboard/messages?proId=${pro.id}`}
+                                            href={session?.user ? `/dashboard/messages?proId=${pro.id}` : `/login/client?callbackUrl=${encodeURIComponent(`/dashboard/messages?proId=${pro.id}`)}`}
                                             className="px-6 py-2 bg-navy text-white rounded-lg text-sm font-semibold hover:bg-navy/90 transition-all flex items-center gap-2"
                                         >
                                             <MessageSquare className="w-4 h-4" />
