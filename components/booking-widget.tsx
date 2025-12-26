@@ -1,13 +1,15 @@
 "use client"
 
 import { useState } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { addHours, format, setHours, setMinutes, isBefore, startOfDay, isSameDay } from "date-fns"
 import { fr } from "date-fns/locale"
 import { createReservation } from "@/app/lib/booking-actions"
-import { Loader2, Clock, Calendar as CalendarIcon, Star, MessageSquare, Info, ChevronRight } from "lucide-react"
+import { Loader2, Clock, Calendar as CalendarIcon, Star, MessageSquare, Info, ChevronRight, LogIn } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -21,6 +23,15 @@ interface Service {
     description: string | null
 }
 
+// Default availability: Sunday-Thursday 9:00-18:00 (Israel work week)
+const DEFAULT_AVAILABILITY = [
+    { dayOfWeek: 0, startTime: "09:00", endTime: "18:00" }, // Sunday
+    { dayOfWeek: 1, startTime: "09:00", endTime: "18:00" }, // Monday
+    { dayOfWeek: 2, startTime: "09:00", endTime: "18:00" }, // Tuesday
+    { dayOfWeek: 3, startTime: "09:00", endTime: "18:00" }, // Wednesday
+    { dayOfWeek: 4, startTime: "09:00", endTime: "18:00" }, // Thursday
+]
+
 export function BookingWidget({ proId, availability, hourlyRate, services, reviews }: {
     proId: string,
     availability: any[],
@@ -28,16 +39,20 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
     services?: Service[],
     reviews?: any[]
 }) {
+    const { data: session, status } = useSession()
+    const router = useRouter()
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
     const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
     const [isBooking, setIsBooking] = useState(false)
 
+    // Use default availability if none configured
+    const effectiveAvailability = availability && availability.length > 0 ? availability : DEFAULT_AVAILABILITY
+
     // Check if a day has availability
     const isDayAvailable = (date: Date) => {
         const dayOfWeek = date.getDay()
-        // 0 is Sunday in JS, check if availability matches
-        return availability.some(a => a.dayOfWeek === dayOfWeek)
+        return effectiveAvailability.some(a => a.dayOfWeek === dayOfWeek)
     }
 
     // Disable past days and days without availability
@@ -50,13 +65,14 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
         if (!selectedDate) return []
         const dayOfWeek = selectedDate.getDay()
 
-        const rule = availability.find(a => a.dayOfWeek === dayOfWeek)
+        const rule = effectiveAvailability.find(a => a.dayOfWeek === dayOfWeek)
         if (!rule) return []
 
         const slots = []
         const start = parseInt(rule.startTime.split(':')[0])
         const end = parseInt(rule.endTime.split(':')[0])
 
+        // Generate hourly slots
         for (let h = start; h < end; h++) {
             slots.push(`${h.toString().padStart(2, '0')}:00`)
         }
@@ -66,6 +82,14 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
     const slots = getSlots()
 
     const handleBook = async () => {
+        // Check if user is logged in
+        if (status === "unauthenticated" || !session?.user) {
+            // Redirect to login with callback URL
+            const callbackUrl = `/pros/${proId}`
+            router.push(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
+            return
+        }
+
         if (!selectedDate || !selectedSlot) return
         setIsBooking(true)
 
@@ -99,6 +123,8 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
             setIsBooking(false)
         }
     }
+
+    const isLoggedIn = status === "authenticated" && session?.user
 
     return (
         <div className="space-y-6">
@@ -214,7 +240,8 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                                 </div>
                             ) : (
                                 <div className="text-center py-8 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                                    <p className="text-xs font-bold text-muted-foreground">Aucune disponibilité ce jour</p>
+                                    <p className="text-xs font-bold text-muted-foreground">Pas de disponibilité ce jour</p>
+                                    <p className="text-xs text-muted-foreground mt-1">Essayez un autre jour</p>
                                 </div>
                             )}
                         </div>
@@ -255,6 +282,11 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                                 Confirmation...
                             </>
+                        ) : !isLoggedIn ? (
+                            <span className="flex items-center gap-2">
+                                <LogIn className="w-5 h-5" />
+                                Se connecter pour réserver
+                            </span>
                         ) : (
                             <span className="flex items-center gap-2">
                                 Réserver maintenant
@@ -271,7 +303,7 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                     <Star className="w-5 h-5 text-primary fill-primary" />
                 </div>
                 <div>
-                    <h4 className="font-bold text-sm text-navy">Rai d'avis Clients</h4>
+                    <h4 className="font-bold text-sm text-navy">Avis Clients</h4>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                         Ce professionnel a une note moyenne de <span className="font-bold text-navy">{reviews?.length ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : "5.0"}</span> basée sur {reviews?.length || 0} avis vérifiés.
                     </p>
