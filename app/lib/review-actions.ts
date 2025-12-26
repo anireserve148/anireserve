@@ -60,3 +60,57 @@ export async function respondToReview(reviewId: string, response: string) {
         return { success: false, error: 'Erreur serveur' }
     }
 }
+
+export async function createReview(data: {
+    reservationId: string
+    rating: number
+    comment?: string
+}) {
+    const session = await auth()
+    if (!session?.user?.id) {
+        return { success: false, error: 'Non autorisé' }
+    }
+
+    try {
+        // Get the reservation to find the pro
+        const reservation = await prisma.reservation.findUnique({
+            where: { id: data.reservationId },
+            include: { pro: true }
+        })
+
+        if (!reservation) {
+            return { success: false, error: 'Réservation non trouvée' }
+        }
+
+        if (reservation.clientId !== session.user.id) {
+            return { success: false, error: 'Non autorisé' }
+        }
+
+        // Check if review already exists
+        const existingReview = await prisma.review.findFirst({
+            where: { reservationId: data.reservationId }
+        })
+
+        if (existingReview) {
+            return { success: false, error: 'Vous avez déjà laissé un avis pour cette réservation' }
+        }
+
+        // Create the review
+        await prisma.review.create({
+            data: {
+                clientId: session.user.id,
+                proId: reservation.proId,
+                reservationId: data.reservationId,
+                rating: data.rating,
+                comment: data.comment || null,
+            }
+        })
+
+        revalidatePath('/dashboard')
+        revalidatePath(`/pros/${reservation.proId}`)
+        return { success: true }
+    } catch (error) {
+        console.error('Create review error:', error)
+        return { success: false, error: 'Erreur serveur' }
+    }
+}
