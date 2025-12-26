@@ -37,7 +37,12 @@ const links = [
     { label: 'Passer en vue client', icon: Home, href: '/dashboard' },
 ]
 
-export function ProSidebar() {
+interface ProSidebarProps {
+    userName?: string
+    userEmail?: string
+}
+
+export function ProSidebar({ userName = 'Compte Pro', userEmail = '' }: ProSidebarProps) {
     const pathname = usePathname()
 
     return (
@@ -83,11 +88,13 @@ export function ProSidebar() {
             <div className="p-4 border-t border-[#2A2A4A]">
                 <div className="flex items-center gap-3 px-3 py-2">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2EB190] to-[#7B68EE] flex items-center justify-center">
-                        <span className="text-white font-semibold">P</span>
+                        <span className="text-white font-semibold">
+                            {userName?.charAt(0).toUpperCase() || 'P'}
+                        </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">Compte Pro</p>
-                        <p className="text-xs text-[#6C6C8A] truncate">pro@test.com</p>
+                        <p className="text-sm font-medium text-white truncate">{userName}</p>
+                        <p className="text-xs text-[#6C6C8A] truncate">{userEmail}</p>
                     </div>
                 </div>
             </div>

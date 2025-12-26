@@ -16,8 +16,11 @@ export default async function ProDashboardLayout({
 
     return (
         <div className="min-h-screen bg-[#0F0F23]">
-            {/* Sidebar */}
-            <ProSidebar />
+            {/* Sidebar with user data */}
+            <ProSidebar
+                userName={session.user.name || 'Professionnel'}
+                userEmail={session.user.email || ''}
+            />
 
             {/* Main Content */}
             <div className="md:pl-64">

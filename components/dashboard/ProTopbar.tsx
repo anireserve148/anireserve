@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Search, Bell, Plus, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,17 +9,21 @@ import { Input } from '@/components/ui/input'
 interface ProTopbarProps {
     userName?: string
     userRole?: string
-    onNewSlot?: () => void
     onMenuClick?: () => void
 }
 
 export function ProTopbar({
     userName = 'Professionnel',
     userRole = 'Pro',
-    onNewSlot,
     onMenuClick
 }: ProTopbarProps) {
+    const router = useRouter()
     const [searchQuery, setSearchQuery] = useState('')
+
+    const handleNewSlot = () => {
+        // Navigate to agenda page where they can add new slots
+        router.push('/dashboard/pro/agenda')
+    }
 
     return (
         <header className="sticky top-0 z-40 border-b border-[#2A2A4A] bg-[#0F0F23]">
@@ -54,9 +59,9 @@ export function ProTopbar({
                         </span>
                     </Button>
 
-                    {/* New Slot Button */}
+                    {/* New Slot Button - now navigates to agenda */}
                     <Button
-                        onClick={onNewSlot}
+                        onClick={handleNewSlot}
                         className="hidden sm:flex gap-2 bg-[#2EB190] hover:bg-[#238B70] text-white"
                     >
                         <Plus className="w-4 h-4" />

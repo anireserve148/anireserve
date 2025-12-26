@@ -5,6 +5,23 @@ import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { v4 as uuidv4 } from 'uuid'
 
+// Accepted image MIME types and their extensions
+const ACCEPTED_TYPES: Record<string, string> = {
+    'image/jpeg': '.jpg',
+    'image/jpg': '.jpg',
+    'image/png': '.png',
+    'image/webp': '.webp',
+    'image/gif': '.gif',
+    'image/heic': '.heic',
+    'image/heif': '.heif',
+    'image/avif': '.avif',
+    'image/svg+xml': '.svg',
+    'image/bmp': '.bmp',
+    'image/tiff': '.tiff',
+}
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+
 export async function POST(req: NextRequest) {
     const session = await auth()
     if (!session?.user?.id || session.user.role !== 'PRO') {
@@ -26,6 +43,29 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Aucun fichier fourni' }, { status: 400 })
         }
 
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+            return NextResponse.json({
+                error: 'Fichier trop volumineux. Maximum 10MB.'
+            }, { status: 400 })
+        }
+
+        // Check file type and get extension
+        const mimeType = file.type.toLowerCase()
+        let extension = ACCEPTED_TYPES[mimeType]
+
+        if (!extension) {
+            // Try to get extension from filename as fallback
+            const originalExt = file.name.split('.').pop()?.toLowerCase()
+            if (originalExt && ['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'avif', 'svg', 'bmp', 'tiff'].includes(originalExt)) {
+                extension = `.${originalExt === 'jpeg' ? 'jpg' : originalExt}`
+            } else {
+                return NextResponse.json({
+                    error: `Format non supporté: ${mimeType}. Formats acceptés: JPG, PNG, WebP, GIF, HEIC, AVIF, SVG, BMP, TIFF`
+                }, { status: 400 })
+            }
+        }
+
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
 
@@ -34,10 +74,11 @@ export async function POST(req: NextRequest) {
         try {
             await mkdir(uploadDir, { recursive: true })
         } catch (e) {
-            console.error('Error creating directory:', e)
+            // Directory might already exist
         }
 
-        const fileName = `${uuidv4()}-${file.name.replace(/\s+/g, '-')}`
+        // Generate clean filename with UUID + proper extension
+        const fileName = `${uuidv4()}${extension}`
         const filePath = join(uploadDir, fileName)
         await writeFile(filePath, buffer)
 
@@ -56,6 +97,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, item: galleryItem })
     } catch (error) {
         console.error('Upload error:', error)
-        return NextResponse.json({ error: 'Erreur lors de l’upload' }, { status: 500 })
+        return NextResponse.json({ error: 'Erreur lors de l\'upload' }, { status: 500 })
     }
 }
