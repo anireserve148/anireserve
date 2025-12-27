@@ -30,9 +30,9 @@ export default function LoginScreen() {
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [isAppleLoading, setIsAppleLoading] = useState(false);
 
-    // Google OAuth - Replace with your actual Google Client IDs from Google Console
+    // Google OAuth - Production Client ID
     const [request, response, promptAsync] = Google.useAuthRequest({
-        clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
+        clientId: '119852606950-fgij1s3ljars4n4sk0p7ucejghl25di4.apps.googleusercontent.com',
         // For native builds, you'll need to configure these in app.json
     });
 
