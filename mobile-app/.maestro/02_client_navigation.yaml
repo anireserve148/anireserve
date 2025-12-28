@@ -1,0 +1,36 @@
+appId: com.anireserve.app
+---
+# Test complet de navigation Client
+# Nécessite d'être connecté en tant que Client
+
+- launchApp
+- assertVisible: "AniReserve"
+
+# Attendre le chargement
+- extendedWaitUntil:
+    visible: "Accueil"
+    timeout: 10000
+
+# Test onglet Accueil
+- tapOn: "Accueil"
+- takeScreenshot: screenshots/client_home
+
+# Test onglet Favoris
+- tapOn: "Favoris"
+- takeScreenshot: screenshots/client_favorites
+
+# Test onglet Réservations
+- tapOn: "Réservations"
+- takeScreenshot: screenshots/client_reservations
+
+# Test onglet Messages
+- tapOn: "Messages"
+- takeScreenshot: screenshots/client_messages
+
+# Test onglet Profil
+- tapOn: "Profil"
+- takeScreenshot: screenshots/client_profile
+
+# Test bouton modifier profil
+- tapOn: "Modifier"
+- back

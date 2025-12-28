@@ -1,0 +1,22 @@
+appId: com.anireserve.app
+---
+# Tests rapides de santé de l'app
+# Vérifie que l'app démarre et les éléments principaux sont visibles
+
+- launchApp
+
+# Vérifier que l'app a démarré
+- assertVisible:
+    text: ".*"
+    timeout: 5000
+
+# Screenshot de l'écran initial
+- takeScreenshot: screenshots/app_launch
+
+# Vérifier qu'il n'y a pas de crash
+- assertNotVisible: "Unfortunately"
+- assertNotVisible: "stopped"
+- assertNotVisible: "Error"
+
+# Rapport final
+- takeScreenshot: screenshots/health_check_complete

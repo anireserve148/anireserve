@@ -1,0 +1,62 @@
+appId: com.anireserve.app
+---
+# Test complet de navigation Pro
+# Nécessite d'être connecté en tant que Pro
+
+- launchApp
+
+# Attendre le chargement du dashboard Pro
+- extendedWaitUntil:
+    visible: "Dashboard"
+    timeout: 10000
+
+# Test onglet Dashboard
+- tapOn: "Dashboard"
+- takeScreenshot: screenshots/pro_dashboard
+
+# Test onglet Réservations
+- tapOn: "Réserva"
+- takeScreenshot: screenshots/pro_bookings
+
+# Test bouton Ajouter réservation (FAB)
+- tapOn:
+    id: "add-reservation-button"
+- back
+
+# Test onglet Messages
+- tapOn: "Messages"
+- takeScreenshot: screenshots/pro_messages
+
+# Test onglet Clients
+- tapOn: "Clients"
+- takeScreenshot: screenshots/pro_clients
+
+# Test onglet Revenus
+- tapOn: "Revenus"
+- takeScreenshot: screenshots/pro_earnings
+
+# Test onglet Paramètres
+- tapOn: "Paramèt"
+- takeScreenshot: screenshots/pro_settings
+
+# Test Modifier profil
+- tapOn: "Modifier mon profil"
+- takeScreenshot: screenshots/pro_edit_profile
+- back
+
+# Test Portfolio
+- tapOn: "Mon Portfolio"
+- takeScreenshot: screenshots/pro_portfolio
+- back
+
+# Test Services
+- tapOn: "Gérer mes prestations"
+- back
+
+# Test Horaires
+- tapOn: "Gérer mes horaires"
+- back
+
+# Test Agenda
+- tapOn: "Mon agenda"
+- back

@@ -6,7 +6,12 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "~/.maestro/bin/maestro test .maestro/",
+    "test:health": "~/.maestro/bin/maestro test .maestro/00_health_check.yaml",
+    "test:login": "~/.maestro/bin/maestro test .maestro/01_login_test.yaml",
+    "test:client": "~/.maestro/bin/maestro test .maestro/02_client_navigation.yaml",
+    "test:pro": "~/.maestro/bin/maestro test .maestro/03_pro_navigation.yaml"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

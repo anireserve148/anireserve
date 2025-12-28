@@ -1,0 +1,26 @@
+appId: com.anireserve.app
+---
+# Test de l'écran de bienvenue / login
+- launchApp
+- assertVisible: "AniReserve"
+
+# Test navigation vers inscription
+- tapOn: "Créer un compte"
+- assertVisible: "Inscription"
+- back
+
+# Test navigation vers inscription Pro
+- tapOn: "Inscription Pro"
+- assertVisible: "Pro"
+- back
+
+# Test connexion avec email invalide
+- tapOn:
+    text: "Email"
+- inputText: "test@invalid"
+- tapOn:
+    text: "Mot de passe"
+- inputText: "test123"
+
+# Screenshot de l'écran de connexion
+- takeScreenshot: screenshots/login_screen
