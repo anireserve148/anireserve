@@ -109,6 +109,30 @@ export default function RootLayout() {
                     headerShown: false,
                 }}
             />
+            <Stack.Screen
+                name="edit-pro-profile"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="add-reservation"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="notifications"
+                options={{
+                    headerShown: false,
+                }}
+            />
+            <Stack.Screen
+                name="chat/[id]"
+                options={{
+                    headerShown: false,
+                }}
+            />
         </Stack>
     );
 }
