@@ -1,4 +1,4 @@
-"use client"
+comme"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -117,7 +117,7 @@ export function ServicesChart({ data }: { data: ServiceData[] }) {
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
-                            data={data}
+                            data={data as any}
                             cx="50%"
                             cy="50%"
                             innerRadius={60}
@@ -125,7 +125,7 @@ export function ServicesChart({ data }: { data: ServiceData[] }) {
                             paddingAngle={5}
                             dataKey="count"
                             nameKey="name"
-                            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                            label={(({ name, percent }: any) => `${name} (${((percent || 0) * 100).toFixed(0)}%)`) as any}
                             labelLine={false}
                         >
                             {data.map((_, index) => (
