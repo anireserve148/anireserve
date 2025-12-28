@@ -16,7 +16,6 @@ import { ProColors, Spacing, FontSizes, Shadows } from '../../constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../../services/api';
 import { storage } from '../../services/storage';
-import { LinearGradient } from 'expo-linear-gradient';
 
 interface MenuItem {
     icon: keyof typeof Ionicons.glyphMap;
@@ -122,12 +121,7 @@ export default function ProSettingsScreen() {
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             {/* Header with Profile */}
-            <LinearGradient
-                colors={[ProColors.primary, ProColors.primaryLight]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.header}
-            >
+            <View style={styles.header}>
                 <View style={styles.headerContent}>
                     <TouchableOpacity
                         style={styles.avatarContainer}
@@ -151,7 +145,7 @@ export default function ProSettingsScreen() {
                         <Text style={styles.proTagText}>Compte Pro</Text>
                     </View>
                 </View>
-            </LinearGradient>
+            </View>
 
             {/* Quick Stats */}
             <View style={styles.statsContainer}>
