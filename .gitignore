@@ -45,3 +45,8 @@ next-env.d.ts
 # Local DB
 *.db
 dev.db
+
+# Mobile app builds
+mobile-app/AniReserve.app/
+mobile-app/build-*.tar.gz
+mobile-app/screenshots/

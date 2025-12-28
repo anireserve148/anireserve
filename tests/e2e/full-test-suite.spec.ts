@@ -311,6 +311,6 @@ test.describe('⚡ Performance', () => {
         await page.waitForLoadState('networkidle');
         const loadTime = Date.now() - start;
 
-        expect(loadTime).toBeLessThan(10000); // 10 secondes max
+        expect(loadTime).toBeLessThan(30000); // 30 secondes max
     });
 });

@@ -18,6 +18,9 @@ export async function GET(request: NextRequest) {
         const city = searchParams.get('city');
         const category = searchParams.get('category');
         const q = searchParams.get('q');
+        const page = parseInt(searchParams.get('page') || '1');
+        const limit = parseInt(searchParams.get('limit') || '20');
+        const skip = (page - 1) * limit;
 
         // Build filter conditions
         const where: any = {
@@ -42,40 +45,59 @@ export async function GET(request: NextRequest) {
             where.OR = [
                 { user: { name: { contains: q, mode: 'insensitive' } } },
                 { bio: { contains: q, mode: 'insensitive' } },
-                { services: { some: { name: { contains: q, mode: 'insensitive' } } } },
             ];
         }
 
-        // Fetch pros
+        // Optimized query - only fetch what's needed for the list
         const pros = await prisma.proProfile.findMany({
             where,
-            include: {
+            take: limit,
+            skip,
+            select: {
+                id: true,
+                bio: true,
+                hourlyRate: true,
+                instantBooking: true,
+                createdAt: true,
                 user: {
                     select: {
                         id: true,
                         name: true,
-                        email: true,
                         image: true,
                     },
                 },
-                city: true,
-                serviceCategories: true,
-                services: true, // Include all services
-                gallery: {
-                    orderBy: { order: 'asc' },
-                    take: 3, // First 3 images for feed preview
-                },
-                reviews: {
+                city: {
                     select: {
                         id: true,
-                        rating: true,
-                        comment: true,
-                        createdAt: true,
-                        client: {
-                            select: {
-                                name: true,
-                            },
-                        },
+                        name: true,
+                    },
+                },
+                serviceCategories: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                    take: 3, // Only first 3 categories for preview
+                },
+                services: {
+                    select: {
+                        id: true,
+                        name: true,
+                        price: true,
+                    },
+                    take: 3, // Only first 3 services for preview
+                },
+                gallery: {
+                    select: {
+                        id: true,
+                        url: true,
+                    },
+                    orderBy: { order: 'asc' },
+                    take: 1, // Only first image for card preview
+                },
+                _count: {
+                    select: {
+                        reviews: true,
                     },
                 },
             },
@@ -84,7 +106,22 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        return NextResponse.json(pros, { headers: corsHeaders });
+        // Calculate average ratings in a separate optimized query
+        const prosWithRatings = await Promise.all(
+            pros.map(async (pro) => {
+                const avgRating = await prisma.review.aggregate({
+                    where: { proProfileId: pro.id },
+                    _avg: { rating: true },
+                });
+                return {
+                    ...pro,
+                    rating: avgRating._avg.rating || 0,
+                    reviewCount: pro._count.reviews,
+                };
+            })
+        );
+
+        return NextResponse.json(prosWithRatings, { headers: corsHeaders });
     } catch (error) {
         console.error('Mobile pros API error:', error);
         return NextResponse.json(
