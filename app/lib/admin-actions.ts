@@ -65,3 +65,55 @@ export async function cancelReservationAdmin(reservationId: string) {
         return handleActionError(error)
     }
 }
+export async function updateReviewStatus(reviewId: string, status: 'APPROVED' | 'REJECTED' | 'PENDING') {
+    try {
+        await ensureAdmin()
+        await prisma.review.update({
+            where: { id: reviewId },
+            data: { status }
+        })
+        revalidatePath('/dashboard/admin')
+        return createSuccessResponse(undefined)
+    } catch (error) {
+        return handleActionError(error)
+    }
+}
+export async function updateProLocation(proId: string, latitude: number, longitude: number) {
+    try {
+        await ensureAdmin()
+        await prisma.proProfile.update({
+            where: { id: proId },
+            data: { latitude, longitude }
+        })
+        revalidatePath('/dashboard/admin')
+        return createSuccessResponse(undefined)
+    } catch (error) {
+        return handleActionError(error)
+    }
+}
+export async function toggleWorkCity(proId: string, cityId: string) {
+    try {
+        await ensureAdmin()
+        const pro = await prisma.proProfile.findUnique({
+            where: { id: proId },
+            include: { workCities: true }
+        })
+        if (!pro) throw new Error("Pro not found")
+
+        const isWorkingThere = pro.workCities.some(c => c.id === cityId)
+
+        await prisma.proProfile.update({
+            where: { id: proId },
+            data: {
+                workCities: isWorkingThere
+                    ? { disconnect: { id: cityId } }
+                    : { connect: { id: cityId } }
+            }
+        })
+
+        revalidatePath('/dashboard/admin')
+        return createSuccessResponse(undefined)
+    } catch (error) {
+        return handleActionError(error)
+    }
+}

@@ -186,19 +186,20 @@ export function ModernNavbar({ user }: { user?: { name?: string | null; role?: s
                                 </div>
                             ) : (
                                 <div className="space-y-2">
-                                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                                    <Link href="/login/client" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <Button variant="outline" className="w-full border-emerald-500 text-emerald-600 py-3">
+                                            Connexion Client
+                                        </Button>
+                                    </Link>
+                                    <Link href="/login/pro" onClick={() => setIsMobileMenuOpen(false)}>
                                         <Button variant="outline" className="w-full border-navy text-navy py-3">
-                                            Connexion
+                                            Connexion Pro
                                         </Button>
                                     </Link>
-                                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                                        <Button variant="outline" className="w-full py-3">
-                                            Inscription Client
-                                        </Button>
-                                    </Link>
+                                    <div className="h-2" />
                                     <Link href="/register/pro" onClick={() => setIsMobileMenuOpen(false)}>
                                         <Button className="w-full bg-primary text-white py-3">
-                                            Devenir Professionnel
+                                            Créer un compte Pro
                                         </Button>
                                     </Link>
                                 </div>

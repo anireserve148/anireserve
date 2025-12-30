@@ -4,6 +4,7 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
+    Animated,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,15 +13,24 @@ import { Colors, Spacing, FontSizes } from '../constants';
 export default function BookingSuccessScreen() {
     const { proName, date, time, duration, price } = useLocalSearchParams();
     const router = useRouter();
+    const scaleAnim = React.useRef(new Animated.Value(0)).current;
+
+    React.useEffect(() => {
+        Animated.spring(scaleAnim, {
+            toValue: 1,
+            friction: 4,
+            useNativeDriver: true,
+        }).start();
+    }, []);
 
     return (
         <View style={styles.container}>
             {/* Success Icon */}
-            <View style={styles.iconContainer}>
+            <Animated.View style={[styles.iconContainer, { transform: [{ scale: scaleAnim }] }]}>
                 <View style={styles.iconCircle}>
                     <Ionicons name="checkmark" size={60} color={Colors.white} />
                 </View>
-            </View>
+            </Animated.View>
 
             {/* Title */}
             <Text style={styles.title}>Réservation confirmée !</Text>

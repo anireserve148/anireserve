@@ -40,8 +40,7 @@ export async function POST(request: NextRequest) {
         await prisma.user.update({
             where: { id: decoded.userId },
             data: {
-                // We'd need to add a pushToken field to the User model
-                // For now, we'll store it in a separate table or skip persistence
+                pushToken: pushToken
             },
         });
 

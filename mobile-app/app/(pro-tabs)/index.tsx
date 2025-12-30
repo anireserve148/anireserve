@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
 import { ProColors, Spacing, FontSizes, Colors } from '../../constants';
 import { NotificationBell } from '../../components/NotificationBell';
+import { Skeleton } from '../../components/Skeleton';
 
 const { width } = Dimensions.get('window');
 
@@ -53,12 +54,8 @@ const MOCK_TOP_CLIENTS: TopClient[] = [
 export default function ProDashboardScreen() {
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
-    const [stats, setStats] = useState<Stat[]>([
-        { label: 'Revenus du mois', value: '0₪', icon: 'wallet', color: ProColors.accent, trend: '...' },
-        { label: 'Total RDV', value: 0, icon: 'calendar', color: ProColors.purple, trend: '...' },
-        { label: 'En attente', value: 0, icon: 'people', color: ProColors.info, trend: '...' },
-        { label: 'Note moyenne', value: '4.9', icon: 'star', color: '#FFD700', trend: '⭐' },
-    ]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [stats, setStats] = useState<Stat[]>([]);
     const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
 
     useEffect(() => {
@@ -66,30 +63,36 @@ export default function ProDashboardScreen() {
     }, []);
 
     const loadData = async () => {
-        const result = await api.getProStats();
-        if (result.success && result.data) {
-            const d = result.data;
-            setStats([
-                { label: 'Revenus du mois', value: `${d.monthlyRevenue}${d.currency}`, icon: 'wallet', color: ProColors.accent, trend: 'En cours' },
-                { label: 'Total RDV', value: d.totalBookings, icon: 'calendar', color: ProColors.purple, trend: 'Total' },
-                { label: 'En attente', value: d.pendingBookings, icon: 'people', color: ProColors.info, trend: 'À traiter' },
-                { label: 'Note moyenne', value: '4.9', icon: 'star', color: '#FFD700', trend: '⭐' },
-            ]);
-        }
+        setIsLoading(true);
+        try {
+            const result = await api.getProStats();
+            if (result.success && result.data) {
+                const d = result.data;
+                setStats([
+                    { label: 'Revenus du mois', value: `${d.monthlyRevenue}${d.currency}`, icon: 'wallet', color: ProColors.accent, trend: '+12%' },
+                    { label: 'Total RDV', value: d.totalBookings, icon: 'calendar', color: ProColors.purple, trend: 'Total' },
+                    { label: 'En attente', value: d.pendingBookings, icon: 'people', color: ProColors.info, trend: 'À traiter' },
+                    { label: 'Note moyenne', value: '4.9', icon: 'star', color: '#FFD700', trend: '⭐' },
+                ]);
+            }
 
-        // Also fetch recent reservations for bookings list
-        const resResult = await api.getMyReservations();
-        if (resResult.success && resResult.data) {
-            const mapped = resResult.data.slice(0, 3).map((r: any) => ({
-                id: r.id,
-                clientName: r.client?.name || 'Client',
-                date: new Date(r.startDate).toLocaleDateString(),
-                time: new Date(r.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                service: r.serviceName || 'Service',
-                price: r.totalPrice,
-                status: r.status
-            }));
-            setRecentBookings(mapped);
+            const resResult = await api.getMyReservations();
+            if (resResult.success && resResult.data) {
+                const mapped = resResult.data.slice(0, 3).map((r: any) => ({
+                    id: r.id,
+                    clientName: r.client?.name || 'Client',
+                    date: new Date(r.startDate).toLocaleDateString(),
+                    time: new Date(r.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    service: r.serviceName || 'Service',
+                    price: r.totalPrice,
+                    status: r.status
+                }));
+                setRecentBookings(mapped);
+            }
+        } catch (error) {
+            console.error('Error loading pro dashboard:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -129,39 +132,63 @@ export default function ProDashboardScreen() {
 
             {/* Stats Grid */}
             <View style={styles.statsGrid}>
-                {stats.map((stat, index) => (
-                    <View key={index} style={styles.statCard}>
-                        <View style={styles.statHeader}>
-                            <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
-                                <Ionicons name={stat.icon as any} size={20} color={stat.color} />
+                {isLoading && stats.length === 0 ? (
+                    // Stats Skeletons
+                    [1, 2, 3, 4].map((i) => (
+                        <View key={i} style={styles.statCard}>
+                            <View style={styles.statHeader}>
+                                <Skeleton width={36} height={36} borderRadius={10} />
+                                <Skeleton width={40} height={12} />
                             </View>
-                            {stat.trend && (
-                                <Text style={[styles.statTrend, { color: stat.color }]}>{stat.trend}</Text>
-                            )}
+                            <Skeleton width="60%" height={24} style={{ marginTop: 8 }} />
+                            <Skeleton width="40%" height={12} style={{ marginTop: 8 }} />
                         </View>
-                        <Text style={styles.statValue}>{stat.value}</Text>
-                        <Text style={styles.statLabel}>{stat.label}</Text>
-                    </View>
-                ))}
+                    ))
+                ) : (
+                    stats.map((stat, index) => (
+                        <View key={index} style={styles.statCard}>
+                            <View style={styles.statHeader}>
+                                <View style={[styles.statIcon, { backgroundColor: stat.color + '20' }]}>
+                                    <Ionicons name={stat.icon as any} size={20} color={stat.color} />
+                                </View>
+                                {stat.trend && (
+                                    <Text style={[styles.statTrend, { color: stat.color }]}>{stat.trend}</Text>
+                                )}
+                            </View>
+                            <Text style={styles.statValue}>{stat.value}</Text>
+                            <Text style={styles.statLabel}>{stat.label}</Text>
+                        </View>
+                    ))
+                )}
             </View>
 
             {/* Top Clients */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>⭐ Mes meilleurs clients</Text>
                 <View style={styles.topClientsGrid}>
-                    {MOCK_TOP_CLIENTS.map((client, index) => (
-                        <View key={client.id} style={styles.topClientCard}>
-                            <View style={styles.topClientRank}>
-                                <Text style={styles.topClientRankText}>{index + 1}</Text>
+                    {isLoading && stats.length === 0 ? (
+                        [1, 2, 3].map((i) => (
+                            <View key={i} style={styles.topClientCard}>
+                                <Skeleton width={48} height={48} borderRadius={24} style={{ marginBottom: 8 }} />
+                                <Skeleton width={60} height={12} style={{ marginBottom: 4 }} />
+                                <Skeleton width={40} height={10} />
                             </View>
-                            <View style={styles.topClientAvatar}>
-                                <Text style={styles.topClientAvatarText}>{client.name[0]}</Text>
+                        ))
+                    ) : (
+                        MOCK_TOP_CLIENTS.map((client, index) => (
+                            <View key={client.id} style={styles.topClientCard}>
+                                <View style={styles.topClientRank}>
+                                    <Text style={styles.topClientRankText}>{index + 1}</Text>
+                                </View>
+                                <View style={styles.topClientAvatar}>
+                                    <Text style={styles.topClientAvatarText}>{client.name[0]}</Text>
+                                </View>
+                                <Text style={styles.topClientName}>{client.name}</Text>
+                                <Text style={styles.topClientStat}>{client.totalBookings} RDV</Text>
+                                <Text style={styles.topClientSpent}>{client.totalSpent}</Text>
                             </View>
-                            <Text style={styles.topClientName}>{client.name}</Text>
-                            <Text style={styles.topClientStat}>{client.totalBookings} RDV</Text>
-                            <Text style={styles.topClientSpent}>{client.totalSpent}</Text>
-                        </View>
-                    ))}
+                        ))
+                    )}
                 </View>
             </View>
 
@@ -174,33 +201,52 @@ export default function ProDashboardScreen() {
                     </TouchableOpacity>
                 </View>
 
-                {recentBookings.map((booking) => (
-                    <View key={booking.id} style={styles.bookingCard}>
-                        <View style={styles.bookingLeft}>
-                            <View style={styles.bookingAvatar}>
-                                <Text style={styles.bookingAvatarText}>{booking.clientName[0]}</Text>
+                {isLoading && recentBookings.length === 0 ? (
+                    // Bookings Skeletons
+                    [1, 2].map((i) => (
+                        <View key={i} style={styles.bookingCard}>
+                            <View style={styles.bookingLeft}>
+                                <Skeleton width={44} height={44} borderRadius={22} />
+                                <View>
+                                    <Skeleton width={100} height={16} style={{ marginBottom: 4 }} />
+                                    <Skeleton width={80} height={12} />
+                                </View>
                             </View>
-                            <View>
-                                <Text style={styles.bookingClient}>{booking.clientName}</Text>
-                                <Text style={styles.bookingService}>{booking.service}</Text>
+                            <View style={styles.bookingRight}>
+                                <Skeleton width={40} height={20} style={{ marginBottom: 8 }} />
+                                <Skeleton width={80} height={24} borderRadius={8} />
                             </View>
                         </View>
-                        <View style={styles.bookingRight}>
-                            <Text style={styles.bookingPrice}>{booking.price}₪</Text>
-                            <View style={[
-                                styles.statusBadge,
-                                { backgroundColor: booking.status === 'CONFIRMED' ? ProColors.accent + '30' : ProColors.warning + '30' }
-                            ]}>
-                                <Text style={[
-                                    styles.statusText,
-                                    { color: booking.status === 'CONFIRMED' ? ProColors.accent : ProColors.warning }
+                    ))
+                ) : (
+                    recentBookings.map((booking) => (
+                        <View key={booking.id} style={styles.bookingCard}>
+                            <View style={styles.bookingLeft}>
+                                <View style={styles.bookingAvatar}>
+                                    <Text style={styles.bookingAvatarText}>{booking.clientName[0]}</Text>
+                                </View>
+                                <View>
+                                    <Text style={styles.bookingClient}>{booking.clientName}</Text>
+                                    <Text style={styles.bookingService}>{booking.service}</Text>
+                                </View>
+                            </View>
+                            <View style={styles.bookingRight}>
+                                <Text style={styles.bookingPrice}>{booking.price}₪</Text>
+                                <View style={[
+                                    styles.statusBadge,
+                                    { backgroundColor: booking.status === 'CONFIRMED' ? ProColors.accent + '30' : ProColors.warning + '30' }
                                 ]}>
-                                    {booking.status === 'CONFIRMED' ? '✓ Confirmé' : '⏳ En attente'}
-                                </Text>
+                                    <Text style={[
+                                        styles.statusText,
+                                        { color: booking.status === 'CONFIRMED' ? ProColors.accent : ProColors.warning }
+                                    ]}>
+                                        {booking.status === 'CONFIRMED' ? '✓ Confirmé' : '⏳ En attente'}
+                                    </Text>
+                                </View>
                             </View>
                         </View>
-                    </View>
-                ))}
+                    ))
+                )}
             </View>
 
             {/* Quick Actions */}

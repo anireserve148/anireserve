@@ -16,6 +16,7 @@ import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 import { headers } from 'next/headers'
+import { sendPushNotification } from '@/lib/push-notifications'
 
 
 export async function createReservation(data: {
@@ -106,6 +107,17 @@ export async function createReservation(data: {
             await sendNewReservationToPro(proProfile.user.email, emailData);
         }
 
+        // Send Push Notification to Pro
+        if (proProfile.userId) {
+            const timeStr = format(validated.startDate, 'HH:mm')
+            await sendPushNotification(
+                proProfile.userId,
+                "✨ Nouvelle réservation !",
+                `${session.user.name || 'Un client'} a réservé pour le ${format(validated.startDate, 'd MMMM')} à ${timeStr}.`,
+                { reservationId: reservation.id, type: 'NEW_BOOKING' }
+            );
+        }
+
         revalidatePath('/dashboard');
         revalidatePath('/dashboard/pro');
 
@@ -153,6 +165,16 @@ export async function acceptReservation(reservationId: string): Promise<ActionRe
                 reservationId: reservation.id
             };
             await sendReservationAccepted(reservation.client.email, emailData);
+        }
+
+        // Send Push Notification to Client
+        if (reservation.clientId) {
+            await sendPushNotification(
+                reservation.clientId,
+                "✅ Réservation confirmée !",
+                `${reservation.pro.user.name || 'Le professionnel'} a accepté votre rendez-vous du ${format(reservation.startDate, 'd MMMM')}.`,
+                { reservationId: reservation.id, type: 'BOOKING_ACCEPTED' }
+            );
         }
 
         revalidatePath('/dashboard');

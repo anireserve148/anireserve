@@ -156,6 +156,8 @@ class ApiService {
         city?: string;
         category?: string;
         q?: string;
+        page?: number;
+        limit?: number;
     }): Promise<ApiResponse<ProProfile[]>> {
         const params = new URLSearchParams(filters as any);
         return this.request(`/api/mobile/pros?${params}`);

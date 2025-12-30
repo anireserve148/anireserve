@@ -14,13 +14,16 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { verifyPro, rejectPro } from '@/app/lib/admin-actions'
 import { toast } from 'sonner'
-import { Shield, CheckCircle, XCircle } from 'lucide-react'
+import { Shield, CheckCircle, XCircle, MapPin, Truck } from 'lucide-react'
+import { AdminGeoConfig } from './admin-geo-config'
+import { AdminInterventionCities } from './admin-intervention-cities'
 
 interface ProDetailsProps {
     pro: any // Using any for simplicity in rapid dev, ideally strictly typed
+    allCities: any[]
 }
 
-export function AdminProDetails({ pro }: ProDetailsProps) {
+export function AdminProDetails({ pro, allCities }: ProDetailsProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
 
@@ -83,6 +86,8 @@ export function AdminProDetails({ pro }: ProDetailsProps) {
                         <TabsList className="w-full grid grid-cols-2">
                             <TabsTrigger value="details">Détails</TabsTrigger>
                             <TabsTrigger value="services">Services & Tarifs</TabsTrigger>
+                            <TabsTrigger value="zones">Zones d'intervention</TabsTrigger>
+                            <TabsTrigger value="geo">Géolocalisation</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="details" className="space-y-4 mt-4">
@@ -106,10 +111,26 @@ export function AdminProDetails({ pro }: ProDetailsProps) {
 
                             <div>
                                 <h3 className="font-semibold text-navy mb-2">Catégories</h3>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-2 mb-4">
                                     {pro.serviceCategories.map((cat: any) => (
                                         <Badge key={cat.id} variant="outline">{cat.name}</Badge>
                                     ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="font-semibold text-navy mb-2">Zones d'intervention (Multi-Villes)</h3>
+                                <div className="flex flex-wrap gap-2">
+                                    <Badge className="bg-primary/10 text-primary border-primary/20">
+                                        {pro.city?.name} (Base)
+                                    </Badge>
+                                    {pro.workCities?.length > 0 ? (
+                                        pro.workCities.map((city: any) => (
+                                            <Badge key={city.id} variant="secondary">{city.name}</Badge>
+                                        ))
+                                    ) : (
+                                        <span className="text-xs text-gray-400 italic">Uniquement {pro.city?.name}</span>
+                                    )}
                                 </div>
                             </div>
                         </TabsContent>
@@ -117,6 +138,22 @@ export function AdminProDetails({ pro }: ProDetailsProps) {
                         <TabsContent value="services" className="space-y-4 mt-4">
                             {/* Placeholder for custom services if implemented later */}
                             <p className="text-sm text-gray-500 italic">Ce professionnel n'a pas encore défini de services personnalisés.</p>
+                        </TabsContent>
+
+                        <TabsContent value="zones" className="space-y-4 mt-4">
+                            <AdminInterventionCities
+                                proId={pro.id}
+                                currentWorkCities={pro.workCities || []}
+                                allCities={allCities}
+                            />
+                        </TabsContent>
+                        <TabsContent value="geo" className="space-y-4 mt-4">
+                            <AdminGeoConfig
+                                proId={pro.id}
+                                initialLat={pro.latitude}
+                                initialLng={pro.longitude}
+                                proName={pro.user.name}
+                            />
                         </TabsContent>
                     </Tabs>
 

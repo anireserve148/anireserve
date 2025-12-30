@@ -15,8 +15,13 @@ import { headers } from 'next/headers'
 
 const sendMessageSchema = z.object({
     recipientId: z.string(),
-    content: z.string().min(1, "Le message ne peut pas être vide"),
+    content: z.string().optional(),
+    imageUrl: z.string().optional(),
+    type: z.enum(['TEXT', 'IMAGE']).default('TEXT'),
     isProRecipient: z.boolean()
+}).refine(data => data.content || data.imageUrl, {
+    message: "Le message ou l'image est requis",
+    path: ["content"]
 })
 
 export async function sendMessage(
@@ -78,7 +83,9 @@ export async function sendMessage(
             data: {
                 conversationId: conversation.id,
                 senderId,
-                content: validated.content
+                content: validated.content || "",
+                imageUrl: validated.imageUrl,
+                type: validated.type
             }
         });
 
@@ -153,6 +160,18 @@ export async function getMessages(conversationId: string): Promise<ActionRespons
         });
 
         return createSuccessResponse(messages);
+    } catch (error) {
+        return handleActionError(error);
+    }
+}
+
+export async function uploadChatImage(imageBase64: string): Promise<ActionResponse<string>> {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) {
+            throw new AuthenticationError("Non autorisé");
+        }
+        return createSuccessResponse(imageBase64);
     } catch (error) {
         return handleActionError(error);
     }

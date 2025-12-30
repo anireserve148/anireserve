@@ -1,12 +1,23 @@
-import React from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
-import { Colors, Spacing } from '../constants';
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, Animated, ViewStyle, DimensionValue } from 'react-native';
 
-export const ProCardSkeleton = () => {
-    const animatedValue = React.useRef(new Animated.Value(0)).current;
+interface SkeletonProps {
+    width?: DimensionValue;
+    height?: DimensionValue;
+    borderRadius?: number;
+    style?: ViewStyle;
+}
 
-    React.useEffect(() => {
-        Animated.loop(
+export const Skeleton: React.FC<SkeletonProps> = ({
+    width = '100%',
+    height = 20,
+    borderRadius = 8,
+    style
+}) => {
+    const animatedValue = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+        const animation = Animated.loop(
             Animated.sequence([
                 Animated.timing(animatedValue, {
                     toValue: 1,
@@ -19,8 +30,11 @@ export const ProCardSkeleton = () => {
                     useNativeDriver: true,
                 }),
             ])
-        ).start();
-    }, []);
+        );
+        animation.start();
+
+        return () => animation.stop();
+    }, [animatedValue]);
 
     const opacity = animatedValue.interpolate({
         inputRange: [0, 1],
@@ -28,85 +42,51 @@ export const ProCardSkeleton = () => {
     });
 
     return (
-        <View style={styles.card}>
-            <Animated.View style={[styles.avatar, { opacity }]} />
-            <View style={styles.info}>
-                <Animated.View style={[styles.nameLine, { opacity }]} />
-                <Animated.View style={[styles.cityLine, { opacity }]} />
-                <View style={styles.categories}>
-                    <Animated.View style={[styles.categoryBadge, { opacity }]} />
-                    <Animated.View style={[styles.categoryBadge, { opacity }]} />
+        <Animated.View
+            style={[
+                styles.skeleton,
+                {
+                    width,
+                    height,
+                    borderRadius,
+                    opacity,
+                },
+                style,
+            ]}
+        />
+    );
+};
+
+const styles = StyleSheet.create({
+    skeleton: {
+        backgroundColor: '#E1E9EE',
+    },
+});
+
+export const ProCardSkeleton = () => {
+    return (
+        <View style={cardStyles.container}>
+            <Skeleton height={200} borderRadius={16} style={{ marginBottom: 12 }} />
+            <View style={{ padding: 8 }}>
+                <Skeleton width="60%" height={24} style={{ marginBottom: 8 }} />
+                <Skeleton width="40%" height={16} style={{ marginBottom: 12 }} />
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <Skeleton width={80} height={32} borderRadius={16} />
+                    <Skeleton width={80} height={32} borderRadius={16} />
                 </View>
-            </View>
-            <View style={styles.right}>
-                <Animated.View style={[styles.ratingBadge, { opacity }]} />
-                <Animated.View style={[styles.priceLine, { opacity }]} />
             </View>
         </View>
     );
 };
 
-const styles = StyleSheet.create({
-    card: {
-        flexDirection: 'row',
-        backgroundColor: Colors.white,
-        borderRadius: 12,
-        padding: Spacing.md,
-        marginBottom: Spacing.md,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    avatar: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: Colors.gray.light,
-        marginRight: Spacing.md,
-    },
-    info: {
-        flex: 1,
-    },
-    nameLine: {
-        width: '70%',
-        height: 18,
-        backgroundColor: Colors.gray.light,
-        borderRadius: 4,
-        marginBottom: Spacing.sm,
-    },
-    cityLine: {
-        width: '40%',
-        height: 14,
-        backgroundColor: Colors.gray.light,
-        borderRadius: 4,
-        marginBottom: Spacing.sm,
-    },
-    categories: {
-        flexDirection: 'row',
-        gap: Spacing.xs,
-    },
-    categoryBadge: {
-        width: 60,
-        height: 24,
-        backgroundColor: Colors.gray.light,
-        borderRadius: 8,
-    },
-    right: {
-        alignItems: 'flex-end',
-        justifyContent: 'space-between',
-    },
-    ratingBadge: {
-        width: 45,
-        height: 24,
-        backgroundColor: Colors.gray.light,
-        borderRadius: 8,
-    },
-    priceLine: {
-        width: 60,
-        height: 16,
-        backgroundColor: Colors.gray.light,
-        borderRadius: 4,
+const cardStyles = StyleSheet.create({
+    container: {
+        width: '100%',
+        backgroundColor: '#FFF',
+        borderRadius: 16,
+        marginBottom: 16,
+        padding: 8,
+        borderWidth: 1,
+        borderColor: '#F0F0F0',
     },
 });

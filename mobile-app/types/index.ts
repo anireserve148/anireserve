@@ -48,11 +48,16 @@ export interface Review {
 
 export interface Reservation {
     id: string;
+    clientId: string;
+    proId: string;
     startDate: string;
     endDate: string;
-    status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
-    serviceType: string;
-    pro: {
+    status: 'PENDING' | 'CONFIRMED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED';
+    totalPrice: number;
+    serviceId: string | null;
+    serviceName: string | null;
+    time: string | null;
+    pro?: {
         id: string;
         user: {
             name: string | null;
@@ -60,6 +65,16 @@ export interface Reservation {
         city: {
             name: string;
         };
+    };
+    client?: {
+        id: string;
+        name: string | null;
+        image: string | null;
+    };
+    service?: {
+        id: string;
+        name: string;
+        duration: number;
     };
 }
 

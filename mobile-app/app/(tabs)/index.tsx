@@ -11,13 +11,15 @@ import {
     ScrollView,
     Image,
     Dimensions,
+    RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
 import { cache } from '../../services/cache';
 import { ProProfile, ServiceCategory } from '../../types';
-import { Colors, Spacing, FontSizes } from '../../constants';
+import { Colors, Spacing, FontSizes, Shadows } from '../../constants';
+import { Skeleton, ProCardSkeleton } from '../../components/Skeleton';
 
 const { width: screenWidth } = Dimensions.get('window');
 const CARD_WIDTH = screenWidth - 32;
@@ -35,6 +37,9 @@ export default function HomeScreen() {
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [isOffline, setIsOffline] = useState(false);
     const [likedPros, setLikedPros] = useState<Set<string>>(new Set());
+    const [page, setPage] = useState(1);
+    const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
 
     useEffect(() => {
         loadData();
@@ -54,6 +59,8 @@ export default function HomeScreen() {
 
     const loadData = async () => {
         setIsLoading(true);
+        setPage(1);
+        setHasMore(true);
 
         // Try to load from cache first
         const cachedPros = await cache.get<ProProfile[]>('pros');
@@ -67,13 +74,14 @@ export default function HomeScreen() {
         // Try to fetch fresh data
         try {
             const [prosResult, citiesResult, categoriesResult] = await Promise.all([
-                api.getPros(),
+                api.getPros({ page: 1, limit: 12 }),
                 api.getCities(),
                 api.getCategories(),
             ]);
 
             if (prosResult.success && prosResult.data) {
                 setPros(prosResult.data);
+                setHasMore(prosResult.data.length === 12);
                 await cache.set('pros', prosResult.data);
             }
             if (citiesResult.success && citiesResult.data) {
@@ -92,16 +100,39 @@ export default function HomeScreen() {
         setIsLoading(false);
     };
 
-    const loadPros = async () => {
-        const filters: any = {};
+    const loadPros = async (reset = true) => {
+        if (!reset && (!hasMore || isFetchingMore)) return;
+
+        if (reset) {
+            setIsLoading(true);
+            setPage(1);
+        } else {
+            setIsFetchingMore(true);
+        }
+
+        const currentPage = reset ? 1 : page + 1;
+        const filters: any = { page: currentPage, limit: 12 };
         if (selectedCity) filters.city = selectedCity;
         if (selectedCategory) filters.category = selectedCategory;
         if (searchQuery) filters.q = searchQuery;
 
         const result = await api.getPros(filters);
         if (result.success && result.data) {
-            setPros(result.data);
+            if (reset) {
+                setPros(result.data);
+            } else {
+                setPros(prev => [...prev, ...result.data!]);
+            }
+            setHasMore(result.data.length === 12);
+            setPage(currentPage);
         }
+
+        setIsLoading(false);
+        setIsFetchingMore(false);
+    };
+
+    const loadMore = () => {
+        loadPros(false);
     };
 
     const toggleLike = async (proId: string) => {
@@ -242,13 +273,7 @@ export default function HomeScreen() {
         );
     };
 
-    if (isLoading) {
-        return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={Colors.primary} />
-            </View>
-        );
-    }
+    // Simplified loading state handling to show Skeletons within the FlatList
 
     return (
         <View style={styles.container}>
@@ -275,31 +300,41 @@ export default function HomeScreen() {
                 style={styles.storiesContainer}
                 contentContainerStyle={styles.storiesContent}
             >
-                {categories.map((cat) => (
-                    <TouchableOpacity
-                        key={cat.id}
-                        style={[
-                            styles.storyItem,
-                            selectedCategory === cat.id && styles.storyItemActive
-                        ]}
-                        onPress={() => setSelectedCategory(
-                            selectedCategory === cat.id ? '' : cat.id
-                        )}
-                    >
-                        <View style={[
-                            styles.storyCircle,
-                            selectedCategory === cat.id && styles.storyCircleActive
-                        ]}>
-                            <Text style={styles.storyEmoji}>{getCategoryEmoji(cat.name)}</Text>
+                {isLoading && categories.length === 0 ? (
+                    // Stories Skeletons
+                    [1, 2, 3, 4, 5].map((i) => (
+                        <View key={i} style={styles.storyItem}>
+                            <Skeleton width={64} height={64} borderRadius={32} />
+                            <Skeleton width={50} height={12} style={{ marginTop: 8 }} />
                         </View>
-                        <Text style={[
-                            styles.storyLabel,
-                            selectedCategory === cat.id && styles.storyLabelActive
-                        ]} numberOfLines={1}>
-                            {cat.name}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+                    ))
+                ) : (
+                    categories.map((cat) => (
+                        <TouchableOpacity
+                            key={cat.id}
+                            style={[
+                                styles.storyItem,
+                                selectedCategory === cat.id && styles.storyItemActive
+                            ]}
+                            onPress={() => setSelectedCategory(
+                                selectedCategory === cat.id ? '' : cat.id
+                            )}
+                        >
+                            <View style={[
+                                styles.storyCircle,
+                                selectedCategory === cat.id && styles.storyCircleActive
+                            ]}>
+                                <Text style={styles.storyEmoji}>{getCategoryEmoji(cat.name)}</Text>
+                            </View>
+                            <Text style={[
+                                styles.storyLabel,
+                                selectedCategory === cat.id && styles.storyLabelActive
+                            ]} numberOfLines={1}>
+                                {cat.name}
+                            </Text>
+                        </TouchableOpacity>
+                    ))
+                )}
             </ScrollView>
 
             {/* Search Bar */}
@@ -311,7 +346,7 @@ export default function HomeScreen() {
                     placeholderTextColor={Colors.gray.medium}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
-                    onSubmitEditing={loadPros}
+                    onSubmitEditing={() => loadPros(true)}
                 />
                 {selectedCity && (
                     <TouchableOpacity
@@ -335,19 +370,48 @@ export default function HomeScreen() {
 
             {/* Feed */}
             <FlatList
-                data={filteredPros}
-                renderItem={renderPro}
-                keyExtractor={(item) => item.id}
+                data={isLoading && filteredPros.length === 0 ? [1, 2, 3] as any : filteredPros}
+                renderItem={isLoading && filteredPros.length === 0 ? () => <ProCardSkeleton /> : renderPro}
+                keyExtractor={(item, index) => isLoading ? `skeleton-${index}` : item.id}
                 contentContainerStyle={styles.listContent}
-                refreshing={isLoading}
-                onRefresh={loadData}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isLoading && filteredPros.length > 0}
+                        onRefresh={loadData}
+                        colors={[Colors.primary]}
+                        tintColor={Colors.primary}
+                    />
+                }
                 showsVerticalScrollIndicator={false}
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                    isFetchingMore ? (
+                        <View style={{ paddingVertical: 20 }}>
+                            <ActivityIndicator color={Colors.primary} />
+                        </View>
+                    ) : null
+                }
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Ionicons name="search-outline" size={64} color={Colors.gray.light} />
-                        <Text style={styles.emptyText}>Aucun professionnel trouvé</Text>
-                        <Text style={styles.emptySubtext}>Essayez une autre recherche</Text>
-                    </View>
+                    !isLoading ? (
+                        <View style={styles.emptyContainer}>
+                            <View style={styles.emptyIconContainer}>
+                                <Ionicons name="search" size={40} color={Colors.primary} />
+                            </View>
+                            <Text style={styles.emptyText}>Aucun pro à l'horizon</Text>
+                            <Text style={styles.emptySubtext}>Désolé, nous n'avons trouvé aucun professionnel correspondant à vos critères.</Text>
+                            <TouchableOpacity
+                                style={styles.resetButton}
+                                onPress={() => {
+                                    setSearchQuery('');
+                                    setSelectedCity('');
+                                    setSelectedCategory('');
+                                }}
+                            >
+                                <Text style={styles.resetButtonText}>Réinitialiser les filtres</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : null
                 }
             />
 
@@ -598,6 +662,45 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 4,
     },
+    emptyContainer: {
+        alignItems: 'center',
+        paddingVertical: 60,
+        paddingHorizontal: 40,
+    },
+    emptyIconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: Colors.primaryAlpha(0.1),
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    emptyText: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: Colors.secondary,
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    emptySubtext: {
+        fontSize: 15,
+        color: Colors.gray.medium,
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: 24,
+    },
+    resetButton: {
+        backgroundColor: Colors.secondary,
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 12,
+    },
+    resetButtonText: {
+        color: Colors.white,
+        fontSize: 15,
+        fontWeight: '600',
+    },
     serviceName: {
         fontSize: 13,
         color: Colors.gray.dark,
@@ -690,22 +793,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 12,
-    },
-    // Empty State
-    emptyContainer: {
-        alignItems: 'center',
-        paddingVertical: 60,
-    },
-    emptyText: {
-        fontSize: 17,
-        fontWeight: '600',
-        color: Colors.gray.dark,
-        marginTop: 16,
-    },
-    emptySubtext: {
-        fontSize: 14,
-        color: Colors.gray.medium,
-        marginTop: 4,
     },
     // Modal
     modalOverlay: {

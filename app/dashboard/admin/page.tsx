@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { AdminProDetails } from '@/components/admin/admin-pro-details';
 import { AdminReservationsTable } from '@/components/admin/admin-reservations-table';
 import { CategoryManager } from '@/components/admin/category-manager';
+import { AdminReviewModeration } from '@/components/admin/admin-review-moderation';
 import { getAdminAnalytics } from '@/app/lib/analytics-actions';
 import { RevenueChart } from '@/components/admin/revenue-chart';
 import { UserGrowthChart } from '@/components/admin/user-growth-chart';
@@ -45,7 +46,9 @@ export default async function AdminDashboardPage() {
         allPros,
         recentReservations,
         analyticsData,
-        allCategories
+        allCategories,
+        allReviews,
+        allCities
     ] = await Promise.all([
         prisma.user.count(),
         prisma.user.count({ where: { role: 'PRO' } }),
@@ -64,7 +67,7 @@ export default async function AdminDashboardPage() {
             take: 50
         }),
         prisma.proProfile.findMany({
-            include: { user: true, city: true, serviceCategories: true },
+            include: { user: true, city: true, serviceCategories: true, workCities: true },
             orderBy: { createdAt: 'desc' }
         }),
         prisma.reservation.findMany({
@@ -92,7 +95,15 @@ export default async function AdminDashboardPage() {
                 }
             },
             orderBy: { name: 'asc' }
-        })
+        }),
+        prisma.review.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: {
+                client: { select: { name: true } },
+                pro: { include: { user: { select: { name: true } } } }
+            }
+        }),
+        prisma.city.findMany({ orderBy: { name: 'asc' } })
     ]);
 
     const formattedRevenue = new Intl.NumberFormat('fr-FR', {
@@ -139,6 +150,7 @@ export default async function AdminDashboardPage() {
                         <TabsTrigger value="overview" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Vue d'ensemble</TabsTrigger>
                         <TabsTrigger value="analytics" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Analytics</TabsTrigger>
                         <TabsTrigger value="reservations" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Réservations</TabsTrigger>
+                        <TabsTrigger value="moderation" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Modération</TabsTrigger>
                         <TabsTrigger value="categories" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Catégories</TabsTrigger>
                         <TabsTrigger value="users" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Utilisateurs</TabsTrigger>
                         <TabsTrigger value="pros" className="rounded-full data-[state=active]:bg-navy data-[state=active]:text-white">Professionnels</TabsTrigger>
@@ -267,6 +279,11 @@ export default async function AdminDashboardPage() {
                         <AdminReservationsTable />
                     </TabsContent>
 
+                    {/* MODERATION TAB */}
+                    <TabsContent value="moderation" className="space-y-6 animate-in fade-in-50">
+                        <AdminReviewModeration reviews={allReviews} />
+                    </TabsContent>
+
                     {/* CATEGORIES TAB */}
                     <TabsContent value="categories" className="space-y-6 animate-in fade-in-50">
                         <CategoryManager categories={allCategories} />
@@ -361,7 +378,7 @@ export default async function AdminDashboardPage() {
                                                 </div>
 
                                                 {/* Use AdminProDetails Component */}
-                                                <AdminProDetails pro={pro} />
+                                                <AdminProDetails pro={pro} allCities={allCities} />
                                             </div>
                                         </div>
                                     ))}

@@ -15,7 +15,8 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
 import { ProProfile } from '../../types';
-import { Colors, Spacing, FontSizes } from '../../constants';
+import { Colors, Spacing, FontSizes, Shadows } from '../../constants';
+import { Skeleton } from '../../components/Skeleton';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -105,8 +106,38 @@ export default function ProProfileScreen() {
 
     if (isLoading) {
         return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={Colors.primary} />
+            <View style={styles.container}>
+                <View style={[styles.navHeader, { borderBottomWidth: 0 }]}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.navIcon}>
+                        <Ionicons name="chevron-back" size={28} color={Colors.secondary} />
+                    </TouchableOpacity>
+                </View>
+                <View style={styles.instaHeader}>
+                    <View style={styles.instaTopRow}>
+                        <Skeleton width={90} height={90} borderRadius={45} />
+                        <View style={styles.instaStatsContainer}>
+                            <View style={styles.instaStatItem}><Skeleton width={40} height={20} /><Skeleton width={50} height={12} style={{ marginTop: 4 }} /></View>
+                            <View style={styles.instaStatItem}><Skeleton width={40} height={20} /><Skeleton width={50} height={12} style={{ marginTop: 4 }} /></View>
+                            <View style={styles.instaStatItem}><Skeleton width={40} height={20} /><Skeleton width={50} height={12} style={{ marginTop: 4 }} /></View>
+                        </View>
+                    </View>
+                    <Skeleton width="50%" height={24} style={{ marginBottom: 12 }} />
+                    <Skeleton width="100%" height={16} style={{ marginBottom: 8 }} />
+                    <Skeleton width="80%" height={16} style={{ marginBottom: 20 }} />
+                    <View style={styles.instaActionRow}>
+                        <Skeleton height={40} borderRadius={8} style={{ flex: 1 }} />
+                        <Skeleton height={40} borderRadius={8} style={{ flex: 1 }} />
+                    </View>
+                </View>
+                <View style={styles.tabsContainer}>
+                    <View style={styles.tab}><Skeleton width={30} height={30} /></View>
+                    <View style={styles.tab}><Skeleton width={30} height={30} /></View>
+                    <View style={styles.tab}><Skeleton width={30} height={30} /></View>
+                </View>
+                <View style={{ padding: 15 }}>
+                    <Skeleton height={100} borderRadius={12} style={{ marginBottom: 16 }} />
+                    <Skeleton height={100} borderRadius={12} style={{ marginBottom: 16 }} />
+                </View>
             </View>
         );
     }

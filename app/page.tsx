@@ -47,7 +47,10 @@ export default async function Home({
   const where: any = {}
 
   if (city && city !== 'all') {
-    where.cityId = city
+    where.OR = [
+      { cityId: city },
+      { workCities: { some: { id: city } } }
+    ]
   }
 
   if (category && category !== 'all') {
@@ -133,7 +136,9 @@ export default async function Home({
       ? p.reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / p.reviews.length
       : 0,
     reviewCount: p.reviews.length,
-    isFavorite: favoriteProIds.has(p.id)
+    isFavorite: favoriteProIds.has(p.id),
+    latitude: p.latitude,
+    longitude: p.longitude
   }));
 
   // Show hero only if no filters are applied

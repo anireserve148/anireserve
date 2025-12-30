@@ -17,6 +17,7 @@ model User {
   image     String?
   phoneNumber String?
   address     String?
+  pushToken   String?
   
   // Relations
   clientReservations Reservation[] @relation("ClientReservations")
@@ -49,6 +50,9 @@ model ProProfile {
   
   cityId      String
   city        City     @relation(fields: [cityId], references: [id])
+
+  // Zones d'intervention (Multi-villes)
+  workCities  City[]   @relation("WorkCities")
   
   serviceCategories ServiceCategory[]
   services     ProService[]  // Custom services with pricing
@@ -62,10 +66,13 @@ model ProProfile {
   blockedPeriods BlockedPeriod[]
   promoCodes   PromoCode[]
   
-  // Google Calendar Integration
   googleCalendarEmail       String?
   googleCalendarToken       String?
   googleCalendarSyncEnabled Boolean @default(false)
+
+  // Géo-localisation
+  latitude                  Float?
+  longitude                 Float?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -122,6 +129,7 @@ model City {
   region    String
   
   pros      ProProfile[]
+  workPros  ProProfile[] @relation("WorkCities")
 }
 
 model ServiceCategory {
@@ -156,6 +164,7 @@ model Reservation {
   service     ProService? @relation(fields: [serviceId], references: [id])
   serviceName String?     // Fallback for custom/deleted services
   time        String?     // "10:00" format
+  notes       String?     // Reason for cancellation or rejection
 
   // Automated email tracking
   reminderSent    Boolean @default(false)
@@ -179,6 +188,7 @@ model Review {
   comment       String?
   proResponse   String?     // Réponse du pro à l'avis
   respondedAt   DateTime?   // Date de la réponse
+  status        String      @default("APPROVED") // PENDING, APPROVED, REJECTED
   reservationId String      @unique
   reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
   
@@ -248,6 +258,8 @@ model Message {
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   senderId       String
   content        String
+  imageUrl       String?
+  type           String       @default("TEXT") // TEXT, IMAGE
   isRead         Boolean      @default(false)
   createdAt      DateTime     @default(now())
   
