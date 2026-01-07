@@ -112,10 +112,10 @@ export default function ReservationsScreen() {
                 <View style={styles.cardHeader}>
                     <View style={styles.proInfo}>
                         <View style={styles.proAvatar}>
-                            <Text style={styles.proAvatarText}>{item.pro.user.name?.[0]}</Text>
+                            <Text style={styles.proAvatarText}>{item.pro?.user.name?.[0] || 'P'}</Text>
                         </View>
                         <View>
-                            <Text style={styles.proName}>{item.pro.user.name}</Text>
+                            <Text style={styles.proName}>{item.pro?.user.name}</Text>
                             <Text style={styles.serviceName}>{(item as any).serviceName || 'Service personnalisé'}</Text>
                         </View>
                     </View>
@@ -146,14 +146,14 @@ export default function ReservationsScreen() {
 
                     <View style={styles.locationRow}>
                         <Ionicons name="location-outline" size={16} color={Colors.primary} />
-                        <Text style={styles.locationText}>{item.pro.city.name}, Israël</Text>
+                        <Text style={styles.locationText}>{item.pro?.city?.name || 'Israël'}</Text>
                     </View>
                 </View>
 
                 <View style={styles.actionsRow}>
                     <TouchableOpacity
                         style={[styles.actionBtn, styles.contactBtn]}
-                        onPress={() => handleContact((item.pro.user as any).id || '', item.pro.user.name)}
+                        onPress={() => handleContact((item.pro?.user as any)?.id || '', item.pro?.user?.name || 'Pro')}
                     >
                         <Ionicons name="chatbubble-ellipses-outline" size={20} color={Colors.primary} />
                         <Text style={styles.contactBtnText}>Message</Text>
@@ -165,6 +165,19 @@ export default function ReservationsScreen() {
                             onPress={() => handleCancel(item.id)}
                         >
                             <Text style={styles.cancelBtnText}>Annuler</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {item.status === 'COMPLETED' && !item.review && (
+                        <TouchableOpacity
+                            style={[styles.actionBtn, styles.reviewBtn]}
+                            onPress={() => router.push({
+                                pathname: '/leave-review',
+                                params: { reservationId: item.id, proName: item.pro?.user?.name || 'Pro' }
+                            })}
+                        >
+                            <Ionicons name="star" size={18} color={Colors.white} />
+                            <Text style={styles.reviewBtnText}>Laisser un avis</Text>
                         </TouchableOpacity>
                     )}
 
@@ -381,6 +394,14 @@ const styles = StyleSheet.create({
     },
     cancelBtnText: {
         color: '#EF4444',
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    reviewBtn: {
+        backgroundColor: Colors.accent,
+    },
+    reviewBtnText: {
+        color: Colors.white,
         fontWeight: 'bold',
         fontSize: 14,
     },

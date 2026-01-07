@@ -47,20 +47,50 @@ export default function QuickBookScreen() {
     const { id, name, rate, serviceId, serviceName, servicePrice, serviceDuration } = useLocalSearchParams();
     const router = useRouter();
 
-    const [step, setStep] = useState(1); // 1: Date, 2: Heure, 3: Confirmation
+    const [step, setStep] = useState(1); // 1: Date, 2: Heure, 3: Prestation, 4: Confirmation
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
+    const [selectedService, setSelectedService] = useState<{ id: string; name: string; price: number; duration: number } | null>(
+        serviceId ? { id: serviceId as string, name: serviceName as string, price: Number(servicePrice), duration: Number(serviceDuration) } : null
+    );
+    const [proServices, setProServices] = useState<{ id: string; name: string; description: string | null; price: number; duration: number }[]>([]);
     const [selectedDuration, setSelectedDuration] = useState(serviceDuration ? Number(serviceDuration) / 60 : 1);
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingServices, setIsLoadingServices] = useState(false);
+
+    useEffect(() => {
+        if (!serviceId && id) {
+            loadProServices();
+        }
+    }, [id, serviceId]);
+
+    const loadProServices = async () => {
+        setIsLoadingServices(true);
+        try {
+            const result = await api.getProById(id as string);
+            if (result.success && result.data?.services) {
+                setProServices(result.data.services);
+            }
+        } catch (error) {
+            console.error('Error loading services:', error);
+        } finally {
+            setIsLoadingServices(false);
+        }
+    };
 
     const days = getNextDays();
     const hourlyRate = Number(rate) || 100;
-    const finalPrice = serviceId ? Number(servicePrice) : (hourlyRate * selectedDuration);
-    const finalDuration = serviceId ? Number(serviceDuration) / 60 : selectedDuration;
+    const finalPrice = selectedService ? selectedService.price : (hourlyRate * selectedDuration);
+    // const finalDuration = selectedService ? selectedService.duration / 60 : selectedDuration;
 
     const handleConfirm = async () => {
         if (!selectedDate || !selectedTime) {
             Alert.alert('Erreur', 'Veuillez sélectionner une date et une heure');
+            return;
+        }
+
+        if (!selectedService && !serviceId) {
+            Alert.alert('Erreur', 'Veuillez sélectionner une prestation');
             return;
         }
 
@@ -73,49 +103,36 @@ export default function QuickBookScreen() {
             startDateTime.setHours(hours, minutes, 0, 0);
 
             const endDateTime = new Date(startDateTime);
-            const durationInHours = serviceId ? (Number(serviceDuration) / 60) : selectedDuration;
-            endDateTime.setMinutes(endDateTime.getMinutes() + (durationInHours * 60));
-
-            console.log('Creating reservation:', {
-                proId: id,
-                serviceId: serviceId || undefined,
-                startDate: startDateTime.toISOString(),
-                endDate: endDateTime.toISOString(),
-                totalPrice: finalPrice,
-            });
+            const durationInMinutes = selectedService ? selectedService.duration : (selectedDuration * 60);
+            endDateTime.setMinutes(endDateTime.getMinutes() + durationInMinutes);
 
             const result = await api.createReservation({
                 proId: id as string,
-                serviceId: serviceId as string || undefined,
+                serviceId: selectedService?.id || undefined,
                 startDate: startDateTime.toISOString(),
                 endDate: endDateTime.toISOString(),
                 totalPrice: finalPrice,
             });
-
-            console.log('API Result:', JSON.stringify(result));
 
             setIsLoading(false);
 
             if (result.success && result.data) {
-                // Redirect to success page with booking details
                 router.replace({
                     pathname: '/booking-success',
                     params: {
                         proName: name as string,
-                        serviceName: (serviceName as string) || 'Prestation',
+                        serviceName: (selectedService?.name || serviceName as string) || 'Prestation',
                         date: selectedDate,
                         time: selectedTime,
-                        duration: String(serviceId ? serviceDuration : (selectedDuration * 60)),
+                        duration: String(selectedService ? selectedService.duration : (selectedDuration * 60)),
                         price: String(finalPrice),
                     },
                 });
             } else {
-                console.error('Reservation error:', result.error);
                 Alert.alert('Erreur', result.error || 'Impossible de réserver');
             }
         } catch (error) {
             setIsLoading(false);
-            console.error('Reservation exception:', error);
             Alert.alert('Erreur', 'Une erreur est survenue');
         }
     };
@@ -127,9 +144,10 @@ export default function QuickBookScreen() {
                 {days.map((day) => (
                     <TouchableOpacity
                         key={day.date}
+                        activeOpacity={0.7}
                         style={[
                             styles.dateCard,
-                            selectedDate === day.date && styles.dateCardSelected
+                            selectedDate === day.date && styles.dateCardSelected,
                         ]}
                         onPress={() => {
                             setSelectedDate(day.date);
@@ -158,13 +176,18 @@ export default function QuickBookScreen() {
                 {TIME_SLOTS.map((time) => (
                     <TouchableOpacity
                         key={time}
+                        activeOpacity={0.7}
                         style={[
                             styles.timeCard,
-                            selectedTime === time && styles.timeCardSelected
+                            selectedTime === time && styles.timeCardSelected,
                         ]}
                         onPress={() => {
                             setSelectedTime(time);
-                            setStep(3);
+                            if (serviceId) {
+                                setStep(4);
+                            } else {
+                                setStep(3);
+                            }
                         }}
                     >
                         <Text style={[styles.timeText, selectedTime === time && styles.textSelected]}>
@@ -176,21 +199,73 @@ export default function QuickBookScreen() {
         </View>
     );
 
-    const renderStep3 = () => (
+    const renderStepServices = () => (
         <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>3. Confirmez {serviceName ? `pour ${serviceName}` : ''}</Text>
+            <Text style={styles.stepTitle}>3. Choisissez une prestation</Text>
+            {isLoadingServices ? (
+                <ActivityIndicator color={Colors.primary} style={{ marginTop: 20 }} />
+            ) : (
+                <View style={styles.servicesGrid}>
+                    {proServices.length > 0 ? (
+                        proServices.map((service) => (
+                            <TouchableOpacity
+                                key={service.id}
+                                activeOpacity={0.7}
+                                style={[
+                                    styles.serviceSelectCard,
+                                    selectedService?.id === service.id && styles.serviceSelectCardActive,
+                                ]}
+                                onPress={() => {
+                                    setSelectedService(service);
+                                    setStep(4);
+                                }}
+                            >
+                                <View style={styles.serviceInfoRow}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[styles.serviceSelectTitle, selectedService?.id === service.id && styles.textSelected]}>
+                                            {service.name}
+                                        </Text>
+                                        <Text style={[styles.serviceSelectDuration, selectedService?.id === service.id && styles.textSelected]}>
+                                            {service.duration} min
+                                        </Text>
+                                    </View>
+                                    <Text style={[styles.serviceSelectPrice, selectedService?.id === service.id && styles.textSelected]}>
+                                        {service.price}₪
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        ))
+                    ) : (
+                        <TouchableOpacity
+                            activeOpacity={0.7}
+                            style={[styles.serviceSelectCard]}
+                            onPress={() => setStep(4)}
+                        >
+                            <Text style={styles.serviceSelectTitle}>Tarif horaire de base</Text>
+                            <Text style={styles.serviceSelectPrice}>{hourlyRate}₪/h</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            )}
+        </View>
+    );
+
+    const renderStep4 = () => (
+        <View style={styles.stepContainer}>
+            <Text style={styles.stepTitle}>4. Confirmez la réservation</Text>
 
             {/* Durée - Only show if not a specific service */}
-            {!serviceId && (
+            {!selectedService && !serviceId && (
                 <>
-                    <Text style={styles.sectionLabel}>Durée</Text>
+                    <Text style={styles.sectionLabel}>Durée de l'intervention</Text>
                     <View style={styles.durationRow}>
                         {DURATIONS.map((d) => (
                             <TouchableOpacity
                                 key={d.value}
+                                activeOpacity={0.7}
                                 style={[
                                     styles.durationCard,
-                                    selectedDuration === d.value && styles.durationCardSelected
+                                    selectedDuration === d.value && styles.durationCardSelected,
                                 ]}
                                 onPress={() => setSelectedDuration(d.value)}
                             >
@@ -204,30 +279,28 @@ export default function QuickBookScreen() {
             )}
 
             {/* Récapitulatif */}
-            <View style={styles.summaryCard}>
+            <View style={[styles.summaryCard]}>
                 <View style={styles.summaryRow}>
-                    <Ionicons name="calendar-outline" size={20} color={Colors.gray.dark} />
+                    <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
                     <Text style={styles.summaryText}>{selectedDate}</Text>
                 </View>
                 <View style={styles.summaryRow}>
-                    <Ionicons name="time-outline" size={20} color={Colors.gray.dark} />
+                    <Ionicons name="time-outline" size={20} color={Colors.primary} />
                     <Text style={styles.summaryText}>
-                        {selectedTime} - {serviceId ? `${serviceDuration} min` : `${selectedDuration}h`}
+                        {selectedTime} • {selectedService ? `${selectedService.duration} min` : `${selectedDuration}h`}
                     </Text>
                 </View>
-                {serviceName && (
-                    <View style={styles.summaryRow}>
-                        <Ionicons name="cut-outline" size={20} color={Colors.gray.dark} />
-                        <Text style={styles.summaryText}>{serviceName}</Text>
-                    </View>
-                )}
                 <View style={styles.summaryRow}>
-                    <Ionicons name="person-outline" size={20} color={Colors.gray.dark} />
+                    <Ionicons name="cut-outline" size={20} color={Colors.primary} />
+                    <Text style={styles.summaryText}>{selectedService?.name || serviceName || 'Prestation'}</Text>
+                </View>
+                <View style={styles.summaryRow}>
+                    <Ionicons name="person-outline" size={20} color={Colors.primary} />
                     <Text style={styles.summaryText}>{name}</Text>
                 </View>
                 <View style={styles.divider} />
                 <View style={styles.priceRow}>
-                    <Text style={styles.priceLabel}>Total</Text>
+                    <Text style={styles.priceLabel}>Total à régler</Text>
                     <Text style={styles.priceValue}>{finalPrice}₪</Text>
                 </View>
             </View>
@@ -241,7 +314,7 @@ export default function QuickBookScreen() {
                 {isLoading ? (
                     <ActivityIndicator color={Colors.white} />
                 ) : (
-                    <Text style={styles.confirmButtonText}>Confirmer la réservation</Text>
+                    <Text style={styles.confirmButtonText}>✨ Confirmer la réservation</Text>
                 )}
             </TouchableOpacity>
         </View>
@@ -260,10 +333,10 @@ export default function QuickBookScreen() {
 
             {/* Progress */}
             <View style={styles.progressContainer}>
-                {[1, 2, 3].map((s) => (
+                {[1, 2, 3, 4].map((s) => (
                     <View key={s} style={styles.progressStep}>
                         <View style={[styles.progressDot, step >= s && styles.progressDotActive]} />
-                        {s < 3 && <View style={[styles.progressLine, step > s && styles.progressLineActive]} />}
+                        {s < 4 && <View style={[styles.progressLine, step > s && styles.progressLineActive]} />}
                     </View>
                 ))}
             </View>
@@ -272,7 +345,8 @@ export default function QuickBookScreen() {
             <ScrollView style={styles.content}>
                 {step >= 1 && renderStep1()}
                 {step >= 2 && renderStep2()}
-                {step >= 3 && renderStep3()}
+                {step >= 3 && !serviceId && renderStepServices()}
+                {step >= 4 && renderStep4()}
             </ScrollView>
         </View>
     );
@@ -324,7 +398,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.accent,
     },
     progressLine: {
-        width: 60,
+        width: 40,
         height: 2,
         backgroundColor: Colors.gray.light,
         marginHorizontal: Spacing.xs,
@@ -394,6 +468,40 @@ const styles = StyleSheet.create({
     timeText: {
         fontSize: FontSizes.md,
         fontWeight: '600',
+        color: Colors.primary,
+    },
+    servicesGrid: {
+        gap: Spacing.md,
+    },
+    serviceSelectCard: {
+        backgroundColor: Colors.gray.lightest,
+        padding: Spacing.lg,
+        borderRadius: 16,
+        borderWidth: 2,
+        borderColor: 'transparent',
+    },
+    serviceSelectCardActive: {
+        borderColor: Colors.accent,
+        backgroundColor: Colors.accent,
+    },
+    serviceInfoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    serviceSelectTitle: {
+        fontSize: FontSizes.md,
+        fontWeight: '700',
+        color: Colors.primary,
+    },
+    serviceSelectDuration: {
+        fontSize: FontSizes.sm,
+        color: Colors.gray.medium,
+        marginTop: 2,
+    },
+    serviceSelectPrice: {
+        fontSize: FontSizes.lg,
+        fontWeight: '700',
         color: Colors.primary,
     },
     sectionLabel: {

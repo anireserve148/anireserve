@@ -76,6 +76,11 @@ export interface Reservation {
         name: string;
         duration: number;
     };
+    review?: {
+        id: string;
+        rating: number;
+        comment: string | null;
+    } | null;
 }
 
 export interface ApiResponse<T> {

@@ -201,6 +201,18 @@ class ApiService {
         });
     }
 
+    // Reviews
+    async createReview(data: {
+        reservationId: string;
+        rating: number;
+        comment?: string;
+    }): Promise<ApiResponse<any>> {
+        return this.request('/api/mobile/reviews', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
     // Favorites
     async getFavorites(): Promise<ApiResponse<ProProfile[]>> {
         return this.request('/api/mobile/favorites');
@@ -326,6 +338,50 @@ class ApiService {
         return this.request('/api/mobile/pro-profile', {
             method: 'PUT',
             body: JSON.stringify(data),
+        });
+    }
+
+    // Client Notes (CRM Feature for PRO)
+    async getClientNotes(clientId: string): Promise<ApiResponse<any[]>> {
+        return this.request(`/api/mobile/pro/clients/${clientId}/notes`);
+    }
+
+    async createClientNote(clientId: string, content: string): Promise<ApiResponse<any>> {
+        return this.request(`/api/mobile/pro/clients/${clientId}/notes`, {
+            method: 'POST',
+            body: JSON.stringify({ content }),
+        });
+    }
+
+    async updateClientNote(clientId: string, noteId: string, content: string): Promise<ApiResponse<any>> {
+        return this.request(`/api/mobile/pro/clients/${clientId}/notes/${noteId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ content }),
+        });
+    }
+
+    async deleteClientNote(clientId: string, noteId: string): Promise<ApiResponse<any>> {
+        return this.request(`/api/mobile/pro/clients/${clientId}/notes/${noteId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    // Revenue Analytics (CRM Feature for PRO)
+    async getRevenueAnalytics(period: 'week' | 'month' = 'month'): Promise<ApiResponse<any>> {
+        return this.request(`/api/mobile/pro/analytics/revenue?period=${period}`);
+    }
+
+    // Client Tags (CRM Feature for PRO)
+    async addClientTag(clientId: string, tag: string): Promise<ApiResponse<any>> {
+        return this.request(`/api/mobile/pro/clients/${clientId}/tags`, {
+            method: 'POST',
+            body: JSON.stringify({ tag }),
+        });
+    }
+
+    async removeClientTag(clientId: string, tag: string): Promise<ApiResponse<any>> {
+        return this.request(`/api/mobile/pro/clients/${clientId}/tags?tag=${tag}`, {
+            method: 'DELETE',
         });
     }
 }

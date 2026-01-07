@@ -15,6 +15,7 @@ import { api } from '../../services/api';
 import { ProColors, Spacing, FontSizes, Colors } from '../../constants';
 import { NotificationBell } from '../../components/NotificationBell';
 import { Skeleton } from '../../components/Skeleton';
+import { RevenueChart } from '../../components/RevenueChart';
 
 const { width } = Dimensions.get('window');
 
@@ -160,6 +161,11 @@ export default function ProDashboardScreen() {
                         </View>
                     ))
                 )}
+            </View>
+
+            {/* Revenue Chart */}
+            <View style={{ paddingHorizontal: Spacing.md }}>
+                <RevenueChart />
             </View>
 
             {/* Top Clients */}

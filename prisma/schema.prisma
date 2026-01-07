@@ -25,6 +25,8 @@ model User {
   favorites          Favorite[]
   clientConversations Conversation[] @relation("ClientConversations")
   proProfile         ProProfile?
+  clientNotes        ClientNote[]   @relation("ClientNotes")
+  clientTags         ClientTag[]    @relation("ClientTags")
 
   // Reset Password
   resetToken       String?   @unique
@@ -65,6 +67,8 @@ model ProProfile {
   gallery      ProProfileGallery[]
   blockedPeriods BlockedPeriod[]
   promoCodes   PromoCode[]
+  clientNotes  ClientNote[]
+  clientTags   ClientTag[]
   
   googleCalendarEmail       String?
   googleCalendarToken       String?
@@ -317,4 +321,42 @@ model PromoCode {
 
   @@unique([proProfileId, code])
   @@index([proProfileId])
+}
+
+// CRM - Notes privées des professionnels sur leurs clients
+model ClientNote {
+  id            String      @id @default(cuid())
+  proProfileId  String
+  proProfile    ProProfile  @relation(fields: [proProfileId], references: [id], onDelete: Cascade)
+  
+  clientId      String
+  client        User        @relation("ClientNotes", fields: [clientId], references: [id], onDelete: Cascade)
+  
+  content       String      @db.Text // Note privée
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  @@index([proProfileId])
+  @@index([clientId])
+  @@index([proProfileId, clientId])
+}
+
+// CRM - Tags/Labels pour catégoriser les clients
+model ClientTag {
+  id            String      @id @default(cuid())
+  proProfileId  String
+  proProfile    ProProfile  @relation(fields: [proProfileId], references: [id], onDelete: Cascade)
+  
+  clientId      String
+  client        User        @relation("ClientTags", fields: [clientId], references: [id], onDelete: Cascade)
+  
+  tag           String      // VIP, NOUVEAU, INACTIF, FIDELE, A_RELANCER, etc.
+  
+  createdAt     DateTime    @default(now())
+  
+  @@unique([proProfileId, clientId, tag])
+  @@index([proProfileId])
+  @@index([clientId])
+  @@index([proProfileId, tag])
 }

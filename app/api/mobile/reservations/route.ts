@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
                         city: true,
                     },
                 },
+                review: true,
             },
             orderBy: {
                 createdAt: 'desc',
@@ -103,6 +104,23 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 { error: 'Professionnel non trouvé' },
                 { status: 404, headers: corsHeaders }
+            );
+        }
+
+        // Check for overlapping reservations (same logic as web)
+        const overlapping = await prisma.reservation.findFirst({
+            where: {
+                proId,
+                status: { in: ['CONFIRMED', 'PENDING'] },
+                startDate: { lt: new Date(endDate) },
+                endDate: { gt: new Date(startDate) },
+            },
+        });
+
+        if (overlapping) {
+            return NextResponse.json(
+                { error: 'Ce créneau est déjà réservé. Veuillez choisir un autre horaire.' },
+                { status: 409, headers: corsHeaders }
             );
         }
 

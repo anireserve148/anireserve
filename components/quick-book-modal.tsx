@@ -36,24 +36,48 @@ export function QuickBookModal({ open, onClose, pro }: QuickBookModalProps) {
     const [currentMonth, setCurrentMonth] = useState(new Date())
     const [selectedDate, setSelectedDate] = useState<Date | null>(null)
     const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
+    const [selectedService, setSelectedService] = useState<any | null>(null)
     const [isBooking, setIsBooking] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
+    const [isLoadingServices, setIsLoadingServices] = useState(true)
     const [success, setSuccess] = useState(false)
     const [availability, setAvailability] = useState<AvailabilitySlot[]>([])
+    const [slots, setSlots] = useState<any[]>([])
+    const [proServices, setProServices] = useState<any[]>([])
 
-    // Fetch availability when modal opens
+    // Fetch availability and services when modal opens
     useEffect(() => {
         if (open && pro.id) {
             setIsLoading(true)
-            fetch(`/api/availability?proId=${pro.id}`)
+            setIsLoadingServices(true)
+
+            const from = startOfMonth(currentMonth).toISOString()
+            const to = endOfMonth(currentMonth).toISOString()
+
+            // Fetch availability
+            fetch(`/api/availability?proId=${pro.id}&from=${from}&to=${to}`)
                 .then(res => res.json())
                 .then(data => {
                     setAvailability(data.availability || [])
+                    setSlots(data.slots || [])
                 })
                 .catch(err => console.error(err))
                 .finally(() => setIsLoading(false))
+
+            // Fetch pro services
+            fetch(`/api/pros/${pro.id}/services`)
+                .then(res => res.json())
+                .then(data => {
+                    setProServices(data.services || [])
+                    // Set first service as default if only one
+                    if (data.services?.length === 1) {
+                        setSelectedService(data.services[0])
+                    }
+                })
+                .catch(err => console.error(err))
+                .finally(() => setIsLoadingServices(false))
         }
-    }, [open, pro.id])
+    }, [open, pro.id, currentMonth])
 
     // Generate calendar days
     const monthStart = startOfMonth(currentMonth)
@@ -68,29 +92,15 @@ export function QuickBookModal({ open, onClose, pro }: QuickBookModalProps) {
 
     // Check if a day has availability
     const hasAvailability = (date: Date) => {
-        const dayOfWeek = date.getDay()
-        return availability.some(a => a.dayOfWeek === dayOfWeek)
+        return slots.some(slot => slot.available && isSameDay(new Date(slot.start), date))
     }
 
     // Calculate available slots for the selected date
-    const getSlots = () => {
+    const daySlots = (() => {
         if (!selectedDate) return []
-        const dayOfWeek = selectedDate.getDay()
 
-        const rule = availability.find(a => a.dayOfWeek === dayOfWeek)
-        if (!rule) return []
-
-        const slots = []
-        const start = parseInt(rule.startTime.split(':')[0])
-        const end = parseInt(rule.endTime.split(':')[0])
-
-        for (let h = start; h < end; h++) {
-            slots.push(`${h.toString().padStart(2, '0')}:00`)
-        }
-        return slots
-    }
-
-    const slots = getSlots()
+        return slots.filter(slot => isSameDay(new Date(slot.start), selectedDate))
+    })()
 
     const handleBook = async () => {
         if (!selectedDate || !selectedSlot) return
@@ -98,10 +108,20 @@ export function QuickBookModal({ open, onClose, pro }: QuickBookModalProps) {
 
         const [h] = selectedSlot.split(':').map(Number)
         const startDate = setMinutes(setHours(selectedDate, h), 0)
-        const endDate = addHours(startDate, 1)
+        // Duration from service or 1h default
+        const duration = selectedService?.duration || 60
+        const endDate = addHours(startDate, duration / 60)
+
+        const totalPrice = selectedService ? selectedService.customPrice : pro.hourlyRate
 
         try {
-            const result = await createReservation({ proId: pro.id, startDate, endDate, totalPrice: pro.hourlyRate })
+            const result = await createReservation({
+                proId: pro.id,
+                startDate,
+                endDate,
+                totalPrice,
+                serviceId: selectedService?.id
+            })
 
             if (result.success) {
                 setSuccess(true)
@@ -126,7 +146,7 @@ export function QuickBookModal({ open, onClose, pro }: QuickBookModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-3xl max-h-[95vh] flex flex-col">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-5 text-white relative">
                     <button
@@ -205,166 +225,218 @@ export function QuickBookModal({ open, onClose, pro }: QuickBookModalProps) {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
+                            className="flex-1 flex flex-col min-h-0"
                         >
-                            <div className="p-5 space-y-5">
-                                {isLoading ? (
-                                    <div className="flex items-center justify-center py-16">
-                                        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+                                {isLoading || isLoadingServices ? (
+                                    <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                        <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
+                                        <p className="text-gray-500 font-medium">Récupération des disponibilités...</p>
                                     </div>
                                 ) : (
-                                    <>
-                                        {/* Custom Calendar */}
-                                        <div className="bg-white rounded-xl border shadow-sm">
-                                            {/* Month Navigation */}
-                                            <div className="flex items-center justify-between px-4 py-3 border-b">
-                                                <button
-                                                    onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                                                >
-                                                    <ChevronLeft className="w-5 h-5 text-gray-600" />
-                                                </button>
-                                                <h3 className="font-bold text-gray-800 capitalize">
-                                                    {format(currentMonth, 'MMMM yyyy', { locale: fr })}
-                                                </h3>
-                                                <button
-                                                    onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                                                >
-                                                    <ChevronRight className="w-5 h-5 text-gray-600" />
-                                                </button>
-                                            </div>
-
-                                            {/* Days Header */}
-                                            <div className="grid grid-cols-7 gap-1 px-3 py-2 border-b bg-gray-50">
-                                                {DAYS.map(day => (
-                                                    <div key={day} className="text-center text-xs font-semibold text-gray-500 py-1">
-                                                        {day}
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            {/* Calendar Grid */}
-                                            <div className="grid grid-cols-7 gap-1 p-3">
-                                                {paddingDays.map((_, i) => (
-                                                    <div key={`pad-${i}`} className="aspect-square" />
-                                                ))}
-                                                {calendarDays.map(day => {
-                                                    const disabled = isDateDisabled(day)
-                                                    const available = hasAvailability(day)
-                                                    const selected = selectedDate && isSameDay(day, selectedDate)
-                                                    const today = isToday(day)
-
-                                                    return (
+                                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                        {/* Left Column: Calendar */}
+                                        <div className="lg:col-span-7 space-y-6">
+                                            <div className="space-y-4">
+                                                <h4 className="text-sm font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                                                    <CalendarIcon className="w-4 h-4" /> 1. Choisir une date
+                                                </h4>
+                                                <div className="bg-white rounded-xl border shadow-sm">
+                                                    {/* Month Navigation */}
+                                                    <div className="flex items-center justify-between px-4 py-3 border-b">
                                                         <button
-                                                            key={day.toISOString()}
-                                                            onClick={() => {
-                                                                if (!disabled) {
-                                                                    setSelectedDate(day)
-                                                                    setSelectedSlot(null)
-                                                                }
-                                                            }}
-                                                            disabled={disabled}
-                                                            className={`
+                                                            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                                        >
+                                                            <ChevronLeft className="w-5 h-5 text-gray-600" />
+                                                        </button>
+                                                        <h3 className="font-bold text-gray-800 capitalize">
+                                                            {format(currentMonth, 'MMMM yyyy', { locale: fr })}
+                                                        </h3>
+                                                        <button
+                                                            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                                                            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                                        >
+                                                            <ChevronRight className="w-5 h-5 text-gray-600" />
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Days Header */}
+                                                    <div className="grid grid-cols-7 gap-1 px-3 py-2 border-b bg-gray-50">
+                                                        {DAYS.map(day => (
+                                                            <div key={day} className="text-center text-xs font-semibold text-gray-500 py-1">
+                                                                {day}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Calendar Grid */}
+                                                    <div className="grid grid-cols-7 gap-1 p-3">
+                                                        {paddingDays.map((_, i) => (
+                                                            <div key={`pad-${i}`} className="aspect-square" />
+                                                        ))}
+                                                        {calendarDays.map(day => {
+                                                            const disabled = isDateDisabled(day)
+                                                            const available = hasAvailability(day)
+                                                            const selected = selectedDate && isSameDay(day, selectedDate)
+                                                            const today = isToday(day)
+
+                                                            return (
+                                                                <button
+                                                                    key={day.toISOString()}
+                                                                    onClick={() => {
+                                                                        if (!disabled) {
+                                                                            setSelectedDate(day)
+                                                                            setSelectedSlot(null)
+                                                                        }
+                                                                    }}
+                                                                    disabled={disabled}
+                                                                    className={`
                                                                 aspect-square rounded-lg text-sm font-medium transition-all
                                                                 flex items-center justify-center relative
                                                                 ${disabled
-                                                                    ? 'text-gray-300 cursor-not-allowed'
-                                                                    : 'hover:bg-emerald-50 cursor-pointer'
-                                                                }
+                                                                            ? 'text-gray-300 cursor-not-allowed'
+                                                                            : 'hover:bg-emerald-50 cursor-pointer'
+                                                                        }
                                                                 ${selected
-                                                                    ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                                                                    : ''
-                                                                }
+                                                                            ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                                                            : ''
+                                                                        }
                                                                 ${today && !selected
-                                                                    ? 'ring-2 ring-emerald-300 ring-inset'
-                                                                    : ''
-                                                                }
+                                                                            ? 'ring-2 ring-emerald-300 ring-inset'
+                                                                            : ''
+                                                                        }
                                                                 ${!disabled && available && !selected
-                                                                    ? 'text-emerald-700 font-bold'
-                                                                    : ''
-                                                                }
+                                                                            ? 'text-emerald-700 font-bold'
+                                                                            : ''
+                                                                        }
                                                             `}
-                                                        >
-                                                            {format(day, 'd')}
-                                                            {!disabled && available && !selected && (
-                                                                <span className="absolute bottom-1 w-1 h-1 bg-emerald-400 rounded-full" />
-                                                            )}
-                                                        </button>
-                                                    )
-                                                })}
+                                                                >
+                                                                    {format(day, 'd')}
+                                                                    {!disabled && available && !selected && (
+                                                                        <span className="absolute bottom-1 w-1 h-1 bg-emerald-400 rounded-full" />
+                                                                    )}
+                                                                </button>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        {/* Time Slots */}
-                                        {selectedDate && (
-                                            <div className="space-y-3">
-                                                <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                                                    <Clock className="w-4 h-4 text-emerald-500" />
-                                                    {format(selectedDate, "EEEE d MMMM", { locale: fr })}
-                                                </div>
-
-                                                {slots.length > 0 ? (
-                                                    <div className="grid grid-cols-4 gap-2">
-                                                        {slots.map(slot => (
-                                                            <Button
-                                                                key={slot}
-                                                                variant={selectedSlot === slot ? "default" : "outline"}
-                                                                size="sm"
-                                                                onClick={() => setSelectedSlot(slot)}
-                                                                className={`text-sm font-semibold h-10 ${selectedSlot === slot
-                                                                    ? 'bg-emerald-500 hover:bg-emerald-600 border-emerald-500'
-                                                                    : 'hover:border-emerald-400 hover:text-emerald-600'
+                                        {/* Right Column: Prestation & Slots */}
+                                        <div className="lg:col-span-5 space-y-8">
+                                            {/* Prestation selection if multiple */}
+                                            {proServices.length > 0 && (
+                                                <div className="space-y-4">
+                                                    <h4 className="text-sm font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                                                        <Star className="w-4 h-4" /> 2. Choisir une prestation
+                                                    </h4>
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                                        {proServices.map(service => (
+                                                            <button
+                                                                key={service.id}
+                                                                onClick={() => setSelectedService(service)}
+                                                                className={`w-full text-left p-3 rounded-xl border transition-all ${selectedService?.id === service.id
+                                                                    ? 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500 shadow-sm'
+                                                                    : 'hover:border-gray-300 bg-white'
                                                                     }`}
                                                             >
-                                                                {slot}
-                                                            </Button>
+                                                                <div className="flex justify-between items-center">
+                                                                    <span className="font-bold text-navy text-sm">{service.name}</span>
+                                                                    <span className="font-bold text-emerald-600">{service.customPrice}₪</span>
+                                                                </div>
+                                                                <div className="text-[10px] text-gray-500 font-medium">
+                                                                    {service.duration} mins
+                                                                </div>
+                                                            </button>
                                                         ))}
                                                     </div>
+                                                </div>
+                                            )}
+
+                                            {/* Time Slots */}
+                                            <div className="space-y-4">
+                                                <h4 className="text-sm font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                                                    <Clock className="w-4 h-4" /> 3. Choisir un créneau
+                                                </h4>
+                                                {selectedDate ? (
+                                                    daySlots.length > 0 ? (
+                                                        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-3 gap-2">
+                                                            {daySlots.map(slot => {
+                                                                const timeStr = format(new Date(slot.start), 'HH:mm')
+                                                                const isAvailable = slot.available
+
+                                                                return (
+                                                                    <Button
+                                                                        key={slot.start}
+                                                                        variant={selectedSlot === timeStr ? "default" : "outline"}
+                                                                        size="sm"
+                                                                        disabled={!isAvailable}
+                                                                        onClick={() => setSelectedSlot(timeStr)}
+                                                                        className={`text-sm font-bold h-11 rounded-xl ${selectedSlot === timeStr
+                                                                            ? 'bg-emerald-500 hover:bg-emerald-600 border-none shadow-md'
+                                                                            : isAvailable
+                                                                                ? 'hover:border-emerald-400 hover:text-emerald-600'
+                                                                                : 'opacity-30 cursor-not-allowed bg-gray-50'
+                                                                            }`}
+                                                                    >
+                                                                        {timeStr}
+                                                                    </Button>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-center py-10 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+                                                            <p className="text-gray-400 font-bold text-sm">Pas de disponibilité</p>
+                                                        </div>
+                                                    )
                                                 ) : (
-                                                    <div className="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                                                        <p className="text-gray-500 font-medium">
-                                                            Pas de disponibilité ce jour
-                                                        </p>
-                                                        <p className="text-xs text-gray-400 mt-1">
-                                                            Essayez un autre jour
-                                                        </p>
+                                                    <div className="text-center py-10 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100 italic text-gray-400 text-sm">
+                                                        Sélectionnez d'abord une date
                                                     </div>
                                                 )}
                                             </div>
-                                        )}
 
-                                        {/* Summary */}
-                                        {selectedSlot && (
-                                            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-200">
-                                                <div className="flex justify-between items-center">
-                                                    <div>
-                                                        <p className="text-xs text-gray-500 uppercase tracking-wide">Rendez-vous</p>
-                                                        <p className="font-bold text-gray-800">
-                                                            {format(selectedDate!, "d MMMM yyyy", { locale: fr })} à {selectedSlot}
-                                                        </p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-xs text-gray-500 uppercase tracking-wide">Total</p>
-                                                        <p className="text-2xl font-black text-emerald-600">{pro.hourlyRate}₪</p>
+                                            {/* Summary */}
+                                            {selectedSlot && (
+                                                <div className="bg-gradient-to-br from-navy/90 to-navy p-5 rounded-2xl text-white shadow-xl shadow-navy/10 relative overflow-hidden group">
+                                                    <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+                                                    <div className="relative z-10 flex justify-between items-end">
+                                                        <div className="space-y-1">
+                                                            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Récapitulatif</p>
+                                                            <p className="text-sm font-bold leading-tight">
+                                                                {selectedService?.name || 'Prestation'}<br />
+                                                                <span className="text-[11px] text-gray-300 font-medium">
+                                                                    {format(selectedDate!, "d MMMM yyyy", { locale: fr })} à {selectedSlot}
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Total</p>
+                                                            <p className="text-3xl font-black">{selectedService ? selectedService.customPrice : pro.hourlyRate}₪</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )}
-                                    </>
+                                            )}
+                                        </div>
+                                    </div>
                                 )}
                             </div>
 
                             {/* Footer */}
-                            <div className="p-4 bg-gray-50 border-t">
-                                <Button
-                                    className="w-full bg-emerald-500 hover:bg-emerald-600 font-bold py-6 text-base rounded-xl shadow-lg shadow-emerald-200"
-                                    disabled={!selectedDate || !selectedSlot || isBooking}
-                                    onClick={handleBook}
-                                >
-                                    {isBooking && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                                    {isBooking ? 'Envoi en cours...' : '✨ Confirmer la réservation'}
-                                </Button>
-                            </div>
+                            {!isLoading && !isLoadingServices && (
+                                <div className="p-4 bg-gray-50 border-t">
+                                    <Button
+                                        className="w-full bg-emerald-500 hover:bg-emerald-600 font-bold py-6 text-base rounded-xl shadow-lg shadow-emerald-200"
+                                        disabled={!selectedDate || !selectedSlot || isBooking}
+                                        onClick={handleBook}
+                                    >
+                                        {isBooking && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                                        {isBooking ? 'Envoi en cours...' : '✨ Confirmer la réservation'}
+                                    </Button>
+                                </div>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>

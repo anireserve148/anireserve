@@ -219,6 +219,38 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
                 {/* Back Button */}
                 <BackButton href="/" label="Retour à l'accueil" />
 
+                {/* Hero Header with Benefits */}
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
+                        <span className="text-sm font-medium text-primary">✨ Inscription gratuite</span>
+                    </div>
+                    <h1 className="text-3xl sm:text-4xl font-black text-[#1E3A5F] mb-4">
+                        Développez votre activité avec AniReserve
+                    </h1>
+                    <p className="text-lg text-muted-foreground mb-6">
+                        Rejoignez la plateforme N°1 des professionnels francophones en Israël
+                    </p>
+
+                    {/* Benefits Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+                        <div className="bg-white rounded-xl p-4 border shadow-sm">
+                            <div className="text-2xl mb-2">📈</div>
+                            <p className="text-sm font-medium">Visibilité<br />maximale</p>
+                        </div>
+                        <div className="bg-white rounded-xl p-4 border shadow-sm">
+                            <div className="text-2xl mb-2">📱</div>
+                            <p className="text-sm font-medium">Gestion<br />en ligne</p>
+                        </div>
+                        <div className="bg-white rounded-xl p-4 border shadow-sm">
+                            <div className="text-2xl mb-2">💬</div>
+                            <p className="text-sm font-medium">Contact<br />direct</p>
+                        </div>
+                        <div className="bg-white rounded-xl p-4 border shadow-sm">
+                            <div className="text-2xl mb-2">🆓</div>
+                            <p className="text-sm font-medium">Inscription<br />gratuite</p>
+                        </div>
+                    </div>
+                </div>
 
                 {/* 1. Informations Personnelles */}
                 <Card>

@@ -10,14 +10,16 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 // Fix for default marker icons in Leaflet + Next.js
-const DefaultIcon = L.icon({
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41]
-})
+if (typeof window !== 'undefined') {
+    const DefaultIcon = L.icon({
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+    })
 
-L.Marker.prototype.options.icon = DefaultIcon
+    L.Marker.prototype.options.icon = DefaultIcon
+}
 
 interface MapResultsProps {
     pros: ProResult[]
@@ -41,14 +43,20 @@ export function MapResults({ pros }: MapResultsProps) {
         )
     }
 
-    // Centrer sur Tel Aviv par défaut
-    const defaultCenter: [number, number] = [32.0853, 34.7818]
+    // Focus exclusively on Israel
+    const centerIsrael: [number, number] = [31.5, 34.8]
+    const israelBounds: L.LatLngBoundsExpression = [
+        [29.453, 34.208], // South (Eilat)
+        [33.332, 35.895]  // North (Hermon)
+    ]
 
     return (
         <div className="h-[600px] w-full rounded-2xl overflow-hidden shadow-lg border relative group animate-in fade-in duration-500">
             <MapContainer
-                center={defaultCenter}
-                zoom={11}
+                center={centerIsrael}
+                zoom={8}
+                maxBounds={israelBounds}
+                minZoom={7}
                 scrollWheelZoom={true}
                 className="h-full w-full z-0"
             >

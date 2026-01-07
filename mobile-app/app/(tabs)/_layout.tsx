@@ -4,6 +4,7 @@ import { Colors } from '../../constants';
 import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 import { View, Text, StyleSheet } from 'react-native';
+import { RoleIndicator } from '../../components/RoleIndicator';
 
 export default function TabsLayout() {
     const [unreadMessages, setUnreadMessages] = useState(0);
@@ -34,111 +35,115 @@ export default function TabsLayout() {
     };
 
     return (
-        <Tabs
-            screenOptions={{
-                tabBarActiveTintColor: Colors.secondary,
-                tabBarInactiveTintColor: Colors.gray.medium,
-                tabBarStyle: {
-                    backgroundColor: '#fff',
-                    borderTopColor: '#DBDBDB',
-                    borderTopWidth: 0.5,
-                    height: 85,
-                    paddingBottom: 28,
-                    paddingTop: 8,
-                },
-                tabBarLabelStyle: {
-                    fontSize: 10,
-                    fontWeight: '500',
-                },
-                headerShown: false,
-            }}
-        >
-            <Tabs.Screen
-                name="index"
-                options={{
-                    title: 'Accueil',
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons
-                            name={focused ? "home" : "home-outline"}
-                            size={26}
-                            color={color}
-                        />
-                    ),
+        <View style={{ flex: 1 }}>
+            <RoleIndicator role="CLIENT" />
+            <Tabs
+                screenOptions={{
+                    tabBarActiveTintColor: Colors.secondary,
+                    tabBarInactiveTintColor: Colors.gray.medium,
+                    tabBarStyle: {
+                        backgroundColor: '#fff',
+                        borderTopColor: '#DBDBDB',
+                        borderTopWidth: 0.5,
+                        height: 85,
+                        paddingBottom: 28,
+                        paddingTop: 8,
+                    },
+                    tabBarLabelStyle: {
+                        fontSize: 10,
+                        fontWeight: '500',
+                    },
+                    headerShown: false,
                 }}
-            />
-            <Tabs.Screen
-                name="reservations"
-                options={{
-                    title: 'Réservations',
-                    tabBarIcon: ({ color, focused }) => (
-                        <View>
+            >
+                <Tabs.Screen
+                    name="index"
+                    options={{
+                        title: 'Accueil',
+                        tabBarIcon: ({ color, focused }) => (
                             <Ionicons
-                                name={focused ? "calendar" : "calendar-outline"}
+                                name={focused ? "home" : "home-outline"}
                                 size={26}
                                 color={color}
                             />
-                            {pendingReservations > 0 && (
-                                <View style={styles.badge}>
-                                    <Text style={styles.badgeText}>
-                                        {pendingReservations > 9 ? '9+' : pendingReservations}
-                                    </Text>
-                                </View>
-                            )}
-                        </View>
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="favorites"
-                options={{
-                    title: 'Favoris',
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons
-                            name={focused ? "heart" : "heart-outline"}
-                            size={26}
-                            color={focused ? "#FF3B5C" : color}
-                        />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="messages"
-                options={{
-                    title: 'Messages',
-                    tabBarIcon: ({ color, focused }) => (
-                        <View>
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="reservations"
+                    options={{
+                        title: 'Réservations',
+                        tabBarIcon: ({ color, focused }) => (
+                            <View>
+                                <Ionicons
+                                    name={focused ? "calendar" : "calendar-outline"}
+                                    size={26}
+                                    color={color}
+                                />
+                                {pendingReservations > 0 && (
+                                    <View style={styles.badge}>
+                                        <Text style={styles.badgeText}>
+                                            {pendingReservations > 9 ? '9+' : pendingReservations}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="favorites"
+                    options={{
+                        title: 'Favoris',
+                        tabBarIcon: ({ color, focused }) => (
                             <Ionicons
-                                name={focused ? "paper-plane" : "paper-plane-outline"}
-                                size={24}
+                                name={focused ? "heart" : "heart-outline"}
+                                size={26}
+                                color={focused ? "#FF3B5C" : color}
+                            />
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="messages"
+                    options={{
+                        title: 'Messages',
+                        tabBarIcon: ({ color, focused }) => (
+                            <View>
+                                <Ionicons
+                                    name={focused ? "paper-plane" : "paper-plane-outline"}
+                                    size={24}
+                                    color={color}
+                                />
+                                {unreadMessages > 0 && (
+                                    <View style={styles.badge}>
+                                        <Text style={styles.badgeText}>
+                                            {unreadMessages > 9 ? '9+' : unreadMessages}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
+                        ),
+                    }}
+                />
+                <Tabs.Screen
+                    name="profile"
+                    options={{
+                        title: 'Profil',
+                        tabBarIcon: ({ color, focused }) => (
+                            <Ionicons
+                                name={focused ? "person-circle" : "person-circle-outline"}
+                                size={28}
                                 color={color}
                             />
-                            {unreadMessages > 0 && (
-                                <View style={styles.badge}>
-                                    <Text style={styles.badgeText}>
-                                        {unreadMessages > 9 ? '9+' : unreadMessages}
-                                    </Text>
-                                </View>
-                            )}
-                        </View>
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="profile"
-                options={{
-                    title: 'Profil',
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons
-                            name={focused ? "person-circle" : "person-circle-outline"}
-                            size={28}
-                            color={color}
-                        />
-                    ),
-                }}
-            />
-        </Tabs>
+                        ),
+                    }}
+                />
+            </Tabs>
+        </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     badge: {

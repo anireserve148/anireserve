@@ -70,10 +70,30 @@ export default function RegisterPage() {
                             </div>
                             <span className="text-xl font-bold text-[#1E3A5F]">AniReserve</span>
                         </div>
-                        <CardTitle className="text-2xl text-primary font-bold">Créer un compte</CardTitle>
-                        <CardDescription>
-                            Rejoignez AniReserve et trouvez les meilleurs professionnels en Israël
+                        <CardTitle className="text-2xl text-primary font-bold">Créez votre compte en 1 minute</CardTitle>
+                        <CardDescription className="text-base">
+                            Rejoignez la communauté francophone en Israël
                         </CardDescription>
+
+                        {/* Benefits List */}
+                        <div className="mt-4 text-left bg-primary/5 rounded-xl p-4 space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="text-primary">✅</span>
+                                <span>Réservez des pros francophones</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="text-primary">✅</span>
+                                <span>Gérez vos rendez-vous facilement</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="text-primary">✅</span>
+                                <span>Historique de vos réservations</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="text-primary">✅</span>
+                                <span>100% gratuit, sans engagement</span>
+                            </div>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
@@ -175,6 +195,27 @@ export default function RegisterPage() {
                             <Link href="/register/pro" className="text-primary hover:underline font-medium">
                                 Devenir Pro
                             </Link>
+                        </div>
+
+                        {/* Mini FAQ */}
+                        <div className="w-full pt-4 border-t space-y-3">
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Questions fréquentes</p>
+                            <details className="text-sm group">
+                                <summary className="cursor-pointer font-medium text-foreground hover:text-primary transition-colors">
+                                    L'inscription est-elle payante ?
+                                </summary>
+                                <p className="mt-2 text-muted-foreground pl-4 border-l-2 border-primary/20">
+                                    Non, l'inscription client est 100% gratuite et sans engagement.
+                                </p>
+                            </details>
+                            <details className="text-sm group">
+                                <summary className="cursor-pointer font-medium text-foreground hover:text-primary transition-colors">
+                                    Puis-je annuler une réservation ?
+                                </summary>
+                                <p className="mt-2 text-muted-foreground pl-4 border-l-2 border-primary/20">
+                                    Oui, vous pouvez annuler vos réservations depuis votre espace client.
+                                </p>
+                            </details>
                         </div>
                     </CardFooter>
                 </Card>

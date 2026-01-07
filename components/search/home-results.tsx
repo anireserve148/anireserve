@@ -3,10 +3,26 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Star, List, Map as MapIcon, LayoutGrid } from "lucide-react"
+import { ArrowRight, Star, List, Map as MapIcon, LayoutGrid, MapPin, Clock, Check, ShieldCheck } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Badge } from "@/components/ui/badge"
+import Image from "next/image"
 import { FavoriteButton } from "@/components/favorites/favorite-button"
 import { QuickBookModal } from "@/components/quick-book-modal"
-import { MapResults } from "./map-results"
+import dynamic from "next/dynamic"
+
+// Dynamic import for MapResults to avoid Leaflet SSR issues
+const MapResults = dynamic(() => import("./map-results").then(mod => mod.MapResults), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[600px] w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center">
+            <div className="text-gray-400 flex flex-col items-center gap-2">
+                <MapPin className="w-8 h-8" />
+                <p className="font-medium text-sm">Chargement de la carte...</p>
+            </div>
+        </div>
+    )
+})
 
 // Types pour les props
 export type ProResult = {
@@ -93,71 +109,111 @@ export function HomeResults({ pros = [] }: HomeResultsProps) {
                                 </Button>
                             </div>
                         ) : (
-                            pros.map((pro) => (
-                                <div
-                                    key={pro.id}
-                                    className="group relative bg-white border border-gray-100 hover:border-[#3DBAA2]/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:shadow-lg hover:shadow-[#3DBAA2]/5"
-                                >
-                                    {/* Green vertical bar on hover */}
-                                    <div className="absolute left-0 top-4 bottom-4 sm:top-6 sm:bottom-6 w-1 bg-[#3DBAA2] rounded-r-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="grid grid-cols-1 gap-4">
+                                {pros.map((pro, index) => (
+                                    <motion.div
+                                        key={pro.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.05 }}
+                                        whileHover={{ y: -4 }}
+                                        className="group relative bg-white border border-gray-100 hover:border-primary/30 rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5"
+                                    >
+                                        <div className="flex flex-col sm:flex-row gap-5">
+                                            {/* Photo de profil stylish */}
+                                            <div className="relative w-full sm:w-32 h-40 sm:h-32 rounded-2xl overflow-hidden bg-gradient-to-br from-primary/5 to-accent/5 flex-shrink-0 border border-gray-50 shadow-inner">
+                                                {pro.image ? (
+                                                    <Image
+                                                        src={pro.image}
+                                                        alt={pro.name}
+                                                        fill
+                                                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                                    />
+                                                ) : (
+                                                    <div className="absolute inset-0 flex items-center justify-center text-3xl font-black text-primary/20 uppercase tracking-widest bg-emerald-50/30">
+                                                        {pro.name.split(' ').map(n => n[0]).join('')}
+                                                    </div>
+                                                )}
+                                                <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full shadow-sm border border-gray-100 flex items-center gap-1">
+                                                    <ShieldCheck className="w-3 h-3 text-primary" />
+                                                    <span className="text-[10px] font-bold text-primary uppercase">Vérifié</span>
+                                                </div>
+                                            </div>
 
-                                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                                        {/* Content */}
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <h3 className="text-base sm:text-lg font-bold text-navy group-hover:text-[#3DBAA2] transition-colors">
-                                                        {pro.name}
-                                                    </h3>
-                                                    <div className="text-xs sm:text-sm text-gray-500 font-medium mb-2 sm:mb-3">
-                                                        {pro.categories.slice(0, 2).join(', ')} · {pro.city}
+                                            {/* Contenu de la carte */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <h3 className="text-xl font-bold text-navy group-hover:text-primary transition-colors truncate">
+                                                                {pro.name}
+                                                            </h3>
+                                                            {pro.rating && pro.rating > 0 && (
+                                                                <div className="flex items-center gap-1 bg-accent/10 px-2 py-0.5 rounded-full border border-accent/20">
+                                                                    <Star className="w-3 h-3 text-accent fill-accent" />
+                                                                    <span className="text-xs font-black text-accent-dark">{pro.rating.toFixed(1)}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 text-sm text-gray-400 font-medium mb-3">
+                                                            <MapPin className="w-3.5 h-3.5 text-primary/60" />
+                                                            {pro.city}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="hidden sm:flex flex-col items-end gap-3">
+                                                        <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary font-black px-4 py-1.5 rounded-xl text-sm transition-all hover:bg-primary/10">
+                                                            {pro.hourlyRate}₪/h
+                                                        </Badge>
+                                                        <FavoriteButton proId={pro.id} isFavorite={pro.isFavorite} />
                                                     </div>
                                                 </div>
 
-                                                {/* Desktop: Favorite + Book */}
-                                                <div className="hidden sm:flex items-center gap-2">
-                                                    <FavoriteButton proId={pro.id} isFavorite={pro.isFavorite} />
+                                                <div className="flex flex-wrap gap-2 mb-4">
+                                                    {pro.categories.slice(0, 3).map((cat) => (
+                                                        <span key={cat} className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100 group-hover:bg-white group-hover:border-primary/10 group-hover:text-primary/60 transition-all">
+                                                            {cat}
+                                                        </span>
+                                                    ))}
+                                                </div>
+
+                                                <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                                                    <Link href={`/pros/${pro.id}`} className="group/link flex items-center text-sm font-bold text-gray-400 hover:text-primary transition-colors">
+                                                        Voir les détails
+                                                        <ArrowRight className="w-4 h-4 ml-1 group-hover/link:translate-x-1 transition-transform" />
+                                                    </Link>
+
+                                                    <div className="flex sm:hidden items-center gap-2">
+                                                        <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary font-black px-3 py-1 rounded-xl text-xs">
+                                                            {pro.hourlyRate}₪/h
+                                                        </Badge>
+                                                        <FavoriteButton proId={pro.id} isFavorite={pro.isFavorite} />
+                                                    </div>
+
                                                     <Button
                                                         onClick={() => handleBookClick(pro)}
-                                                        className="bg-[#78D0B5] hover:bg-[#3DBAA2] text-white rounded-full px-6 font-semibold shadow-md shadow-emerald-100 transition-all hover:scale-105"
+                                                        className="hidden sm:flex bg-primary hover:bg-primary-dark text-white rounded-xl px-10 h-11 font-bold shadow-lg shadow-primary/10 transition-all hover:scale-105 active:scale-95"
                                                     >
                                                         ✨ Réserver
                                                     </Button>
                                                 </div>
                                             </div>
-
-                                            <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-3 sm:mb-4 leading-relaxed">
-                                                Professionnel certifié · {pro.hourlyRate}₪/heure
-                                            </p>
-
-                                            <div className="flex items-center justify-between">
-                                                <Link href={`/pros/${pro.id}`} className="flex items-center text-xs font-medium text-gray-500 hover:text-[#3DBAA2] transition-colors">
-                                                    Voir le profil <ArrowRight className="w-3 h-3 ml-1" />
-                                                </Link>
-
-                                                {pro.rating && pro.rating > 0 && (
-                                                    <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg">
-                                                        <Star className="w-3 h-3 text-amber-500 fill-current" />
-                                                        <span className="text-amber-700 font-bold text-xs sm:text-sm">{pro.rating.toFixed(1)}</span>
-                                                    </div>
-                                                )}
-                                            </div>
                                         </div>
 
-                                        {/* Mobile: Buttons at bottom */}
-                                        <div className="flex sm:hidden items-center justify-between gap-2 pt-3 border-t border-gray-100">
-                                            <FavoriteButton proId={pro.id} isFavorite={pro.isFavorite} />
+                                        {/* Mobile: Bouton réserver en bas */}
+                                        <div className="mt-4 sm:hidden">
                                             <Button
                                                 onClick={() => handleBookClick(pro)}
-                                                className="flex-1 bg-[#3DBAA2] hover:bg-[#34a08b] text-white rounded-full font-semibold"
+                                                className="w-full bg-primary hover:bg-primary-dark text-white rounded-xl h-12 font-bold shadow-lg shadow-primary/10"
                                             >
-                                                Réserver maintenant
+                                                ✨ Réserver Maintenant
                                             </Button>
                                         </div>
-                                    </div>
-                                </div>
-                            ))
-                        )}
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )
+                        }
                     </div>
                 )}
             </div>

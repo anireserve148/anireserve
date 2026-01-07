@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes } from '../../constants';
 import { api } from '../../services/api';
+import { ClientTagBadge } from '../../components/ClientTagBadge';
 
 interface Client {
     id: string;
@@ -23,6 +24,8 @@ interface Client {
     totalBookings: number;
     totalSpent: number;
     lastVisit: string;
+    notesCount?: number;  // CRM: Nombre de notes
+    tags?: string[];  // CRM: Tags du client
 }
 
 export default function ProClientsScreen() {
@@ -79,7 +82,21 @@ export default function ProClientsScreen() {
                 <Text style={styles.clientStats}>
                     {item.totalBookings} réservations • {item.totalSpent}₪ total
                 </Text>
-                <Text style={styles.lastVisit}>Dernière visite: {formatDate(item.lastVisit)}</Text>
+                {item.notesCount && item.notesCount > 0 ? (
+                    <View style={styles.notesIndicator}>
+                        <Ionicons name="document-text" size={12} color={Colors.secondary} />
+                        <Text style={styles.notesText}>{item.notesCount} note{item.notesCount > 1 ? 's' : ''}</Text>
+                    </View>
+                ) : (
+                    <Text style={styles.lastVisit}>Dernière visite: {formatDate(item.lastVisit)}</Text>
+                )}
+                {item.tags && item.tags.length > 0 && (
+                    <View style={styles.tagsRow}>
+                        {item.tags.map((tag) => (
+                            <ClientTagBadge key={tag} tag={tag} small />
+                        ))}
+                    </View>
+                )}
             </View>
             <View style={styles.clientActions}>
                 <TouchableOpacity
@@ -230,6 +247,23 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: Spacing.sm,
+    },
+    notesIndicator: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: Spacing.xs,
+        gap: 4,
+    },
+    notesText: {
+        fontSize: FontSizes.xs,
+        color: Colors.secondary,
+        fontWeight: '600',
+    },
+    tagsRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginTop: Spacing.xs,
+        gap: 4,
     },
     emptyContainer: {
         flex: 1,

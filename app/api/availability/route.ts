@@ -26,7 +26,7 @@ function overlaps(a: { start: Date; end: Date }, b: { start: Date; end: Date }):
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams
-        const professionalId = searchParams.get('professionalId')
+        const professionalId = searchParams.get('professionalId') || searchParams.get('proId')
         const from = searchParams.get('from')
         const to = searchParams.get('to')
         const granularity = (searchParams.get('granularity') as SlotGranularity) || '30m'
@@ -42,6 +42,14 @@ export async function GET(request: NextRequest) {
             where: { id: professionalId },
             include: {
                 availability: true,
+                blockedPeriods: {
+                    where: {
+                        ...(from && to ? {
+                            startDate: { lte: new Date(to) },
+                            endDate: { gte: new Date(from) }
+                        } : {})
+                    }
+                },
                 reservations: {
                     where: {
                         status: { in: ['CONFIRMED', 'PENDING'] },
@@ -63,11 +71,17 @@ export async function GET(request: NextRequest) {
         const startDate = from ? new Date(from) : new Date()
         const endDate = to ? new Date(to) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000)
 
-        // Build busy windows from reservations (from old platform logic)
-        const busyWindows = proProfile.reservations.map(res => ({
-            start: new Date(res.startDate),
-            end: new Date(res.endDate)
-        }))
+        // Build busy windows from reservations and blocked periods
+        const busyWindows = [
+            ...proProfile.reservations.map(res => ({
+                start: new Date(res.startDate),
+                end: new Date(res.endDate)
+            })),
+            ...proProfile.blockedPeriods.map(period => ({
+                start: new Date(period.startDate),
+                end: new Date(period.endDate)
+            }))
+        ]
 
         // Loop through each day
         for (let day = new Date(startDate); day <= endDate; day.setDate(day.getDate() + 1)) {
@@ -112,6 +126,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             slots,
+            availability: proProfile.availability,
             granularity,
             professional: {
                 id: proProfile.id,

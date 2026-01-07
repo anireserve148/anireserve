@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#2eb190"
+      "backgroundColor": "#001F3F"
     },
     "ios": {
       "supportsTablet": true,
@@ -24,7 +24,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#2eb190"
+        "backgroundColor": "#001F3F"
       },
       "package": "com.anireserve.app",
       "edgeToEdgeEnabled": true,

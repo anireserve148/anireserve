@@ -16,12 +16,14 @@ import { storage } from '../../services/storage';
 import { api } from '../../services/api';
 import { User } from '../../types';
 import { Colors, Spacing, FontSizes } from '../../constants';
+import { RoleSwitchButton } from '../../components/RoleSwitchButton';
 
 export default function ProfileScreen() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
+    const [hasProProfile, setHasProProfile] = useState(false);
 
     useEffect(() => {
         loadUser();
@@ -30,6 +32,14 @@ export default function ProfileScreen() {
     const loadUser = async () => {
         const userData = await storage.getUser();
         setUser(userData);
+
+        // Check if user has an APPROVED PRO profile
+        if (userData?.role === 'PRO') {
+            const proProfile = await api.getProProfile();
+            // Only show switch button if profile exists AND is approved
+            setHasProProfile(proProfile && proProfile.verificationStatus === 'APPROVED');
+        }
+
         setIsLoading(false);
     };
 
@@ -143,6 +153,9 @@ export default function ProfileScreen() {
 
             {/* Content Section */}
             <View style={styles.contentSection}>
+                {/* Role Switch Button */}
+                <RoleSwitchButton currentRole="CLIENT" hasProProfile={hasProProfile} />
+
                 <Text style={styles.sectionTitle}>Compte</Text>
                 <View style={styles.menuGroup}>
                     <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/edit-profile')}>

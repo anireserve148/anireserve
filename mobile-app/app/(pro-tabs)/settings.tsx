@@ -16,6 +16,7 @@ import { ProColors, Spacing, FontSizes, Shadows } from '../../constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../../services/api';
 import { storage } from '../../services/storage';
+import { RoleSwitchButton } from '../../components/RoleSwitchButton';
 
 interface MenuItem {
     icon: keyof typeof Ionicons.glyphMap;
@@ -163,6 +164,11 @@ export default function ProSettingsScreen() {
                     <Text style={styles.statValue}>⭐ --</Text>
                     <Text style={styles.statLabel}>Note</Text>
                 </View>
+            </View>
+
+            {/* Role Switch Button */}
+            <View style={{ paddingHorizontal: Spacing.lg }}>
+                <RoleSwitchButton currentRole="PRO" hasProProfile={true} />
             </View>
 
             {/* Profile Section */}

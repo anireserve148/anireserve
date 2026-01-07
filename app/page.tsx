@@ -272,6 +272,123 @@ export default async function Home({
               </div>
             </div>
           </section>
+
+          {/* Services Phares Section */}
+          <section className="py-16 px-4 bg-white/50">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl sm:text-4xl font-black mb-4">Nos Services Phares</h2>
+                <p className="text-muted-foreground text-lg">Trouvez le professionnel qu'il vous faut</p>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {/* Ménage */}
+                <Link
+                  href="/?category=menage#search"
+                  className="group bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary/30 hover:shadow-lg transition-all text-center"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-2xl">🏠</span>
+                  </div>
+                  <h3 className="font-bold text-sm mb-1">Ménage</h3>
+                  <p className="text-xs text-muted-foreground">& Repassage</p>
+                </Link>
+
+                {/* Garde d'enfants */}
+                <Link
+                  href="/?category=garde#search"
+                  className="group bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary/30 hover:shadow-lg transition-all text-center"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-2xl">👶</span>
+                  </div>
+                  <h3 className="font-bold text-sm mb-1">Babysitting</h3>
+                  <p className="text-xs text-muted-foreground">Garde d'enfants</p>
+                </Link>
+
+                {/* Soutien scolaire */}
+                <Link
+                  href="/?category=soutien#search"
+                  className="group bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary/30 hover:shadow-lg transition-all text-center"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-2xl">📚</span>
+                  </div>
+                  <h3 className="font-bold text-sm mb-1">Soutien</h3>
+                  <p className="text-xs text-muted-foreground">Scolaire</p>
+                </Link>
+
+                {/* Beauté */}
+                <Link
+                  href="/?category=beaute#search"
+                  className="group bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary/30 hover:shadow-lg transition-all text-center"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-2xl">💇</span>
+                  </div>
+                  <h3 className="font-bold text-sm mb-1">Beauté</h3>
+                  <p className="text-xs text-muted-foreground">& Coiffure</p>
+                </Link>
+
+                {/* Bien-être */}
+                <Link
+                  href="/?category=bien-etre#search"
+                  className="group bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary/30 hover:shadow-lg transition-all text-center"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-2xl">💆</span>
+                  </div>
+                  <h3 className="font-bold text-sm mb-1">Bien-être</h3>
+                  <p className="text-xs text-muted-foreground">& Massage</p>
+                </Link>
+
+                {/* Événementiel */}
+                <Link
+                  href="/?category=evenement#search"
+                  className="group bg-white rounded-2xl p-6 border border-gray-100 hover:border-primary/30 hover:shadow-lg transition-all text-center"
+                >
+                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-2xl">🎉</span>
+                  </div>
+                  <h3 className="font-bold text-sm mb-1">Événements</h3>
+                  <p className="text-xs text-muted-foreground">& Traiteur</p>
+                </Link>
+              </div>
+            </div>
+          </section>
+
+          {/* Pourquoi AniReserve Section */}
+          <section className="py-16 px-4">
+            <div className="max-w-5xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl sm:text-4xl font-black mb-4">Pourquoi AniReserve ?</h2>
+                <p className="text-muted-foreground text-lg">La plateforme pensée pour les francophones en Israël</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
+                  <div className="text-4xl mb-4">🇫🇷</div>
+                  <h3 className="font-bold mb-2">100% Francophone</h3>
+                  <p className="text-sm text-muted-foreground">Tous les pros parlent français</p>
+                </div>
+                <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
+                  <div className="text-4xl mb-4">✅</div>
+                  <h3 className="font-bold mb-2">Pros Vérifiés</h3>
+                  <p className="text-sm text-muted-foreground">Identité contrôlée</p>
+                </div>
+                <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
+                  <div className="text-4xl mb-4">💬</div>
+                  <h3 className="font-bold mb-2">Support WhatsApp</h3>
+                  <p className="text-sm text-muted-foreground">Aide rapide et efficace</p>
+                </div>
+                <div className="bg-white rounded-2xl p-6 border border-gray-100 text-center">
+                  <div className="text-4xl mb-4">🆓</div>
+                  <h3 className="font-bold mb-2">Inscription Gratuite</h3>
+                  <p className="text-sm text-muted-foreground">Sans engagement</p>
+                </div>
+              </div>
+            </div>
+          </section>
         </>
       )}
 

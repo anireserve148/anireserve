@@ -80,8 +80,9 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
             return true;
         },
         async jwt({ token, user, account }) {
+            // Initial sign in
             if (user) {
-                // For OAuth, fetch the user from DB to get role
+                // For OAuth, fetch the user from DB to get role and internal ID
                 if ((account?.provider === 'google' || account?.provider === 'apple') && user.email) {
                     const dbUser = await prisma.user.findUnique({
                         where: { email: user.email }
@@ -95,14 +96,25 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                     token.id = user.id;
                 }
             }
+            // Handle existing tokens that might be missing the internal ID (legacy or incomplete sessions)
+            else if (!token.id && token.email) {
+                const dbUser = await prisma.user.findUnique({
+                    where: { email: token.email }
+                });
+                if (dbUser) {
+                    token.id = dbUser.id;
+                    token.role = dbUser.role;
+                }
+            }
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
-                if (token.sub) {
-                    session.user.id = token.sub;
-                } else if (token.id) {
+                // Prioritize token.id which we set manually to dbUser.id in jwt callback
+                if (token.id) {
                     session.user.id = token.id as string;
+                } else if (token.sub) {
+                    session.user.id = token.sub;
                 }
 
                 if (token.role) {
