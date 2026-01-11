@@ -177,4 +177,71 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* ============================================
+     WCAG AA Accessibility Styles
+     ============================================ */
+  
+  /* Enhanced Focus Visible for Keyboard Navigation */
+  *:focus-visible {
+    outline: 3px solid hsl(165 56% 45%) !important;
+    outline-offset: 2px !important;
+    border-radius: 4px;
+  }
+
+  /* Specific focus for buttons */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 3px solid hsl(165 56% 45%) !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Skip to main content link for screen readers */
+  .skip-to-main {
+    position: absolute;
+    left: -9999px;
+    z-index: 999;
+    padding: 1rem 1.5rem;
+    background-color: hsl(165 56% 45%);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .skip-to-main:focus {
+    left: 50%;
+    top: 1rem;
+    transform: translateX(-50%);
+  }
+
+  /* Ensure sufficient contrast for text */
+  .text-gray-500 {
+    color: hsl(0 0% 40%) !important; /* Darker for AA compliance */
+  }
+
+  .text-gray-400 {
+    color: hsl(0 0% 35%) !important; /* Darker for AA compliance */
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :root {
+      --border: 0 0% 20%;
+      --muted-foreground: 0 0% 30%;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
