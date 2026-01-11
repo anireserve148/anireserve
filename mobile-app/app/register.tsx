@@ -122,7 +122,7 @@ export default function RegisterScreen() {
                     {isLoading ? (
                         <ActivityIndicator color={Colors.white} />
                     ) : (
-                        <Text style={styles.buttonText}>S'inscrire</Text>
+                        <Text style={styles.buttonText}>Créer un compte</Text>
                     )}
                 </TouchableOpacity>
 

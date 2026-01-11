@@ -11,12 +11,12 @@ export const Colors = {
     primaryDark: '#238B70',
 
     // Navy (textes et éléments forts)
-    secondary: '#1E3A5F',      // Navy AniReserve
+    secondary: '#18223b',      // Navy AniReserve (harmonisé avec Web)
     secondaryLight: '#2C4A6B',
     secondaryDark: '#162C47',
 
     // Accent (touches de couleur)
-    accent: '#F4D03F',         // Jaune du logo (ampoule)
+    accent: '#FFBD59',         // Gold du logo (harmonisé avec Web)
     accentLight: '#F7DC6F',
     accentDark: '#D4AC0D',
 
