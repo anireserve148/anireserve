@@ -6,13 +6,14 @@ import {
     StyleSheet,
     TouchableOpacity,
     TextInput,
-    ActivityIndicator,
+    RefreshControl,
     Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../services/api';
 import { Colors, Spacing, FontSizes } from '../../constants';
+import { ConversationSkeleton } from '../../components/Skeleton';
 
 interface Conversation {
     id: string;
@@ -124,8 +125,20 @@ export default function MessagesScreen() {
 
     if (isLoading) {
         return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={Colors.primary} />
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <View>
+                        <Text style={styles.headerTitle}>Messages</Text>
+                        <Text style={styles.headerSubtitle}>Chargement...</Text>
+                    </View>
+                </View>
+                <View style={styles.listContent}>
+                    <ConversationSkeleton />
+                    <ConversationSkeleton />
+                    <ConversationSkeleton />
+                    <ConversationSkeleton />
+                    <ConversationSkeleton />
+                </View>
             </View>
         );
     }
@@ -164,6 +177,14 @@ export default function MessagesScreen() {
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={isRefreshing}
+                        onRefresh={handleRefresh}
+                        tintColor={Colors.primary}
+                        colors={[Colors.primary]}
+                    />
+                }
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <View style={styles.emptyIconCircle}>
