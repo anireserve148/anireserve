@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
+import { sendPushNotification } from '@/lib/push-notifications';
 
 // CORS headers
 const corsHeaders = {
@@ -211,6 +212,44 @@ export async function PATCH(request: NextRequest) {
                 service: true,
             },
         });
+
+        // 🔔 Send push notification to CLIENT based on status
+        try {
+            const pro = await prisma.user.findUnique({
+                where: { id: decoded.userId },
+                select: { name: true },
+            });
+
+            const formattedDate = updated.startDate.toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'long',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            if (status === 'CONFIRMED') {
+                await sendPushNotification(
+                    reservation.clientId,
+                    '✅ Réservation confirmée !',
+                    `Votre RDV avec ${pro?.name || 'le professionnel'} le ${formattedDate} est confirmé`
+                );
+            } else if (status === 'REJECTED') {
+                await sendPushNotification(
+                    reservation.clientId,
+                    '❌ Réservation refusée',
+                    `${pro?.name || 'Le professionnel'} n'est pas disponible le ${formattedDate}`
+                );
+            } else if (status === 'COMPLETED') {
+                await sendPushNotification(
+                    reservation.clientId,
+                    '🎊 RDV terminé !',
+                    `N'oubliez pas de laisser un avis sur ${pro?.name || 'votre professionnel'}`
+                );
+            }
+        } catch (notifError) {
+            console.error('Failed to send push notification:', notifError);
+            // Don't fail the update if notification fails
+        }
 
         return NextResponse.json(updated, { headers: corsHeaders });
     } catch (error) {

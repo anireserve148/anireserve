@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
+import { sendPushNotification } from '@/lib/push-notifications';
 
 // CORS headers
 const corsHeaders = {
@@ -135,6 +136,42 @@ export async function POST(
                 content: content.trim(),
             },
         });
+
+        // 🔔 Send push notification to recipient
+        try {
+            const sender = await prisma.user.findUnique({
+                where: { id: decoded.userId },
+                select: { name: true },
+            });
+
+            // Determine recipient (the other person in the conversation)
+            const recipientId = conversation.clientId === decoded.userId
+                ? conversation.proId
+                : conversation.clientId;
+
+            // Get recipient's userId (if recipientId is a proProfile, get the userId)
+            let recipientUserId = recipientId;
+
+            // Check if recipientId is a proProfile ID
+            if (conversation.proId === recipientId) {
+                const proProfile = await prisma.proProfile.findUnique({
+                    where: { id: recipientId },
+                    select: { userId: true },
+                });
+                recipientUserId = proProfile?.userId || recipientId;
+            }
+
+            const messagePreview = content.trim().substring(0, 100);
+
+            await sendPushNotification(
+                recipientUserId,
+                `💬 ${sender?.name || 'Quelqu\'un'} vous a écrit`,
+                messagePreview
+            );
+        } catch (notifError) {
+            console.error('Failed to send push notification:', notifError);
+            // Don't fail the message if notification fails
+        }
 
         return NextResponse.json(message, { headers: corsHeaders });
     } catch (error) {

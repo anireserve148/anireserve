@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verify } from 'jsonwebtoken';
 import { z } from 'zod';
+import { sendPushNotification } from '@/lib/push-notifications';
 
 // CORS headers
 const corsHeaders = {
@@ -149,6 +150,30 @@ export async function POST(request: NextRequest) {
                 },
             },
         });
+
+        // 🔔 Send push notification to PRO
+        try {
+            const client = await prisma.user.findUnique({
+                where: { id: decoded.userId },
+                select: { name: true },
+            });
+
+            const formattedDate = new Date(startDate).toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'long',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            await sendPushNotification(
+                pro.userId,
+                '🎉 Nouvelle réservation !',
+                `${client?.name || 'Un client'} a réservé pour le ${formattedDate}`
+            );
+        } catch (notifError) {
+            console.error('Failed to send push notification:', notifError);
+            // Don't fail the reservation if notification fails
+        }
 
         return NextResponse.json(reservation, { headers: corsHeaders });
     } catch (error) {
