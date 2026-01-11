@@ -85,25 +85,36 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                 // For OAuth, fetch the user from DB to get role and internal ID
                 if ((account?.provider === 'google' || account?.provider === 'apple') && user.email) {
                     const dbUser = await prisma.user.findUnique({
-                        where: { email: user.email }
+                        where: { email: user.email },
+                        include: { proProfile: true }
                     });
                     if (dbUser) {
                         token.role = dbUser.role;
                         token.id = dbUser.id;
+                        token.hasProProfile = !!dbUser.proProfile;
                     }
                 } else {
                     token.role = user.role;
                     token.id = user.id;
+                    // Check if user has pro profile
+                    if (user.id) {
+                        const proProfile = await prisma.proProfile.findUnique({
+                            where: { userId: user.id }
+                        });
+                        token.hasProProfile = !!proProfile;
+                    }
                 }
             }
             // Handle existing tokens that might be missing the internal ID (legacy or incomplete sessions)
             else if (!token.id && token.email) {
                 const dbUser = await prisma.user.findUnique({
-                    where: { email: token.email }
+                    where: { email: token.email },
+                    include: { proProfile: true }
                 });
                 if (dbUser) {
                     token.id = dbUser.id;
                     token.role = dbUser.role;
+                    token.hasProProfile = !!dbUser.proProfile;
                 }
             }
             return token;
@@ -119,6 +130,11 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
 
                 if (token.role) {
                     session.user.role = token.role as string;
+                }
+
+                // Add hasProProfile flag for dual-role detection
+                if (typeof token.hasProProfile === 'boolean') {
+                    session.user.hasProProfile = token.hasProProfile;
                 }
             }
             return session;
