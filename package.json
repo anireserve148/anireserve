@@ -31,7 +31,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
-    "framer-motion": "^12.23.26",
+    "framer-motion": "^12.25.0",
     "googleapis": "^169.0.0",
     "ics": "^3.8.1",
     "jsonwebtoken": "^9.0.3",
