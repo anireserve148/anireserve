@@ -21,6 +21,7 @@ import { ProProfile, ServiceCategory } from '../../types';
 import { Colors, Spacing, FontSizes, Shadows } from '../../constants';
 import { Skeleton, ProCardSkeleton } from '../../components/Skeleton';
 import { AnimatedHeart } from '../../components/AnimatedHeart';
+import { ProMap } from '../../components/ProMap';
 
 const { width: screenWidth } = Dimensions.get('window');
 const CARD_WIDTH = screenWidth - 32;
@@ -41,6 +42,7 @@ export default function HomeScreen() {
     const [page, setPage] = useState(1);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
     useEffect(() => {
         loadData();
@@ -278,9 +280,34 @@ export default function HomeScreen() {
             {/* Header with Logo */}
             <View style={styles.header}>
                 <Text style={styles.logo}>AniReserve</Text>
-                <TouchableOpacity onPress={() => router.push('/(tabs)/messages')}>
-                    <Ionicons name="paper-plane-outline" size={26} color={Colors.secondary} />
-                </TouchableOpacity>
+                <View style={styles.headerRight}>
+                    {/* View Mode Toggle */}
+                    <View style={styles.toggleContainer}>
+                        <TouchableOpacity
+                            style={[styles.toggleButton, viewMode === 'list' && styles.toggleButtonActive]}
+                            onPress={() => setViewMode('list')}
+                        >
+                            <Ionicons
+                                name="list"
+                                size={18}
+                                color={viewMode === 'list' ? Colors.white : Colors.gray.medium}
+                            />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.toggleButton, viewMode === 'map' && styles.toggleButtonActive]}
+                            onPress={() => setViewMode('map')}
+                        >
+                            <Ionicons
+                                name="map"
+                                size={18}
+                                color={viewMode === 'map' ? Colors.white : Colors.gray.medium}
+                            />
+                        </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity onPress={() => router.push('/(tabs)/messages')}>
+                        <Ionicons name="paper-plane-outline" size={26} color={Colors.secondary} />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             {/* Offline Banner */}
@@ -367,51 +394,57 @@ export default function HomeScreen() {
             </View>
 
             {/* Feed */}
-            <FlatList
-                data={isLoading && filteredPros.length === 0 ? [1, 2, 3] as any : filteredPros}
-                renderItem={isLoading && filteredPros.length === 0 ? () => <ProCardSkeleton /> : renderPro}
-                keyExtractor={(item, index) => isLoading ? `skeleton-${index}` : item.id}
-                contentContainerStyle={styles.listContent}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={isLoading && filteredPros.length > 0}
-                        onRefresh={loadData}
-                        colors={[Colors.primary]}
-                        tintColor={Colors.primary}
-                    />
-                }
-                showsVerticalScrollIndicator={false}
-                onEndReached={loadMore}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={
-                    isFetchingMore ? (
-                        <View style={{ paddingVertical: 20 }}>
-                            <ActivityIndicator color={Colors.primary} />
-                        </View>
-                    ) : null
-                }
-                ListEmptyComponent={
-                    !isLoading ? (
-                        <View style={styles.emptyContainer}>
-                            <View style={styles.emptyIconContainer}>
-                                <Ionicons name="search" size={40} color={Colors.primary} />
+            {viewMode === 'map' ? (
+                <ProMap
+                    pros={filteredPros}
+                    onMarkerPress={(pro) => router.push(`/pro/${pro.id}`)}
+                />
+            ) : (
+                <FlatList
+                    data={isLoading && filteredPros.length === 0 ? [1, 2, 3] as any : filteredPros}
+                    renderItem={isLoading && filteredPros.length === 0 ? () => <ProCardSkeleton /> : renderPro}
+                    keyExtractor={(item, index) => isLoading ? `skeleton-${index}` : item.id}
+                    contentContainerStyle={styles.listContent}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={isLoading && filteredPros.length > 0}
+                            onRefresh={loadData}
+                            colors={[Colors.primary]}
+                            tintColor={Colors.primary}
+                        />
+                    }
+                    showsVerticalScrollIndicator={false}
+                    onEndReached={loadMore}
+                    onEndReachedThreshold={0.5}
+                    ListFooterComponent={
+                        isFetchingMore ? (
+                            <View style={{ paddingVertical: 20 }}>
+                                <ActivityIndicator color={Colors.primary} />
                             </View>
-                            <Text style={styles.emptyText}>Aucun pro à l'horizon</Text>
-                            <Text style={styles.emptySubtext}>Désolé, nous n'avons trouvé aucun professionnel correspondant à vos critères.</Text>
-                            <TouchableOpacity
-                                style={styles.resetButton}
-                                onPress={() => {
-                                    setSearchQuery('');
-                                    setSelectedCity('');
-                                    setSelectedCategory('');
-                                }}
-                            >
-                                <Text style={styles.resetButtonText}>Réinitialiser les filtres</Text>
-                            </TouchableOpacity>
-                        </View>
-                    ) : null
-                }
-            />
+                        ) : null
+                    }
+                    ListEmptyComponent={
+                        !isLoading ? (
+                            <View style={styles.emptyContainer}>
+                                <View style={styles.emptyIconContainer}>
+                                    <Ionicons name="search" size={40} color={Colors.primary} />
+                                </View>
+                                <Text style={styles.emptyText}>Aucun pro à l'horizon</Text>
+                                <Text style={styles.emptySubtext}>Désolé, nous n'avons trouvé aucun professionnel correspondant à vos critères.</Text>
+                                <TouchableOpacity
+                                    style={styles.resetButton}
+                                    onPress={() => {
+                                        setSearchQuery('');
+                                        setSelectedCity('');
+                                        setSelectedCategory('');
+                                    }}
+                                >
+                                    <Text style={styles.resetButtonText}>Réinitialiser les filtres</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : null
+                    }
+                />
 
             {/* City Modal */}
             <Modal visible={showCityModal} transparent animationType="slide">
@@ -515,6 +548,25 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: Colors.secondary,
         letterSpacing: -0.5,
+    },
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    toggleContainer: {
+        flexDirection: 'row',
+        backgroundColor: '#F0F0F0',
+        borderRadius: 8,
+        padding: 2,
+    },
+    toggleButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
+    },
+    toggleButtonActive: {
+        backgroundColor: Colors.primary,
     },
     offlineBanner: {
         flexDirection: 'row',
