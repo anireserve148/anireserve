@@ -1,36 +1,36 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     TouchableOpacity,
-    Animated,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes } from '../constants';
+import LottieView from 'lottie-react-native';
 
 export default function BookingSuccessScreen() {
     const { proName, date, time, duration, price } = useLocalSearchParams();
     const router = useRouter();
-    const scaleAnim = React.useRef(new Animated.Value(0)).current;
+    const animationRef = useRef<LottieView>(null);
 
-    React.useEffect(() => {
-        Animated.spring(scaleAnim, {
-            toValue: 1,
-            friction: 4,
-            useNativeDriver: true,
-        }).start();
+    useEffect(() => {
+        animationRef.current?.play();
     }, []);
 
     return (
         <View style={styles.container}>
-            {/* Success Icon */}
-            <Animated.View style={[styles.iconContainer, { transform: [{ scale: scaleAnim }] }]}>
-                <View style={styles.iconCircle}>
-                    <Ionicons name="checkmark" size={60} color={Colors.white} />
-                </View>
-            </Animated.View>
+            {/* Success Animation */}
+            <View style={styles.animationContainer}>
+                <LottieView
+                    ref={animationRef}
+                    source={require('../assets/animations/success.json')}
+                    style={styles.animation}
+                    loop={false}
+                    autoPlay
+                />
+            </View>
 
             {/* Title */}
             <Text style={styles.title}>Réservation confirmée !</Text>
@@ -117,21 +117,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    iconContainer: {
-        marginBottom: Spacing.xl,
+    animationContainer: {
+        width: 200,
+        height: 200,
+        marginBottom: Spacing.lg,
     },
-    iconCircle: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        backgroundColor: Colors.success,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: Colors.success,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-        elevation: 8,
+    animation: {
+        width: '100%',
+        height: '100%',
     },
     title: {
         fontSize: FontSizes.xxl,

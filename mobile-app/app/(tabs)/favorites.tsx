@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
     View,
     Text,
@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants';
 import { api } from '../../services/api';
 import { ProProfile } from '../../types';
+import LottieView from 'lottie-react-native';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -120,7 +121,14 @@ export default function FavoritesScreen() {
     if (favorites.length === 0) {
         return (
             <View style={styles.emptyContainer}>
-                <Ionicons name="heart-outline" size={80} color={Colors.gray.light} />
+                <View style={styles.emptyAnimationContainer}>
+                    <LottieView
+                        source={require('../../assets/animations/empty.json')}
+                        style={styles.emptyAnimation}
+                        autoPlay
+                        loop
+                    />
+                </View>
                 <Text style={styles.emptyTitle}>Aucun favori</Text>
                 <Text style={styles.emptyText}>
                     Ajoutez des professionnels à vos favoris pour les retrouver facilement
@@ -168,6 +176,15 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 32,
+    },
+    emptyAnimationContainer: {
+        width: 200,
+        height: 200,
+        marginBottom: 16,
+    },
+    emptyAnimation: {
+        width: '100%',
+        height: '100%',
     },
     emptyTitle: {
         fontSize: 20,

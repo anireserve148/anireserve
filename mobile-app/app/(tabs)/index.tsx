@@ -20,6 +20,7 @@ import { cache } from '../../services/cache';
 import { ProProfile, ServiceCategory } from '../../types';
 import { Colors, Spacing, FontSizes, Shadows } from '../../constants';
 import { Skeleton, ProCardSkeleton } from '../../components/Skeleton';
+import { AnimatedHeart } from '../../components/AnimatedHeart';
 
 const { width: screenWidth } = Dimensions.get('window');
 const CARD_WIDTH = screenWidth - 32;
@@ -248,19 +249,16 @@ export default function HomeScreen() {
 
                 {/* Footer Actions */}
                 <View style={styles.cardFooter}>
-                    <TouchableOpacity
-                        style={styles.footerAction}
-                        onPress={() => toggleLike(item.id)}
-                    >
-                        <Ionicons
-                            name={isLiked ? "heart" : "heart-outline"}
+                    <View style={styles.footerAction}>
+                        <AnimatedHeart
+                            isLiked={isLiked}
+                            onPress={() => toggleLike(item.id)}
                             size={24}
-                            color={isLiked ? "#FF3B5C" : Colors.secondary}
                         />
                         <Text style={[styles.footerActionText, isLiked && { color: '#FF3B5C' }]}>
                             {isLiked ? 'Favoris' : 'Enregistrer'}
                         </Text>
-                    </TouchableOpacity>
+                    </View>
 
                     <TouchableOpacity
                         style={[styles.footerAction, styles.bookAction]}
