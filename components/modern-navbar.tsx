@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Menu, X, LogOut, User, Calendar, Heart, MessageSquare, Home } from "lucide-react"
 import Image from "next/image"
 import { LogoutButton } from "@/components/logout-button"
+import { RoleSwitcher } from "@/components/role-switcher"
 
-export function ModernNavbar({ user }: { user?: { name?: string | null; role?: string } | null }) {
+export function ModernNavbar({ user }: { user?: { name?: string | null; role?: string; hasProProfile?: boolean } | null }) {
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -79,6 +80,11 @@ export function ModernNavbar({ user }: { user?: { name?: string | null; role?: s
                                         </Button>
                                     </Link>
                                     <div className="h-6 w-px bg-gray-200 mx-2" />
+                                    {/* Role Switcher - Only shows if user has both profiles */}
+                                    <RoleSwitcher
+                                        currentRole={(user.role as "CLIENT" | "PRO" | "ADMIN") || "CLIENT"}
+                                        hasProProfile={user.hasProProfile || false}
+                                    />
                                     <Link href={user.role === 'ADMIN' ? "/dashboard/admin" : user.role === 'PRO' ? "/dashboard/pro" : "/dashboard"}>
                                         <Button className="bg-navy text-white hover:bg-navy/90">
                                             <User className="w-4 h-4 mr-2" />
