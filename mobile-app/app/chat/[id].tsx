@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Notifications from 'expo-notifications';
 import { api } from '../../services/api';
 import { Colors, Spacing, FontSizes } from '../../constants';
 import { storage } from '../../services/storage';
@@ -50,7 +51,31 @@ export default function ChatScreen() {
     const loadMessages = async () => {
         const result = await api.getMessages(id as string);
         if (result.success && result.data) {
-            setMessages(result.data);
+            const newMessages = result.data;
+
+            // 🔔 Détecter nouveaux messages et jouer un son
+            if (messages.length > 0 && newMessages.length > messages.length) {
+                const latestMessage = newMessages[newMessages.length - 1];
+
+                // Si ce n'est pas moi qui ai envoyé le message
+                if (latestMessage.senderId !== currentUserId) {
+                    try {
+                        await Notifications.scheduleNotificationAsync({
+                            content: {
+                                title: (name as string) || 'Nouveau message',
+                                body: latestMessage.content.substring(0, 100),
+                                sound: true,
+                                data: { conversationId: id },
+                            },
+                            trigger: null, // Immédiat
+                        });
+                    } catch (error) {
+                        console.error('Failed to play notification sound:', error);
+                    }
+                }
+            }
+
+            setMessages(newMessages);
             setIsLoading(false);
         }
     };
