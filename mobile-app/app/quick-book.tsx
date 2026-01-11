@@ -15,15 +15,19 @@ import { Colors, Spacing, FontSizes } from '../constants';
 
 // Dates disponibles pour les 7 prochains jours
 const getNextDays = () => {
+    const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const monthNames = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'aoû', 'sep', 'oct', 'nov', 'déc'];
+
     const days = [];
     for (let i = 1; i <= 7; i++) {
         const date = new Date();
         date.setDate(date.getDate() + i);
+
         days.push({
             date: date.toISOString().split('T')[0],
-            dayName: date.toLocaleDateString('fr-FR', { weekday: 'short' }),
+            dayName: dayNames[date.getDay()],
             dayNum: date.getDate(),
-            month: date.toLocaleDateString('fr-FR', { month: 'short' }),
+            month: monthNames[date.getMonth()],
         });
     }
     return days;
