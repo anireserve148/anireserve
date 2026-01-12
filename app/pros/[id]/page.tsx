@@ -102,9 +102,10 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
                     Retour à l'accueil
                 </Link>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    {/* Main Content Area */}
-                    <div className="lg:col-span-2 space-y-10">
+
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+                    {/* Main Content Area - 3 columns (60%) */}
+                    <div className="lg:col-span-3 space-y-10">
                         {/* Instagram Style Header */}
                         <div className="flex flex-col md:flex-row gap-8 items-start">
                             <Avatar className="w-32 h-32 md:w-40 md:h-40 border-2 border-primary/10 p-1 bg-background">
@@ -249,8 +250,8 @@ export default async function ProProfilePage({ params }: { params: Promise<{ id:
                         </Tabs>
                     </div>
 
-                    {/* Right Column: Booking Widget */}
-                    <div className="lg:col-span-1">
+                    {/* Right Column: Booking Widget - 2 columns (40%) */}
+                    <div className="lg:col-span-2">
                         <div className="sticky top-24">
                             <BookingWidget
                                 proId={pro.id}
