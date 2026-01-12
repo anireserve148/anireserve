@@ -195,14 +195,14 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                                 onSelect={setSelectedDate}
                                 disabled={isDateDisabled}
                                 locale={fr}
-                                className="rounded-md border-0 w-full scale-125 origin-center"
+                                className="rounded-md border-0 w-full"
                                 classNames={{
-                                    head_cell: "text-muted-foreground font-bold text-sm uppercase h-12 w-12",
-                                    cell: "h-14 w-14 text-center text-base p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                                    day: "h-12 w-12 p-0 font-bold text-base hover:bg-primary/10 rounded-full transition-all",
+                                    head_cell: "text-muted-foreground font-bold text-xs uppercase h-10 w-10",
+                                    cell: "h-11 w-11 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                    day: "h-10 w-10 p-0 font-bold text-sm hover:bg-primary/10 rounded-full transition-all",
                                     day_selected: "bg-primary text-white hover:bg-primary hover:text-white focus:bg-primary focus:text-white rounded-full shadow-lg shadow-primary/20 scale-110 z-10",
                                     day_today: "bg-secondary/20 text-secondary-foreground font-black ring-2 ring-secondary/30",
-                                    caption_label: "text-base font-bold",
+                                    caption_label: "text-sm font-bold",
                                 }}
                             />
                         </div>
