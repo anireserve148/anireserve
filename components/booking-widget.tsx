@@ -197,12 +197,22 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                                 locale={fr}
                                 className="rounded-md border-0 w-full"
                                 classNames={{
+                                    months: "flex flex-col space-y-4",
+                                    month: "space-y-3",
+                                    caption: "flex flex-col items-center pt-1 relative mb-2",
+                                    caption_label: "text-sm font-bold mb-2",
+                                    nav: "flex items-center gap-3",
+                                    nav_button: "h-8 w-8 bg-white/80 hover:bg-white p-0 opacity-70 hover:opacity-100 border border-gray-200 hover:border-primary/30 rounded-lg transition-all",
+                                    nav_button_previous: "relative",
+                                    nav_button_next: "relative",
+                                    table: "w-full border-collapse mt-2",
+                                    head_row: "flex",
                                     head_cell: "text-muted-foreground font-bold text-xs uppercase h-10 w-10",
+                                    row: "flex w-full mt-1",
                                     cell: "h-11 w-11 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                                     day: "h-10 w-10 p-0 font-bold text-sm hover:bg-primary/10 rounded-full transition-all",
                                     day_selected: "bg-primary text-white hover:bg-primary hover:text-white focus:bg-primary focus:text-white rounded-full shadow-lg shadow-primary/20 scale-110 z-10",
                                     day_today: "bg-secondary/20 text-secondary-foreground font-black ring-2 ring-secondary/30",
-                                    caption_label: "text-sm font-bold",
                                 }}
                             />
                         </div>
