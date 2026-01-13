@@ -12,6 +12,7 @@ import {
 } from '@/lib/errors'
 import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 import { headers } from 'next/headers'
+import { createNotification } from './notification-actions'
 
 const sendMessageSchema = z.object({
     recipientId: z.string(),
@@ -79,7 +80,7 @@ export async function sendMessage(
         }
 
         // Create message
-        await prisma.message.create({
+        const message = await prisma.message.create({
             data: {
                 conversationId: conversation.id,
                 senderId,
@@ -93,6 +94,22 @@ export async function sendMessage(
         await prisma.conversation.update({
             where: { id: conversation.id },
             data: { lastMessageAt: new Date() }
+        });
+
+        // Get sender info for notification
+        const sender = await prisma.user.findUnique({
+            where: { id: senderId },
+            select: { name: true }
+        });
+
+        // Create notification for recipient
+        await createNotification({
+            userId: validated.recipientId,
+            type: 'MESSAGE',
+            title: `Nouveau message de ${sender?.name || 'Un utilisateur'}`,
+            message: (validated.content || 'Image').substring(0, 100),
+            link: '/dashboard/messages?convId=' + conversation.id,
+            relatedMessageId: message.id
         });
 
         revalidatePath('/dashboard/messages');
@@ -154,9 +171,9 @@ export async function getMessages(conversationId: string): Promise<ActionRespons
             where: {
                 conversationId,
                 senderId: { not: session.user.id },
-                isRead: false
+                read: false
             },
-            data: { isRead: true }
+            data: { read: true }
         });
 
         return createSuccessResponse(messages);

@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Bell, Plus, Menu } from 'lucide-react'
+import { Search, Plus, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NotificationDropdown } from '@/components/NotificationDropdown'
 
 interface ProTopbarProps {
     userName?: string
@@ -54,19 +55,7 @@ export function ProTopbar({
                 {/* Actions */}
                 <div className="flex items-center gap-4">
                     {/* Notifications */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="relative text-white hover:bg-[#1A1A2E]"
-                        onClick={() => router.push('/dashboard/messages')}
-                    >
-                        <Bell className="w-5 h-5" />
-                        {unreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#E74C3C] text-[10px] font-bold flex items-center justify-center text-white">
-                                {unreadCount > 9 ? '9+' : unreadCount}
-                            </span>
-                        )}
-                    </Button>
+                    <NotificationDropdown unreadCount={unreadCount} />
 
                     {/* New Slot Button - now navigates to agenda */}
                     <Button
