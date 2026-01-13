@@ -126,7 +126,7 @@ model Availability {
   breaks        String?     // JSON array: [{ "start": "12:00", "end": "14:00" }]
   
   createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  updatedAt     DateTime    @default(now()) @updatedAt
 
   @@unique([proProfileId, dayOfWeek])
   @@index([proProfileId])
