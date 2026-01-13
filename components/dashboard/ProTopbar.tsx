@@ -9,12 +9,14 @@ import { Input } from '@/components/ui/input'
 interface ProTopbarProps {
     userName?: string
     userRole?: string
+    unreadCount?: number
     onMenuClick?: () => void
 }
 
 export function ProTopbar({
     userName = 'Professionnel',
     userRole = 'Pro',
+    unreadCount = 0,
     onMenuClick
 }: ProTopbarProps) {
     const router = useRouter()
@@ -52,11 +54,18 @@ export function ProTopbar({
                 {/* Actions */}
                 <div className="flex items-center gap-4">
                     {/* Notifications */}
-                    <Button variant="ghost" size="icon" className="relative text-white hover:bg-[#1A1A2E]">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="relative text-white hover:bg-[#1A1A2E]"
+                        onClick={() => router.push('/dashboard/messages')}
+                    >
                         <Bell className="w-5 h-5" />
-                        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#E74C3C] text-[10px] font-bold flex items-center justify-center text-white">
-                            3
-                        </span>
+                        {unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-[#E74C3C] text-[10px] font-bold flex items-center justify-center text-white">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                        )}
                     </Button>
 
                     {/* New Slot Button - now navigates to agenda */}

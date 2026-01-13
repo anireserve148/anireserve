@@ -2,6 +2,7 @@ import { ProSidebar } from '@/components/dashboard/ProSidebar'
 import { ProTopbar } from '@/components/dashboard/ProTopbar'
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
+import { getUnreadCount } from '@/app/lib/notification-actions'
 
 export default async function ProDashboardLayout({
     children,
@@ -13,6 +14,8 @@ export default async function ProDashboardLayout({
     if (!session?.user || session.user.role !== 'PRO') {
         redirect('/login')
     }
+
+    const unreadCount = await getUnreadCount()
 
     return (
         <div className="min-h-screen bg-[#0F0F23]">
@@ -27,6 +30,7 @@ export default async function ProDashboardLayout({
                 <ProTopbar
                     userName={session.user.name || 'Professionnel'}
                     userRole="Professionnel"
+                    unreadCount={unreadCount}
                 />
                 <main className="p-4 md:p-8">
                     {children}
