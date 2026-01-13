@@ -31,12 +31,18 @@ export async function getProBusySlots(proId: string, date: Date) {
     }))
 }
 
+interface Break {
+    start: string
+    end: string
+}
+
 interface AvailabilitySlot {
     id?: string
     dayOfWeek: number
     isAvailable: boolean
     startTime: string
     endTime: string
+    breaks?: Break[]
 }
 
 export async function updateAvailability(proProfileId: string, slots: AvailabilitySlot[]) {
@@ -52,7 +58,9 @@ export async function updateAvailability(proProfileId: string, slots: Availabili
             dayOfWeek: slot.dayOfWeek,
             isAvailable: slot.isAvailable,
             startTime: slot.startTime,
-            endTime: slot.endTime
+            endTime: slot.endTime,
+            // Serialize breaks as JSON string
+            breaks: slot.breaks && slot.breaks.length > 0 ? JSON.stringify(slot.breaks) : null
         }))
 
         await prisma.availability.createMany({

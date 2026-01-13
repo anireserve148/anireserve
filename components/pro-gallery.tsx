@@ -14,6 +14,9 @@ interface GalleryPhoto {
 export function ProGallery({ photos }: { photos: GalleryPhoto[] }) {
     const [selectedPhoto, setSelectedPhoto] = useState<GalleryPhoto | null>(null)
 
+    // Debug: Log photos to verify data is received
+    console.log('ProGallery - Received photos:', photos.length, photos)
+
     if (photos.length === 0) {
         return (
             <div className="text-center py-12 bg-muted/30 rounded-lg">
@@ -31,10 +34,11 @@ export function ProGallery({ photos }: { photos: GalleryPhoto[] }) {
                         className="relative aspect-square cursor-pointer group overflow-hidden rounded-lg"
                         onClick={() => setSelectedPhoto(photo)}
                     >
-                        <img
+                        <Image
                             src={photo.imageUrl}
                             alt={photo.caption || "Photo de galerie"}
-                            className="object-cover w-full h-full transition-transform group-hover:scale-110"
+                            fill
+                            className="object-cover transition-transform group-hover:scale-110"
                         />
                         {photo.caption && (
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
@@ -56,11 +60,14 @@ export function ProGallery({ photos }: { photos: GalleryPhoto[] }) {
                             >
                                 <X className="h-5 w-5" />
                             </button>
-                            <img
-                                src={selectedPhoto.imageUrl}
-                                alt={selectedPhoto.caption || "Photo"}
-                                className="w-full h-auto max-h-[80vh] object-contain"
-                            />
+                            <div className="relative w-full h-[80vh]">
+                                <Image
+                                    src={selectedPhoto.imageUrl}
+                                    alt={selectedPhoto.caption || "Photo"}
+                                    fill
+                                    className="object-contain"
+                                />
+                            </div>
                             {selectedPhoto.caption && (
                                 <div className="bg-background p-4 border-t">
                                     <p className="text-sm text-muted-foreground">{selectedPhoto.caption}</p>

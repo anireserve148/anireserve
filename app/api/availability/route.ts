@@ -101,12 +101,36 @@ export async function GET(request: NextRequest) {
                 const dayEnd = new Date(day)
                 dayEnd.setHours(endH, endM, 0, 0)
 
+                // Parse breaks from JSON field
+                let breakWindows: Array<{ start: Date; end: Date }> = []
+                if (dayAvailability.breaks) {
+                    try {
+                        const breaks = JSON.parse(dayAvailability.breaks as string)
+                        breakWindows = breaks.map((b: { start: string; end: string }) => {
+                            const [bStartH, bStartM] = b.start.split(':').map(Number)
+                            const [bEndH, bEndM] = b.end.split(':').map(Number)
+                            const breakStart = new Date(day)
+                            breakStart.setHours(bStartH, bStartM, 0, 0)
+                            const breakEnd = new Date(day)
+                            breakEnd.setHours(bEndH, bEndM, 0, 0)
+                            return { start: breakStart, end: breakEnd }
+                        })
+                    } catch (e) {
+                        console.error('Error parsing breaks:', e)
+                    }
+                }
+
                 // Generate slots based on granularity
                 for (let slotStart = new Date(dayStart); slotStart < dayEnd;) {
                     const slotEnd = new Date(slotStart.getTime() + slotMinutes * 60 * 1000)
 
                     // Don't create slots that go past dayEnd
                     if (slotEnd > dayEnd) break
+
+                    // Check if slot overlaps with any break
+                    const isDuringBreak = breakWindows.some(breakWin =>
+                        overlaps(breakWin, { start: slotStart, end: slotEnd })
+                    )
 
                     // Check if slot overlaps with any busy window
                     const isBooked = busyWindows.some(window =>
@@ -116,7 +140,7 @@ export async function GET(request: NextRequest) {
                     slots.push({
                         start: slotStart.toISOString(),
                         end: slotEnd.toISOString(),
-                        available: !isBooked
+                        available: !isBooked && !isDuringBreak  // Exclude breaks
                     })
 
                     slotStart = slotEnd

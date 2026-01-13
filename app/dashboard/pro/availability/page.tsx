@@ -124,7 +124,8 @@ export default async function AvailabilityPage() {
                     dayOfWeek: a.dayOfWeek ?? 0,
                     isAvailable: a.isAvailable,
                     startTime: a.startTime,
-                    endTime: a.endTime
+                    endTime: a.endTime,
+                    breaks: a.breaks ? JSON.parse(a.breaks as string) : []
                 }))}
                 proProfileId={proProfile.id}
             />

@@ -45,6 +45,8 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
     const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
     const [isBooking, setIsBooking] = useState(false)
+    const [slots, setSlots] = useState<string[]>([])
+    const [loadingSlots, setLoadingSlots] = useState(false)
 
     // Use default availability if none configured
     const effectiveAvailability = availability && availability.length > 0 ? availability : DEFAULT_AVAILABILITY
@@ -60,26 +62,79 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
         return isBefore(date, startOfDay(new Date())) || !isDayAvailable(date)
     }
 
-    // Calculate available slots for the selected date
-    const getSlots = () => {
-        if (!selectedDate) return []
-        const dayOfWeek = selectedDate.getDay()
+    // Fetch available slots from API when date is selected
+    const fetchAvailableSlots = async (date: Date) => {
+        setLoadingSlots(true)
+        setSlots([])
+        setSelectedSlot(null)
 
-        const rule = effectiveAvailability.find(a => a.dayOfWeek === dayOfWeek)
-        if (!rule) return []
+        try {
+            console.log('Fetching availability for:', date, 'proId:', proId)
 
-        const slots = []
-        const start = parseInt(rule.startTime.split(':')[0])
-        const end = parseInt(rule.endTime.split(':')[0])
+            const fromDate = startOfDay(date).toISOString()
+            const toDate = new Date(date)
+            toDate.setHours(23, 59, 59, 999)
+            const toDateISO = toDate.toISOString()
 
-        // Generate hourly slots
-        for (let h = start; h < end; h++) {
-            slots.push(`${h.toString().padStart(2, '0')}:00`)
+            const response = await fetch(
+                `/api/availability?professionalId=${proId}&from=${fromDate}&to=${toDateISO}&granularity=60m`
+            )
+
+            if (!response.ok) {
+                console.error('API response not OK:', response.status)
+                return
+            }
+
+            const data = await response.json()
+            console.log('Availability API response:', data)
+
+            if (data.slots && Array.isArray(data.slots)) {
+                // Filter slots for the selected date and only available ones
+                const dateSlotsAvailable = data.slots
+                    .filter((slot: any) => {
+                        const slotDate = new Date(slot.start)
+                        return isSameDay(slotDate, date) && slot.available
+                    })
+                    .map((slot: any) => {
+                        const slotDate = new Date(slot.start)
+                        return format(slotDate, 'HH:mm')
+                    })
+
+                console.log('Available slots for selected date:', dateSlotsAvailable)
+                setSlots(dateSlotsAvailable)
+            } else {
+                console.warn('No slots in API response, using fallback')
+                // Fallback: Generate basic slots if API fails
+                const dayOfWeek = date.getDay()
+                const rule = effectiveAvailability.find(a => a.dayOfWeek === dayOfWeek)
+                if (rule) {
+                    const start = parseInt(rule.startTime.split(':')[0])
+                    const end = parseInt(rule.endTime.split(':')[0])
+                    const fallbackSlots = []
+                    for (let h = start; h < end; h++) {
+                        fallbackSlots.push(`${h.toString().padStart(2, '0')}:00`)
+                    }
+                    setSlots(fallbackSlots)
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching availability:', error)
+            toast.error('Erreur lors du chargement des créneaux')
+        } finally {
+            setLoadingSlots(false)
         }
-        return slots
     }
 
-    const slots = getSlots()
+    // Handle date selection
+    const handleDateSelect = (date: Date | undefined) => {
+        setSelectedDate(date)
+        if (date) {
+            fetchAvailableSlots(date)
+        } else {
+            setSlots([])
+            setSelectedSlot(null)
+        }
+    }
 
     const handleBook = async () => {
         // Check if user is logged in
@@ -192,7 +247,7 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                             <Calendar
                                 mode="single"
                                 selected={selectedDate}
-                                onSelect={setSelectedDate}
+                                onSelect={handleDateSelect}
                                 disabled={isDateDisabled}
                                 locale={fr}
                                 className="rounded-md border-0 w-full"
@@ -230,7 +285,11 @@ export function BookingWidget({ proId, availability, hourlyRate, services, revie
                                     {format(selectedDate, "EEEE d MMMM", { locale: fr })}
                                 </span>
                             </div>
-                            {slots.length > 0 ? (
+                            {loadingSlots ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                                </div>
+                            ) : slots.length > 0 ? (
                                 <div className="grid grid-cols-3 gap-2">
                                     {slots.map(slot => (
                                         <Button
