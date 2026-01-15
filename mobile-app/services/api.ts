@@ -384,6 +384,14 @@ class ApiService {
             method: 'DELETE',
         });
     }
+
+    // Account deletion
+    async deleteAccount(password: string): Promise<ApiResponse<{ success: boolean }>> {
+        return this.request('/api/user/account', {
+            method: 'DELETE',
+            body: JSON.stringify({ password }),
+        });
+    }
 }
 
 export const api = new ApiService();

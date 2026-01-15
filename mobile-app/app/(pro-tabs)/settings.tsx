@@ -208,16 +208,18 @@ export default function ProSettingsScreen() {
                 </View>
             </View>
 
+
             {/* Support Section */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>ℹ️ Aide & Support</Text>
                 <View style={styles.card}>
-                    {renderMenuItem({ icon: 'help-circle-outline', title: 'Centre d\'aide', subtitle: 'FAQ et guides' })}
-                    {renderMenuItem({ icon: 'chatbubble-ellipses-outline', title: 'Nous contacter', subtitle: 'Support par email' })}
-                    {renderMenuItem({ icon: 'document-outline', title: 'Conditions d\'utilisation' })}
-                    {renderMenuItem({ icon: 'shield-outline', title: 'Politique de confidentialité' }, true)}
+                    {renderMenuItem({ icon: 'help-circle-outline', title: 'Centre d\'aide', subtitle: 'FAQ et guides', route: '/help' })}
+                    {renderMenuItem({ icon: 'chatbubble-ellipses-outline', title: 'Nous contacter', subtitle: 'Support par email', route: '/help' })}
+                    {renderMenuItem({ icon: 'document-outline', title: 'Conditions d\'utilisation', route: '/terms' })}
+                    {renderMenuItem({ icon: 'shield-outline', title: 'Politique de confidentialité', route: '/privacy-policy' }, true)}
                 </View>
             </View>
+
 
             {/* Logout Button */}
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -229,7 +231,7 @@ export default function ProSettingsScreen() {
             <Text style={styles.version}>AniReserve Pro v1.0.0</Text>
 
             <View style={{ height: 100 }} />
-        </ScrollView>
+        </ScrollView >
     );
 }
 

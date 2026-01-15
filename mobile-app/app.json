@@ -18,7 +18,9 @@
       "bundleIdentifier": "com.anireserve.app",
       "usesAppleSignIn": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "AniReserve a besoin d'accéder à vos photos pour vous permettre de mettre à jour votre photo de profil ou d'ajouter des photos à votre galerie de services professionnels. Par exemple, un coiffeur peut télécharger des photos de ses réalisations pour montrer son travail aux clients potentiels.",
+        "NSPhotoLibraryAddUsageDescription": "AniReserve sauvegarde vos photos de profil et de galerie dans votre bibliothèque photos."
       }
     },
     "android": {

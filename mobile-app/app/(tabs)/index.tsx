@@ -251,16 +251,19 @@ export default function HomeScreen() {
 
                 {/* Footer Actions */}
                 <View style={styles.cardFooter}>
-                    <View style={styles.footerAction}>
-                        <AnimatedHeart
-                            isLiked={isLiked}
-                            onPress={() => toggleLike(item.id)}
+                    <TouchableOpacity
+                        style={styles.footerAction}
+                        onPress={() => toggleLike(item.id)}
+                    >
+                        <Ionicons
+                            name={isLiked ? "heart" : "heart-outline"}
                             size={24}
+                            color={isLiked ? "#FF3B5C" : Colors.secondary}
                         />
                         <Text style={[styles.footerActionText, isLiked && { color: '#FF3B5C' }]}>
                             {isLiked ? 'Favoris' : 'Enregistrer'}
                         </Text>
-                    </View>
+                    </TouchableOpacity>
 
                     <TouchableOpacity
                         style={[styles.footerAction, styles.bookAction]}
@@ -445,6 +448,7 @@ export default function HomeScreen() {
                         ) : null
                     }
                 />
+            )}
 
             {/* City Modal */}
             <Modal visible={showCityModal} transparent animationType="slide">
