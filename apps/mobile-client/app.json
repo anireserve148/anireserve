@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "AniReserve",
+    "slug": "anireserve-client",
+    "version": "1.0.0",
+    "scheme": "anireserve",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#00D9A3"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anireserve.client",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "AniReserve a besoin d'accéder à vos photos pour vous permettre de mettre à jour votre photo de profil.",
+        "NSCameraUsageDescription": "AniReserve a besoin d'accéder à votre caméra pour prendre une photo de profil."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#00D9A3"
+      },
+      "package": "com.anireserve.client"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-apple-authentication"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
