@@ -1,0 +1,11 @@
+# Ignore root node_modules
+/node_modules
+
+# Ignore other apps
+/apps/mobile-pro
+/apps/web
+
+# Ignore unnecessary files
+.git
+.github
+*.log
