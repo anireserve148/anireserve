@@ -19,7 +19,7 @@ import {
     Shadows,
     type ProProfile,
     type Review,
-} from '@anireserve/shared';
+} from '../src/shared/src';
 
 const { width } = Dimensions.get('window');
 

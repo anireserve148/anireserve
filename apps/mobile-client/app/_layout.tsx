@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { AuthProvider, ErrorBoundary } from '@anireserve/shared';
+import { AuthProvider, ErrorBoundary } from '../src/shared/src';
 
 export default function RootLayout() {
     return (

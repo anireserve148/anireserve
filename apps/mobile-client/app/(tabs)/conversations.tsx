@@ -10,7 +10,7 @@ import {
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { api, Colors, Spacing, BorderRadius, Shadows, type Conversation } from '@anireserve/shared';
+import { api, Colors, Spacing, BorderRadius, Shadows, type Conversation } from '../src/shared/src';
 
 export default function ConversationsScreen() {
     const [conversations, setConversations] = useState<Conversation[]>([]);

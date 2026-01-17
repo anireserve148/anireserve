@@ -12,7 +12,7 @@ import {
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { api, Colors, Spacing, BorderRadius, Typography } from '@anireserve/shared';
+import { api, Colors, Spacing, BorderRadius, Typography } from '../src/shared/src';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

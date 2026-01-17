@@ -10,7 +10,7 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { api, Colors, Spacing, BorderRadius, Shadows } from '@anireserve/shared';
+import { api, Colors, Spacing, BorderRadius, Shadows } from '../src/shared/src';
 
 export default function BookingScreen() {
     const { proId, proName } = useLocalSearchParams<{ proId: string; proName: string }>();

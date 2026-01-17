@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { api, Colors, Spacing, BorderRadius } from '@anireserve/shared';
+import { api, Colors, Spacing, BorderRadius } from '../src/shared/src';
 
 export default function RegisterScreen() {
     const [name, setName] = useState('');

@@ -12,7 +12,7 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { api, Colors, Spacing, BorderRadius, type Message } from '@anireserve/shared';
+import { api, Colors, Spacing, BorderRadius, type Message } from '../src/shared/src';
 
 export default function MessagesScreen() {
     const { conversationId } = useLocalSearchParams<{ conversationId: string }>();

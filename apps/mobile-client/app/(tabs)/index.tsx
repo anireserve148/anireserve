@@ -21,7 +21,7 @@ import {
     Shadows,
     SERVICE_CATEGORIES,
     type ProProfile,
-} from '@anireserve/shared';
+} from '../src/shared/src';
 
 export default function HomeScreen() {
     const [searchQuery, setSearchQuery] = useState('');

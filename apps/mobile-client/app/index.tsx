@@ -1,7 +1,7 @@
 import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Colors, Spacing, BorderRadius, Typography, Shadows } from '@anireserve/shared';
+import { Colors, Spacing, BorderRadius, Typography, Shadows } from '../src/shared/src';
 
 export default function WelcomeScreen() {
     return (

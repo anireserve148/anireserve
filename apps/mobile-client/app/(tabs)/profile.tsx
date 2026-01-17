@@ -11,7 +11,7 @@ import {
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { api, Colors, Spacing, BorderRadius, Shadows, type User } from '@anireserve/shared';
+import { api, Colors, Spacing, BorderRadius, Shadows, type User } from '../src/shared/src';
 
 export default function ProfileScreen() {
     const [user, setUser] = useState<User | null>(null);

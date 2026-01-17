@@ -10,7 +10,7 @@ import {
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { api, Colors, Spacing, BorderRadius, Shadows, type Reservation } from '@anireserve/shared';
+import { api, Colors, Spacing, BorderRadius, Shadows, type Reservation } from '../src/shared/src';
 
 export default function ReservationsScreen() {
     const [reservations, setReservations] = useState<Reservation[]>([]);
