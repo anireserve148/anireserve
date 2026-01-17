@@ -1,6 +1,6 @@
 {
     "cli": {
-        "version": ">= 13.2.0"
+        "version": ">= 13.2.5"
     },
     "build": {
         "development": {
@@ -8,24 +8,11 @@
             "distribution": "internal"
         },
         "preview": {
-            "distribution": "internal",
-            "ios": {
-                "simulator": true
-            }
+            "distribution": "internal"
         },
-        "production": {
-            "ios": {
-                "buildNumber": "1"
-            }
-        }
+        "production": {}
     },
     "submit": {
-        "production": {
-            "ios": {
-                "appleId": "your-apple-id@email.com",
-                "ascAppId": "your-asc-app-id-pro",
-                "appleTeamId": "your-team-id"
-            }
-        }
+        "production": {}
     }
 }
