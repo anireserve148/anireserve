@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: Colors.textSecondary,
     },
-    time Value: {
+    timeValue: {
         fontSize: 15,
         fontWeight: '600',
         color: Colors.proPrimary,

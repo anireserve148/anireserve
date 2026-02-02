@@ -287,6 +287,7 @@ model ProApplication {
   // Informations personnelles
   firstName       String
   lastName        String
+  companyName     String?  // Nom de l'entreprise (optionnel)
   email           String   @unique
   phone           String
   password        String   // Hashé

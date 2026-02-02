@@ -114,6 +114,7 @@ class ApiService {
     async submitProApplication(data: {
         firstName: string;
         lastName: string;
+        companyName?: string;
         email: string;
         phone: string;
         password: string;

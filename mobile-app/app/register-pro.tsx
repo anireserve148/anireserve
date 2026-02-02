@@ -39,6 +39,7 @@ export default function RegisterProScreen() {
     // Form fields
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [companyName, setCompanyName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
@@ -79,6 +80,12 @@ export default function RegisterProScreen() {
                 ? prev.filter(id => id !== categoryId)
                 : [...prev, categoryId]
         );
+    };
+
+    const toggleAllCities = () => {
+        const allCityIds = cities.map(city => city.id);
+        const allSelected = allCityIds.every(id => selectedCities.includes(id));
+        setSelectedCities(allSelected ? [] : allCityIds);
     };
 
     const pickImage = async () => {
@@ -192,6 +199,7 @@ export default function RegisterProScreen() {
         const result = await api.submitProApplication({
             firstName: firstName.trim(),
             lastName: lastName.trim(),
+            companyName: companyName.trim() || undefined,
             email: email.trim().toLowerCase(),
             phone: phone.trim(),
             password,
@@ -271,6 +279,17 @@ export default function RegisterProScreen() {
                     </View>
 
                     <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Nom de l'entreprise (optionnel)</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={companyName}
+                            onChangeText={setCompanyName}
+                            placeholder="Si vous êtes connu par le nom de votre entreprise"
+                            placeholderTextColor={Colors.gray.medium}
+                        />
+                    </View>
+
+                    <View style={styles.inputGroup}>
                         <Text style={styles.label}>Email *</Text>
                         <TextInput
                             style={styles.input}
@@ -341,6 +360,28 @@ export default function RegisterProScreen() {
 
                     <Text style={styles.label}>Villes de travail *</Text>
                     <View style={styles.checkboxGrid}>
+                        {/* Option Tout Israël */}
+                        <TouchableOpacity
+                            style={[
+                                styles.checkboxItem,
+                                cities.every(city => selectedCities.includes(city.id)) && styles.checkboxItemSelected,
+                                { width: '100%', marginBottom: Spacing.sm }
+                            ]}
+                            onPress={toggleAllCities}
+                        >
+                            <Ionicons
+                                name={cities.every(city => selectedCities.includes(city.id)) ? 'checkbox' : 'square-outline'}
+                                size={20}
+                                color={cities.every(city => selectedCities.includes(city.id)) ? Colors.primary : Colors.gray.medium}
+                            />
+                            <Text style={[
+                                styles.checkboxLabel,
+                                { fontWeight: 'bold' },
+                                cities.every(city => selectedCities.includes(city.id)) && styles.checkboxLabelSelected
+                            ]}>
+                                🇮🇱 Tout Israël
+                            </Text>
+                        </TouchableOpacity>
                         {cities.map(city => (
                             <TouchableOpacity
                                 key={city.id}

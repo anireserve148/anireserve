@@ -27,6 +27,7 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
+        companyName: "", // Nom de l'entreprise (optionnel)
         email: "",
         phone: "",
         password: "",
@@ -163,6 +164,7 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
             const result = await submitProApplication({
                 firstName: formData.firstName,
                 lastName: formData.lastName,
+                companyName: formData.companyName || undefined,
                 email: formData.email,
                 phone: formData.phone,
                 password: formData.password,
@@ -189,6 +191,15 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
             cityIds: prev.cityIds.includes(cityId)
                 ? prev.cityIds.filter(id => id !== cityId)
                 : [...prev.cityIds, cityId]
+        }))
+    }
+
+    const toggleAllCities = () => {
+        const allCityIds = cities.map(city => city.id)
+        const allSelected = allCityIds.every(id => formData.cityIds.includes(id))
+        setFormData(prev => ({
+            ...prev,
+            cityIds: allSelected ? [] : allCityIds
         }))
     }
 
@@ -278,6 +289,15 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
                             />
                         </div>
                         <div className="md:col-span-2">
+                            <Label htmlFor="companyName">Nom de l'entreprise (optionnel)</Label>
+                            <Input
+                                id="companyName"
+                                placeholder="Si vous êtes connu par le nom de votre entreprise"
+                                value={formData.companyName}
+                                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                            />
+                        </div>
+                        <div className="md:col-span-2">
                             <Label htmlFor="email">Email *</Label>
                             <Input
                                 id="email"
@@ -328,19 +348,33 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
                     <CardContent className="space-y-6">
                         <div>
                             <Label className="mb-3 block font-semibold">Villes de travail *</Label>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-48 overflow-y-auto border rounded-lg p-4 bg-white/50">
-                                {cities.map(city => (
-                                    <div key={city.id} className="flex items-center space-x-2">
-                                        <Checkbox
-                                            id={`city-${city.id}`}
-                                            checked={formData.cityIds.includes(city.id)}
-                                            onCheckedChange={() => toggleCity(city.id)}
-                                        />
-                                        <label htmlFor={`city-${city.id}`} className="text-sm cursor-pointer select-none">
-                                            {city.name}
-                                        </label>
-                                    </div>
-                                ))}
+                            <div className="border rounded-lg p-4 bg-white/50">
+                                {/* Option Tout Israël */}
+                                <div className="flex items-center space-x-2 pb-3 mb-3 border-b border-gray-200">
+                                    <Checkbox
+                                        id="all-cities"
+                                        checked={cities.every(city => formData.cityIds.includes(city.id))}
+                                        onCheckedChange={toggleAllCities}
+                                    />
+                                    <label htmlFor="all-cities" className="text-sm font-semibold cursor-pointer select-none text-primary">
+                                        🇮🇱 Tout Israël
+                                    </label>
+                                </div>
+                                {/* Liste des villes */}
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-48 overflow-y-auto">
+                                    {cities.map(city => (
+                                        <div key={city.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`city-${city.id}`}
+                                                checked={formData.cityIds.includes(city.id)}
+                                                onCheckedChange={() => toggleCity(city.id)}
+                                            />
+                                            <label htmlFor={`city-${city.id}`} className="text-sm cursor-pointer select-none">
+                                                {city.name}
+                                            </label>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
