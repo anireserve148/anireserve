@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getJWTSecret } from '@/app/lib/jwt-secret';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         const favorites = await prisma.favorite.findMany({
             where: { userId: decoded.userId },
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         const body = await request.json();
         const { proId } = body;
@@ -128,7 +129,7 @@ export async function DELETE(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         const { searchParams } = new URL(request.url);
         const proId = searchParams.get('proId');

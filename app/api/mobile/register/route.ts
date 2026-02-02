@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getJWTSecret } from '@/app/lib/jwt-secret';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
                 email: user.email,
                 role: user.role,
             },
-            process.env.NEXTAUTH_SECRET || 'fallback-secret',
+            getJWTSecret(),
             { expiresIn: '30d' }
         );
 

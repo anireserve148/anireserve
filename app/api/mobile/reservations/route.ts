@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getJWTSecret } from '@/app/lib/jwt-secret';
 import { prisma } from '@/lib/prisma';
 import { verify } from 'jsonwebtoken';
 import { z } from 'zod';
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         const reservations = await prisma.reservation.findMany({
             where: {
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         const body = await request.json();
         const result = reservationSchema.safeParse(body);
@@ -197,7 +198,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         const body = await request.json();
         const { reservationId, status } = body;

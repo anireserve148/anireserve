@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getJWTSecret } from '@/app/lib/jwt-secret';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import { sendPushNotification } from '@/lib/push-notifications';
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         // Get the pro profile for this user
         const proProfile = await prisma.proProfile.findUnique({
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         // Get the pro profile
         const proProfile = await prisma.proProfile.findUnique({
@@ -164,7 +165,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         // Get the pro profile
         const proProfile = await prisma.proProfile.findUnique({

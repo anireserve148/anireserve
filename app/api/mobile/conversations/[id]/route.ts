@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getJWTSecret } from '@/app/lib/jwt-secret';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import { sendPushNotification } from '@/lib/push-notifications';
@@ -29,7 +30,7 @@ export async function GET(
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
         const params = await props.params;
         const { id } = params;
 
@@ -97,7 +98,7 @@ export async function POST(
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
         const params = await props.params;
         const { id } = params;
 

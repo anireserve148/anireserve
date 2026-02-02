@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getJWTSecret } from '@/app/lib/jwt-secret';
 import { prisma } from '@/lib/prisma';
 import { verify } from 'jsonwebtoken';
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         // Find the pro profile for this user
         const proProfile = await prisma.proProfile.findUnique({
@@ -62,7 +63,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         const { reservationId, status } = await request.json();
 

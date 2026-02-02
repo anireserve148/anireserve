@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
+import { getJWTSecret } from '@/app/lib/jwt-secret';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -20,7 +21,7 @@ export async function verifyMobileAuth(request: NextRequest) {
 
     const token = authHeader.substring(7);
     try {
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
         return decoded;
     } catch (error) {
         return null;

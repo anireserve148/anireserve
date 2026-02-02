@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getJWTSecret } from '@/app/lib/jwt-secret';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId },
@@ -80,7 +81,7 @@ export async function PUT(request: NextRequest) {
         }
 
         const token = authHeader.substring(7);
-        const decoded = verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verify(token, getJWTSecret()) as any;
 
         const body = await request.json();
         const { name, phoneNumber, bio, hourlyRate } = body;
