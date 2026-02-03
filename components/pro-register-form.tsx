@@ -174,7 +174,11 @@ export function ProRegisterForm({ cities, categories, allCategories }: ProRegist
             })
 
             if (result.success) {
-                router.push('/register/pro/pending')
+                toast.success("Votre demande a été soumise avec succès !")
+                // Small delay to show the toast before redirecting
+                setTimeout(() => {
+                    router.push('/register/pro/pending')
+                }, 1500)
             } else {
                 toast.error(result.error || "Erreur lors de la soumission")
             }
